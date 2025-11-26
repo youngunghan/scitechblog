@@ -5,7 +5,7 @@ order: 1
 ---
 
 <div align="center">
-  <h1>Youngwoong Han</h1>
+  <h1>Youngung Han, Ph.D candidate</h1>
   <p>
     Dedicated to solving complex, real-world challenges by leveraging mathematical frameworks and advanced computational methods.<br>
     Driven by the potential of data and algorithms to create tangible impact and innovation.
@@ -72,18 +72,18 @@ I actively engage in organizations to broaden my expertise, collaborate on chall
 <p>
   <strong>Languages:</strong><br/>
   <img src="https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python"/>
-  <img src="https://img.shields.io/badge/C++-00599C?style=flat-square&logo=c%2B%2B&logoColor=white" alt="C++"/>
+  <img src="https://img.shields.io/badge/C-00599C?style=flat-square&logo=c&logoColor=white" alt="C"/>
 </p>
 <p>
   <strong>AI/ML Frameworks:</strong><br/>
   <img src="https://img.shields.io/badge/PyTorch-EE4C2C?style=flat-square&logo=pytorch&logoColor=white" alt="PyTorch"/>
   <img src="https://img.shields.io/badge/TensorFlow-FF6F00?style=flat-square&logo=tensorflow&logoColor=white" alt="TensorFlow"/>
-  <img src="https://img.shields.io/badge/Scikit--learn-F7931E?style=flat-square&logo=scikit-learn&logoColor=white" alt="Scikit-learn"/>
 </p>
 <p>
   <strong>Data Science:</strong><br/>
   <img src="https://img.shields.io/badge/Pandas-150458?style=flat-square&logo=pandas&logoColor=white" alt="Pandas"/>
   <img src="https://img.shields.io/badge/NumPy-013243?style=flat-square&logo=numpy&logoColor=white" alt="NumPy"/>
+  <img src="https://img.shields.io/badge/Scikit--learn-F7931E?style=flat-square&logo=scikit-learn&logoColor=white" alt="Scikit-learn"/>
 </p>
 
 ---
@@ -91,6 +91,6 @@ I actively engage in organizations to broaden my expertise, collaborate on chall
 ## GitHub Statistics
 
 <p align="center">
-  <img src="https://github-readme-stats.vercel.app/api?username=youngunghan&show_icons=true&theme=tokyonight" alt="Youngunghan's GitHub stats" width="48%">
-  <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=youngunghan&layout=compact&theme=tokyonight" alt="Top Langs" width="48%">
+  <img src="https://github-readme-stats.vercel.app/api?username=youngunghan&show_icons=true&theme=tokyonight&hide_border=true&bg_color=1a1b27" alt="GitHub Stats" width="48%">
+  <img src="https://github-readme-stats.vercel.app/api/top-langs/?username=youngunghan&layout=compact&theme=tokyonight&hide_border=true&bg_color=1a1b27" alt="Top Languages" width="48%">
 </p>
