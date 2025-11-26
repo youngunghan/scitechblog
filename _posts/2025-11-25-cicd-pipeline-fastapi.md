@@ -3,7 +3,7 @@ title: "Building a CI/CD Pipeline for FastAPI Application with GitHub Actions an
 date: 2025-11-25 00:00:00 +0900
 categories: [DevOps, CI/CD]
 tags: [fastapi, github-actions, aws-ec2, docker, mysql, alembic]
-author: youngunghan
+author: seoultech
 image:
   path: /assets/img/posts/cicd-pipeline/cicd_architecture_1764065137677.png
   alt: CI/CD Architecture Diagram

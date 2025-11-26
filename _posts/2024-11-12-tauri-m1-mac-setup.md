@@ -3,6 +3,7 @@ title: "Complete Guide to Setting Up a Tauri Project with M1 Mac"
 date: 2024-11-12 00:00:00 +0900
 categories: [Development, Tauri]
 tags: [tauri, react, vue, rust, m1-mac, desktop-app]
+author: seoultech
 image:
   path: /assets/img/posts/tauri-setup/my_tauri_app.png
   alt: Tauri Application Setup

@@ -3,6 +3,7 @@ title: "Fixing Unstable Y-axis Range in Matplotlib Multi-scale Data Visualizatio
 date: 2024-11-14 00:00:00 +0900
 categories: [Python, Data Visualization]
 tags: [python, matplotlib, pyplot, data-visualization, pandas]
+author: seoultech
 image:
   path: /assets/img/posts/matplotlib-yaxis/y-axis_stability.png
   alt: Y-axis Stability in Matplotlib

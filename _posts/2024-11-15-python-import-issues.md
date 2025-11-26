@@ -3,6 +3,7 @@ title: "Resolving Python Import Issues in a Frequency Analysis Project"
 date: 2024-11-15 00:00:00 +0900
 categories: [Python, Development]
 tags: [python, import, pythonpath, module, project-structure]
+author: seoultech
 image:
   path: /assets/img/posts/python-import/path_problem.png
   alt: Python Import Path Problem
