@@ -22,7 +22,7 @@ order: 1
       <img src="https://img.shields.io/badge/Blog-000000?style=flat-square&logo=rss&logoColor=white" alt="Blog"/>
     </a>
     <a href="https://hits.seeyoufarm.com">
-      <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fyoungunghan.github.io%2Fscitechblog&count_bg=%2379C83D&title_bg=%23555555&icon=&icon_color=%23E7E7E7&title=hits&edge_flat=true" alt="Hits"/>
+      <img src="https://hits.seeyoufarm.com/api/count/incr/badge.svg?url=https%3A%2F%2Fyoungunghan.github.io%2Fscitechblog&amp;count_bg=%2379C83D&amp;title_bg=%23555555&amp;icon=&amp;icon_color=%23E7E7E7&amp;title=hits&amp;edge_flat=true" alt="Hits"/>
     </a>
   </p>
 </div>
