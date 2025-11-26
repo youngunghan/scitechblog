@@ -40,16 +40,17 @@
     </ul>
   </nav>
 
-  <div class="sidebar-bottom d-flex flex-wrap  align-items-center w-100">
-    <div class="w-100 text-center mb-2">
-      <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-      <div id="busuanzi_container_site_pv"
-        style="display:none; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 8px 12px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; color: var(--sidebar-text-color);">
-        <i class="fas fa-chart-line" style="color: #2d9da8;"></i>
-        <span style="opacity: 0.8;">Total Views</span>
-        <span id="busuanzi_value_site_pv" class="fw-bold" style="color: #2d9da8;"></span>
-      </div>
+  <div class="w-100 d-flex justify-content-center mb-2">
+    <script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+    <div id="busuanzi_container_site_pv"
+      style="display:none; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 12px; padding: 8px 12px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.8rem; color: var(--sidebar-text-color);">
+      <i class="fas fa-chart-line" style="color: #2d9da8;"></i>
+      <span style="opacity: 0.8;">Total Views</span>
+      <span id="busuanzi_value_site_pv" class="fw-bold" style="color: #2d9da8;"></span>
     </div>
+  </div>
+
+  <div class="sidebar-bottom d-flex flex-wrap  align-items-center w-100">
     {% unless site.theme_mode %}
     <button type="button" class="btn btn-link nav-link" aria-label="Switch Mode" id="mode-toggle">
       <i class="fas fa-adjust"></i>
