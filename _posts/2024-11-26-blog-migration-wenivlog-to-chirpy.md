@@ -1,6 +1,6 @@
 ---
 title: "Migrating Tech Blog from WENIVLOG to Jekyll Chirpy Theme"
-date: 2025-11-26 00:00:00 +0900
+date: 2024-11-26 00:00:00 +0900
 categories: [Development, Jekyll]
 tags: [jekyll, chirpy, github-pages, blog-migration, static-site]
 author: seoultech
