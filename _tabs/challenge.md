@@ -1,6 +1,6 @@
 ---
 icon: fas fa-trophy
-order: 6
+order: 2
 ---
 
 # AI Challenge
