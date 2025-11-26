@@ -44,6 +44,28 @@ My focus lies at the intersection of theoretical foundations and high-impact app
 
 ---
 
+## Featured Projects
+
+### 📚 AI & Tech Writing
+- **[OUTTA AI Tech Blog](https://blog.outta.ai/)**
+  - Regularly publishing in-depth articles on Generative AI, LLMs, and Computer Vision.
+  - Making complex AI concepts accessible to a broader audience.
+
+### 🚀 Generative AI
+- **[2025 OUTTA Gen AI](https://github.com/youngunghan/2025-OUTTA-Gen-AI)**
+  - Comprehensive curriculum and resources for Generative AI study.
+  - Covering foundational theories to advanced application development.
+
+### 💻 Problem Solving
+- **[Algorithm & Problem Solving](https://github.com/youngunghan/Algorithm-and-Problem-Solving)**
+  - Archive of solutions for algorithmic problems (Baekjoon, Programmers).
+  - Focus on code optimization and algorithmic efficiency.
+- **[LeetCode Hub](https://github.com/youngunghan/LeetCodeHub)**
+  - Collection of LeetCode solutions with detailed explanations.
+  - Tracking progress and patterns in competitive programming.
+
+---
+
 ## Activities & Affiliations
 
 I actively engage in organizations to broaden my expertise, collaborate on challenging projects, and contribute to the community.
