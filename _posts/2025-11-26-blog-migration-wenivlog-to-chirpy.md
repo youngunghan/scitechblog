@@ -5,7 +5,7 @@ categories: [Development, Jekyll]
 tags: [jekyll, chirpy, github-pages, blog-migration, static-site]
 author: seoultech
 image:
-  path: /root/.gemini/antigravity/brain/a8ec6fdd-de89-4479-8849-0cadae1999aa/uploaded_image_1764122081749.png
+  path: /assets/img/migration/final-site.png
   alt: Migrated Blog Homepage
 ---
 
@@ -280,7 +280,7 @@ Changed GitHub Pages source in repository settings:
 2. Under "Build and deployment"
 3. Change **Source** from "Deploy from a branch" to **"GitHub Actions"**
 
-![GitHub Pages Settings](/root/.gemini/antigravity/brain/a8ec6fdd-de89-4479-8849-0cadae1999aa/uploaded_image_1764120582496.png)
+![GitHub Pages Settings](/assets/img/migration/github-pages-settings.png)
 
 **Lesson:** GitHub Pages deployment source must match your workflow method. Always verify this setting after pushing workflows.
 
@@ -421,7 +421,7 @@ HOME → ABOUT → CHALLENGE → CATEGORIES → TAGS → ARCHIVES
 - Responsive design
 - SEO optimization
 
-![Final Site](/root/.gemini/antigravity/brain/a8ec6fdd-de89-4479-8849-0cadae1999aa/uploaded_image_1764122081749.png)
+![Final Site](/assets/img/migration/final-site.png)
 
 ### Deployment Metrics
 
