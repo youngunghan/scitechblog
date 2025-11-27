@@ -31,7 +31,10 @@ order: 1
 
 ## 🔥 News
 
-- **2025.11**: Updated blog with new visitor counter and troubleshooting guides!
+- **2026.02**: Paper (**NeoNet**) accepted to **AAAI 2026 Workshop (W3PHIAI)**!
+- **2026.01**: Paper (**MAESIL**) accepted to **ICEIC 2026**!
+- **2025.11**: Paper (**MINTI**) accepted to **IEIE Fall 2025**.
+- **2025.09**: Joined **Wafflestudio** as a Backend Developer.
 - **2024.11**: Joined **SNU Medical AI** as a Researcher.
 - **2023.12**: Joined **AIDEEP** as a Senior Research Engineer.
 
