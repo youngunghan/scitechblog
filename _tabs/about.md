@@ -31,12 +31,14 @@ order: 1
 
 ## 🔥 News
 
-- **2026.02**: Paper (**NeoNet**) accepted to **AAAI 2026 Workshop (W3PHIAI)**!
-- **2026.01**: Paper (**MAESIL**) accepted to **ICEIC 2026**!
-- **2025.11**: Paper (**MINTI**) accepted to **IEIE Fall 2025**.
-- **2025.09**: Joined **Wafflestudio** as a Backend Developer.
-- **2024.11**: Joined **SNU Medical AI** as a Researcher.
-- **2023.12**: Joined **AIDEEP** as a Senior Research Engineer.
+- **[2026.02]** New paper on 3D MRI PNI Prediction accepted to **AAAI 2026 Workshop (W3PHIAI)**: *NeoNet: An End-to-End 3D MRI-Based Deep Learning Framework for Non-Invasive Prediction of Perineural Invasion via Generation-Driven Classification*
+- **[2026.01]** New paper on Self-supervised Medical Image Learning accepted to **ICEIC 2026**: *MAESIL: Masked Autoencoder for Enhanced Self-supervised Medical Image Learning*
+- **[2025.11]** New paper on Vision-Language Models accepted to **IEIE Fall 2025**: *MINTI: Micro-boundary INstructional Training for Intelligent anatomical vision-language model*
+- **[2025.09]** Joined **Wafflestudio** as a Backend Developer.
+- **[2024.11]** Joined **SNU Medical AI** as a Researcher.
+- **[2023.12]** Joined **AIDEEP** as a Senior Research Engineer.
+- **[2023.10]** Co-leading AI education initiatives at **OUTTA** as Executive & Mentor.
+- **[2020.03]** Received the **Songyee Yoon – Taekjin Kim Scholarship** from NCSoft.
 
 ---
 
