@@ -9,7 +9,7 @@ order: 1
 **Ph.D. Candidate** in Computer Science and Engineering, Seoul National University  
 **Senior Research Engineer** at AIDEEP
 
-[Email](mailto:yuhan@snu.ac.kr) | [GitHub](https://github.com/youngunghan) | [LinkedIn](https://linkedin.com/in/youngunghan) | [CV](/assets/pdf/Youngung_Han_CV.pdf)
+[Email](mailto:yuhan@snu.ac.kr) | [GitHub](https://github.com/youngunghan) | [LinkedIn](https://linkedin.com/in/youngunghan) | [CV](/scitechblog/assets/pdf/Youngung_Han_CV.pdf)
 
 ## 🚀 Research Interests
 
