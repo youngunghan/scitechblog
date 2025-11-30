@@ -5,8 +5,8 @@ categories: [AI, Bioinformatics]
 tags: [esm2, pytorch, multi-gpu, class-imbalance, protein-language-model]
 author: seoultech
 image:
-  path: /assets/img/posts/protein-classifier/architecture.png
-  alt: Model Architecture
+  path: /assets/img/posts/protein-classifier/cover_v3.png
+  alt: Protein Structure with Highlighted Mutation Analysis
 ---
 
 ## Introduction
@@ -34,8 +34,14 @@ I implemented a **Patient-Centric Ranking** analysis:
 
 The core task was to classify variants using `esm2_t33_650M_UR50D`.
 
-### Input Representation
-Simply feeding the mutant sequence isn't enough. The model needs to understand *what changed*. I designed the input to explicitly capture the difference:
+### Existing vs. Proposed Approach
+
+A standard approach in this domain often involves feeding the mutant sequence directly into the model to predict its property.
+
+![Baseline Architecture](/assets/img/posts/protein-classifier/baseline_architecture.png)
+_Figure 1: Standard Baseline Approach. The model only sees the mutant sequence, making it difficult to learn the specific impact of the mutation relative to the wild-type._
+
+However, simply feeding the mutant sequence isn't enough. The model needs to understand *what changed*. I designed the input to explicitly capture the difference:
 
 ```
 Input = Concat(E_wt, E_mut, E_mut - E_wt)
@@ -48,7 +54,7 @@ Input = Concat(E_wt, E_mut, E_mut - E_wt)
 This "Difference Vector" proved crucial for distinguishing between LOF (function loss) and GOF (function gain).
 
 ![Model Architecture](/assets/img/posts/protein-classifier/architecture.png)
-_Figure 1: The architecture of the ESM2-based Variant Classifier. It takes both Wild-Type and Mutant sequences, extracts embeddings, calculates the difference, and concatenates them before feeding into the classification head._
+_Figure 2: Our Proposed Architecture. By explicitly feeding the difference vector (Mutant - WT), the model can directly focus on the functional shift caused by the variant._
 
 ### Code Snippet: Model Architecture
 
