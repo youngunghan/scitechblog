@@ -34,13 +34,18 @@ The core task was to classify variants using `esm2_t33_650M_UR50D`.
 ### Input Representation
 Simply feeding the mutant sequence isn't enough. The model needs to understand *what changed*. I designed the input to explicitly capture the difference:
 
-$$Input = Concat(E_{wt}, E_{mut}, E_{mut} - E_{wt})$$
+```
+Input = Concat(E_wt, E_mut, E_mut - E_wt)
+```
 
-- $E_{wt}$: Embedding of the Wild-Type sequence
-- $E_{mut}$: Embedding of the Mutant sequence
-- $E_{mut} - E_{wt}$: The difference vector representing the direction of change
+- **E_wt**: Embedding of the Wild-Type sequence
+- **E_mut**: Embedding of the Mutant sequence
+- **Difference**: The vector representing the direction of change (Mutant - Wild-Type)
 
 This "Difference Vector" proved crucial for distinguishing between LOF (function loss) and GOF (function gain).
+
+![Model Architecture](/assets/img/posts/protein-classifier/architecture.png)
+_Figure 1: The architecture of the ESM2-based Variant Classifier. It takes both Wild-Type and Mutant sequences, extracts embeddings, calculates the difference, and concatenates them before feeding into the classification head._
 
 ### Code Snippet: Model Architecture
 
