@@ -4,6 +4,9 @@ date: 2025-11-30 00:00:00 +0900
 categories: [AI, Bioinformatics]
 tags: [esm2, pytorch, multi-gpu, class-imbalance, protein-language-model]
 author: seoultech
+image:
+  path: /assets/img/posts/protein-classifier/architecture.png
+  alt: Model Architecture
 ---
 
 ## Introduction
