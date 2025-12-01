@@ -6,7 +6,7 @@ tags: [VLM, Medical Imaging, Pre-training, Knowledge Graph]
 canonical_url: https://blog.outta.ai/103
 description: "Review of Knowledge-enhanced Auto Diagnosis (KAD), a model that integrates medical domain knowledge into vision-language pre-training."
 image:
-  path: /assets/img/posts/paper-reviews/kad-overview.png
+  path: /scitechblog/assets/img/posts/paper-reviews/kad-overview.png
   alt: KAD Overview
 ---
 

@@ -6,7 +6,7 @@ tags: [Segmentation, U-Net, Deep Learning, Architecture]
 canonical_url: https://blog.outta.ai/127
 description: "A review of UNet++ (IEEE TMI 2019), a powerful evolution of the U-Net architecture for medical image segmentation."
 image:
-  path: /assets/img/posts/paper-reviews/unetpp-arch.png
+  path: /scitechblog/assets/img/posts/paper-reviews/unetpp-arch.png
   alt: UNet++ Architecture
 ---
 

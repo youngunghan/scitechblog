@@ -5,7 +5,7 @@ categories: [Development, Jekyll]
 tags: [jekyll, chirpy, github-pages, blog-migration, static-site]
 author: seoultech
 image:
-  path: /assets/img/migration/final-site.png
+  path: /scitechblog/assets/img/migration/final-site.png
   alt: Migrated Blog Homepage
 ---
 
@@ -111,7 +111,7 @@ categories: [DevOps, CI/CD]
 tags: [fastapi, github-actions, aws-ec2, docker, mysql]
 author: seoultech
 image:
-  path: /assets/img/posts/cicd-pipeline/cicd_architecture.png
+  path: /scitechblog/assets/img/posts/cicd-pipeline/cicd_architecture.png
   alt: CI/CD Architecture Diagram
 ---
 
