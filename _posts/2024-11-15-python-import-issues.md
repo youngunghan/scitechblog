@@ -5,7 +5,7 @@ categories: [Python, Development]
 tags: [python, import, pythonpath, module, project-structure]
 author: seoultech
 image:
-  path: /assets/img/posts/python-import/path_problem.png
+  path: /scitechblog/assets/img/posts/python-import/path_problem.png
   alt: Python Import Path Problem
 ---
 

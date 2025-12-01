@@ -5,7 +5,7 @@ categories: ['Algorithm', 'LeetCode']
 tags: ['Algorithm', 'LeetCode', 'Medium']
 description: "Solution for LeetCode 241: Different Ways To Add Parentheses"
 image:
-  path: /assets/img/posts/algo/leetcode.png
+  path: /scitechblog/assets/img/posts/algo/leetcode.png
   alt: [LeetCode] 241. Different Ways To Add Parentheses
 ---
 

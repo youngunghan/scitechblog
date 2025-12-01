@@ -145,9 +145,9 @@ TROUBLESHOOTING_TEMPLATES_EN = {
 def get_thumbnail(source):
     # Always use platform thumbnails as requested
     if source == "boj":
-        return "/assets/img/posts/algo/baekjoon.png"
+        return "/scitechblog/assets/img/posts/algo/baekjoon.png"
     else:
-        return "/assets/img/posts/algo/leetcode.png"
+        return "/scitechblog/assets/img/posts/algo/leetcode.png"
 
 def analyze_code(code_content, lang="ko"):
     """
