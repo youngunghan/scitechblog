@@ -5,7 +5,7 @@ categories: ['Algorithm', 'LeetCode']
 tags: ['Algorithm', 'LeetCode', 'Medium']
 description: "Solution for LeetCode 3: Longest Substring Without Repeating Characters"
 image:
-  path: /scitechblog/assets/img/posts/algo/leetcode.png
+  path: /assets/img/posts/algo/leetcode.png
   alt: [LeetCode] 3. Longest Substring Without Repeating Characters
 ---
 

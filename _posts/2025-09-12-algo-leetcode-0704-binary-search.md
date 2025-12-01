@@ -5,7 +5,7 @@ categories: ['Algorithm', 'LeetCode']
 tags: ['Algorithm', 'LeetCode', 'Easy']
 description: "Solution for LeetCode 704: Binary Search"
 image:
-  path: /scitechblog/assets/img/posts/algo/leetcode.png
+  path: /assets/img/posts/algo/leetcode.png
   alt: [LeetCode] 704. Binary Search
 ---
 
