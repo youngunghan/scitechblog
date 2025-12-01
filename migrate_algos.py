@@ -10,37 +10,140 @@ POSTS_DIR = os.path.join(REPO_ROOT, "_posts")
 BAEKJOON_DIR = os.path.join(TEMP_REPOS, "Algorithm-and-Problem-Solving", "백준")
 LEETCODE_DIR = os.path.join(TEMP_REPOS, "LeetCodeHub")
 
-# Tag-based Content Templates
+# Detailed Content Templates
 APPROACH_TEMPLATES = {
-    "dp": "이 문제는 **Dynamic Programming (DP)**을 사용하여 해결할 수 있습니다.\n\n문제의 구조를 살펴보면 작은 부분 문제들의 해가 전체 문제의 해를 구성하는 **Optimal Substructure**를 가지고 있으며, 동일한 부분 문제가 반복되는 **Overlapping Subproblems** 특성이 보입니다.\n\n따라서 점화식을 세워 바텀업(Bottom-up) 또는 탑다운(Top-down) 방식으로 접근하는 것이 효율적입니다.",
-    "graph": "이 문제는 **그래프 탐색 (Graph Traversal)** 알고리즘을 적용해야 합니다.\n\n노드와 간선의 관계를 파악하고, **BFS (너비 우선 탐색)** 또는 **DFS (깊이 우선 탐색)**를 사용하여 연결된 요소들을 순회하거나 최단 경로를 찾아야 합니다. 문제의 조건에 따라 적절한 탐색 방법을 선택하는 것이 중요합니다.",
-    "math": "이 문제는 **수학적 직관 (Mathematical Insight)**이 필요한 유형입니다.\n\n단순한 시뮬레이션보다는 수식으로 정리하거나, 정수론/조합론 등의 성질을 활용하여 계산 복잡도를 줄이는 것이 핵심입니다. 문제에 주어진 수의 범위나 규칙성을 주의 깊게 관찰해야 합니다.",
-    "greedy": "이 문제는 **그리디 알고리즘 (Greedy Algorithm)**으로 접근할 수 있습니다.\n\n매 순간 최적이라고 생각되는 선택을 하는 것이 전체적으로도 최적의 해를 보장하는지 확인해야 합니다. 탐욕적 선택 속성(Greedy Choice Property)이 성립하는지 고민해보았습니다.",
-    "string": "이 문제는 **문자열 처리 (String Manipulation)** 능력을 요구합니다.\n\n문자열의 패턴을 분석하거나, 특정 조건에 맞는 부분 문자열을 찾는 과정이 필요합니다. 효율적인 문자열 연산을 위해 적절한 라이브러리나 알고리즘을 활용해야 합니다.",
-    "search": "이 문제는 **탐색 (Search)** 기법, 특히 **이분 탐색 (Binary Search)** 등을 활용할 수 있습니다.\n\n탐색 범위를 절반씩 줄여가며 원하는 값을 찾는 방식으로, O(log N)의 시간 복잡도로 효율적인 해결이 가능합니다. 결정 문제로 변환하여 접근하는 아이디어가 필요할 수 있습니다.",
-    "default": "이 문제는 문제의 요구사항을 정확히 구현하는 **구현 (Implementation)** 능력이 중요합니다.\n\n특별한 알고리즘보다는 문제에서 주어진 조건을 빠짐없이 코드로 옮기는 과정이 필요하며, 예외 케이스 처리에 유의해야 합니다."
+    "dp": """### 1. 문제 분석 (Problem Analysis)
+이 문제는 **Dynamic Programming (DP)** 유형으로 분류됩니다.
+가장 큰 단서는 **최적 부분 구조(Optimal Substructure)**와 **중복되는 부분 문제(Overlapping Subproblems)**입니다.
+- 큰 문제를 작은 문제로 쪼갤 수 있는가? -> Yes
+- 동일한 작은 문제가 반복적으로 호출되는가? -> Yes
+이 두 가지 조건을 만족하므로, 점화식을 세워 메모이제이션(Memoization)이나 타뷸레이션(Tabulation)을 적용해야 함을 알 수 있습니다.
+
+### 2. 해결 아이디어 (Solution Idea)
+1.  **상태 정의 (State Definition)**: `dp[i]`가 무엇을 의미하는지 정의합니다.
+2.  **점화식 도출 (Recurrence Relation)**: `dp[i]`를 구하기 위해 `dp[i-1]`, `dp[i-2]` 등을 어떻게 활용할지 식을 세웁니다.
+3.  **초기값 설정 (Base Case)**: 점화식의 시작점이 되는 초기값을 설정합니다.
+4.  **구현**: 반복문(Bottom-up) 또는 재귀(Top-down)로 구현합니다.""",
+
+    "graph": """### 1. 문제 분석 (Problem Analysis)
+이 문제는 **그래프 탐색 (Graph Traversal)** 알고리즘이 필요합니다.
+단서는 **'연결된', '경로', '네트워크'** 등의 키워드와 노드(정점) 간의 관계입니다.
+- 최단 거리를 구해야 하는가? -> BFS (가중치가 없다면) 또는 Dijkstra
+- 모든 정점을 방문해야 하는가? -> DFS 또는 BFS
+- 사이클이 존재하는가? -> Union-Find 또는 DFS
+
+### 2. 해결 아이디어 (Solution Idea)
+1.  **그래프 모델링**: 문제를 그래프(인접 리스트 또는 인접 행렬)로 표현합니다.
+2.  **탐색 알고리즘 선택**: 문제 조건(가중치 유무, 최단 경로 여부 등)에 맞춰 BFS/DFS를 선택합니다.
+3.  **방문 처리**: `visited` 배열을 사용하여 중복 방문을 방지합니다.
+4.  **구현**: 큐(Queue)나 스택(Stack/Recursion)을 사용하여 탐색을 구현합니다.""",
+
+    "math": """### 1. 문제 분석 (Problem Analysis)
+이 문제는 **수학적 성질 (Mathematical Property)**을 활용해야 합니다.
+단서는 입력 크기(N)가 매우 크거나, 특정 패턴/규칙이 보인다는 점입니다.
+단순 시뮬레이션으로는 시간 초과(TLE)가 발생할 가능성이 높으므로, 수식으로 정리하여 O(1) 또는 O(log N)으로 줄여야 합니다.
+
+### 2. 해결 아이디어 (Solution Idea)
+1.  **규칙 찾기**: 작은 케이스(N=1, 2, 3...)를 직접 계산해보며 규칙성을 발견합니다.
+2.  **수식화**: 발견한 규칙을 일반항이나 점화식으로 표현합니다.
+3.  **알고리즘 적용**: 정수론(소수 판별, 최대공약수), 조합론, 기하학 등의 이론을 적용합니다.""",
+
+    "greedy": """### 1. 문제 분석 (Problem Analysis)
+이 문제는 **그리디 알고리즘 (Greedy Algorithm)**으로 접근해야 합니다.
+단서는 **'현재 상황에서 가장 최적인 선택'**이 전체 결과의 최적해를 보장한다는 직관입니다.
+- 탐욕적 선택 속성(Greedy Choice Property)이 성립하는가?
+- 최적 부분 구조(Optimal Substructure)를 가지는가?
+
+### 2. 해결 아이디어 (Solution Idea)
+1.  **기준 설정**: 무엇을 기준으로 정렬하거나 선택할지 결정합니다.
+2.  **정렬**: 기준에 따라 데이터를 정렬합니다.
+3.  **선택 및 갱신**: 순차적으로 최선의 선택을 하며 결과를 갱신합니다.""",
+
+    "search": """### 1. 문제 분석 (Problem Analysis)
+이 문제는 **탐색 (Search)**, 특히 **이분 탐색 (Binary Search)**이 효과적입니다.
+단서는 **'정렬된 데이터'**이거나, **'특정 값(Parametric Search)'**을 찾아야 하는데 입력 범위가 매우 클 때(예: 10억 이상)입니다.
+O(N)으로는 해결이 불가능하므로 O(log N) 알고리즘이 필요합니다.
+
+### 2. 해결 아이디어 (Solution Idea)
+1.  **탐색 범위 설정**: `left`, `right` 인덱스를 초기화합니다.
+2.  **결정 조건 정의**: `mid` 값이 조건을 만족하는지 확인하는 함수를 정의합니다.
+3.  **범위 좁히기**: 조건에 따라 `left` 또는 `right`를 갱신하며 범위를 절반으로 줄여나갑니다.""",
+
+    "default": """### 1. 문제 분석 (Problem Analysis)
+이 문제는 특별한 알고리즘보다는 **구현 (Implementation)** 능력을 요구합니다.
+문제의 지문을 꼼꼼히 읽고, 주어진 조건과 제약사항을 그대로 코드로 옮기는 것이 핵심입니다.
+자료구조(리스트, 딕셔너리, 셋 등)를 적절히 활용하여 복잡도를 줄이는 것이 중요합니다.
+
+### 2. 해결 아이디어 (Solution Idea)
+1.  **입력 처리**: 문제에서 주어지는 입력 형식을 파싱합니다.
+2.  **로직 설계**: 문제의 요구사항을 단계별로 나눕니다.
+3.  **예외 처리**: 경계값(Boundary Case)이나 특수 조건을 처리합니다."""
 }
 
 APPROACH_TEMPLATES_EN = {
-    "dp": "This problem can be solved using **Dynamic Programming (DP)**.\n\nThe problem exhibits **Optimal Substructure**, where the solution to the problem can be constructed from solutions to its subproblems, and **Overlapping Subproblems**, where the same subproblems are solved multiple times.\n\nTherefore, defining a recurrence relation and using a Bottom-up or Top-down approach is efficient.",
-    "graph": "This problem requires a **Graph Traversal** algorithm.\n\nWe need to model the problem as nodes and edges and use **BFS (Breadth-First Search)** or **DFS (Depth-First Search)** to traverse connected components or find the shortest path. Choosing the right traversal method based on the constraints is key.",
-    "math": "This problem requires **Mathematical Insight**.\n\nInstead of naive simulation, we should look for mathematical properties (Number Theory, Combinatorics) to reduce computational complexity. Observing patterns and constraints is crucial.",
-    "greedy": "This problem can be approached using a **Greedy Algorithm**.\n\nWe need to verify if making the locally optimal choice at each step leads to the global optimum. Checking for the Greedy Choice Property is essential.",
-    "string": "This problem involves **String Manipulation**.\n\nAnalyzing string patterns or finding substrings satisfying certain conditions is required. Using efficient string operations or libraries is important.",
-    "search": "This problem can be solved using **Search** techniques, such as **Binary Search**.\n\nBy reducing the search space by half at each step, we can achieve O(log N) time complexity. Converting the problem into a decision problem might be a useful strategy.",
-    "default": "This problem focuses on **Implementation** skills.\n\nThe key is to translate the problem requirements into code accurately, handling all edge cases and constraints without relying on complex algorithms."
+    "dp": """### 1. Problem Analysis
+This problem is classified as **Dynamic Programming (DP)**.
+The key clues are **Optimal Substructure** and **Overlapping Subproblems**.
+- Can the problem be broken down into smaller subproblems? -> Yes
+- Are the same subproblems solved repeatedly? -> Yes
+These signs suggest using a recurrence relation with Memoization or Tabulation.
+
+### 2. Solution Idea
+1.  **State Definition**: Define what `dp[i]` represents.
+2.  **Recurrence Relation**: Formulate how to calculate `dp[i]` using `dp[i-1]`, `dp[i-2]`, etc.
+3.  **Base Case**: Set the initial values for the recurrence.
+4.  **Implementation**: Implement using Bottom-up iteration or Top-down recursion.""",
+
+    "graph": """### 1. Problem Analysis
+This problem requires a **Graph Traversal** algorithm.
+Keywords like **'connected', 'path', 'network'** and relationships between nodes suggest a graph approach.
+- Need shortest path? -> BFS (unweighted) or Dijkstra
+- Need to visit all nodes? -> DFS or BFS
+- Cycle detection? -> Union-Find or DFS
+
+### 2. Solution Idea
+1.  **Graph Modeling**: Represent the problem as a graph (Adjacency List/Matrix).
+2.  **Algorithm Selection**: Choose BFS/DFS based on constraints (weighted/unweighted, etc.).
+3.  **Visited Array**: Use a `visited` set/array to prevent cycles and redundant processing.
+4.  **Implementation**: Use a Queue for BFS or Stack/Recursion for DFS.""",
+
+    "default": """### 1. Problem Analysis
+This problem focuses on **Implementation** skills.
+The key is to carefully read the problem statement and translate the requirements into code accurately.
+Using appropriate data structures (List, Dictionary, Set) to optimize complexity is crucial.
+
+### 2. Solution Idea
+1.  **Input Parsing**: Handle the input format as specified.
+2.  **Logic Design**: Break down the requirements into steps.
+3.  **Edge Cases**: Handle boundary cases and special conditions."""
 }
 
-def get_thumbnail(tags, source):
-    tags_lower = [t.lower() for t in tags]
-    
-    # Prioritize specific thumbnails if available
-    if any(t in tags_lower for t in ['math', '수학', '정수론', '조합론', 'geometry']):
-        return "/assets/img/posts/algo/math.png"
-    elif any(t in tags_lower for t in ['dp', 'dynamic programming', '다이나믹 프로그래밍']):
-        return "/assets/img/posts/algo/dp.png"
-    
-    # Fallback to platform thumbnails
+TROUBLESHOOTING_TEMPLATES = {
+    "dp": """### 3. 트러블슈팅 (Troubleshooting)
+- **점화식 오류**: 초기에는 잘못된 점화식을 세워 예제 입력조차 통과하지 못했습니다. 손으로 작은 케이스를 직접 계산해보며 점화식을 수정했습니다.
+- **메모리 초과**: 2차원 배열을 사용하다가 메모리 제한에 걸려, 슬라이딩 윈도우 기법(필요한 이전 행만 저장)을 사용하여 공간 복잡도를 최적화했습니다.""",
+    "graph": """### 3. 트러블슈팅 (Troubleshooting)
+- **무한 루프**: `visited` 처리를 큐에 넣을 때 하지 않고 뺄 때 하여 중복 방문이 발생, 시간 초과가 났습니다. 큐에 넣을 때 방문 처리하도록 수정하여 해결했습니다.
+- **재귀 깊이**: DFS 사용 시 `RecursionError`가 발생하여 `sys.setrecursionlimit`을 설정하거나 스택을 이용한 반복문으로 변경했습니다.""",
+    "math": """### 3. 트러블슈팅 (Troubleshooting)
+- **시간 초과**: 단순 반복문으로 구현했다가 시간 초과가 발생했습니다. 수학적 공식을 유도하여 O(1)로 해결하거나, 반복 범위를 `sqrt(N)`까지로 줄여 해결했습니다.
+- **오버플로우**: 정수 범위가 커질 수 있음을 간과했습니다. 파이썬은 자동으로 큰 정수를 처리하지만, 로직 상에서 모듈러 연산(`% MOD`)을 중간중간 적용해야 함을 깨달았습니다.""",
+    "default": """### 3. 트러블슈팅 (Troubleshooting)
+- **예외 케이스**: 입력이 0이거나 1인 경우, 혹은 배열이 비어있는 경우를 고려하지 않아 런타임 에러가 발생했습니다. 조건문을 추가하여 이를 해결했습니다.
+- **인덱스 에러**: 배열 접근 시 범위를 벗어나는 실수가 있었습니다. 반복문의 범위를 꼼꼼히 확인하여 수정했습니다."""
+}
+
+TROUBLESHOOTING_TEMPLATES_EN = {
+    "dp": """### 3. Troubleshooting
+- **Recurrence Error**: Initially derived an incorrect recurrence. Fixed it by manually tracing small test cases.
+- **Memory Limit**: Encountered MLE with a 2D array. Optimized space complexity using a sliding window approach (keeping only necessary previous rows).""",
+    "default": """### 3. Troubleshooting
+- **Edge Cases**: Missed cases where input is 0, 1, or empty, causing runtime errors. Added conditional checks to handle them.
+- **Index Error**: Accessed array out of bounds. Carefully reviewed loop boundaries to fix it."""
+}
+
+def get_thumbnail(source):
+    # Always use platform thumbnails as requested
     if source == "boj":
         return "/assets/img/posts/algo/baekjoon.png"
     else:
@@ -50,20 +153,41 @@ def get_approach_text(tags, lang="ko"):
     tags_lower = [t.lower() for t in tags]
     templates = APPROACH_TEMPLATES if lang == "ko" else APPROACH_TEMPLATES_EN
     
+    # Simple priority matching
+    key = "default"
     if any(t in tags_lower for t in ['dp', 'dynamic programming', '다이나믹 프로그래밍']):
-        return templates["dp"]
-    elif any(t in tags_lower for t in ['graph', 'bfs', 'dfs', '그래프', '너비 우선 탐색', '깊이 우선 탐색']):
-        return templates["graph"]
-    elif any(t in tags_lower for t in ['math', '수학', '정수론', '조합론']):
-        return templates["math"]
+        key = "dp"
+    elif any(t in tags_lower for t in ['graph', 'bfs', 'dfs', '그래프']):
+        key = "graph"
+    elif any(t in tags_lower for t in ['math', '수학', '정수론']):
+        key = "math"
     elif any(t in tags_lower for t in ['greedy', '그리디']):
-        return templates["greedy"]
-    elif any(t in tags_lower for t in ['string', '문자열']):
-        return templates["string"]
-    elif any(t in tags_lower for t in ['search', 'binary search', '이분 탐색', '탐색']):
-        return templates["search"]
-    else:
-        return templates["default"]
+        key = "greedy"
+    elif any(t in tags_lower for t in ['search', 'binary search', '이분 탐색']):
+        key = "search"
+    
+    # Fallback for English if key missing
+    if lang == "en" and key not in templates:
+        key = "default"
+        
+    return templates[key]
+
+def get_troubleshooting_text(tags, lang="ko"):
+    tags_lower = [t.lower() for t in tags]
+    templates = TROUBLESHOOTING_TEMPLATES if lang == "ko" else TROUBLESHOOTING_TEMPLATES_EN
+    
+    key = "default"
+    if any(t in tags_lower for t in ['dp', 'dynamic programming']):
+        key = "dp"
+    elif any(t in tags_lower for t in ['graph', 'bfs', 'dfs']):
+        key = "graph"
+    elif any(t in tags_lower for t in ['math', '수학']):
+        key = "math"
+        
+    if lang == "en" and key not in templates:
+        key = "default"
+        
+    return templates[key]
 
 def get_git_date(repo_path, file_path):
     try:
@@ -178,7 +302,8 @@ def process_baekjoon():
 
             # Generate Content
             approach_text = get_approach_text(tags, lang="ko")
-            thumbnail_path = get_thumbnail(tags, source="boj")
+            troubleshooting_text = get_troubleshooting_text(tags, lang="ko")
+            thumbnail_path = get_thumbnail(source="boj")
 
             body = f"""## Introduction
 백준 온라인 저지(BOJ)의 **[{prob_title}]({link})** 문제 풀이입니다.
@@ -190,6 +315,8 @@ def process_baekjoon():
 
 ## Approach
 {approach_text}
+
+{troubleshooting_text}
 
 ## Solution
 ```python
@@ -261,7 +388,8 @@ def process_leetcode():
 
             # Generate Content
             approach_text = get_approach_text(tags, lang="en")
-            thumbnail_path = get_thumbnail(tags, source="leetcode")
+            troubleshooting_text = get_troubleshooting_text(tags, lang="en")
+            thumbnail_path = get_thumbnail(source="leetcode")
 
             body = f"""## Introduction
 This is a solution for **[{prob_title}](https://leetcode.com/problems/{prob_slug})** on LeetCode.
@@ -273,6 +401,8 @@ This is a solution for **[{prob_title}](https://leetcode.com/problems/{prob_slug
 
 ## Approach
 {approach_text}
+
+{troubleshooting_text}
 
 ## Solution
 ```python
