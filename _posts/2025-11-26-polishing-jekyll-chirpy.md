@@ -5,7 +5,7 @@ categories: [Development, Jekyll]
 tags: [jekyll, chirpy, troubleshooting, ui-ux, markdown]
 author: seoultech
 image:
-  path: /scitechblog/assets/img/posts/polishing/badges-fix.png
+  path: assets/img/posts/polishing/badges-fix.png
   alt: Badge Layout Fix
 ---
 

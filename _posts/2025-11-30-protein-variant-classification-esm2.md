@@ -5,7 +5,7 @@ categories: [AI, Bioinformatics]
 tags: [esm2, pytorch, multi-gpu, class-imbalance, protein-language-model]
 author: seoultech
 image:
-  path: /scitechblog/assets/img/posts/protein-classifier/cover_v3.png
+  path: assets/img/posts/protein-classifier/cover_v3.png
   alt: Protein Structure with Highlighted Mutation Analysis
 ---
 

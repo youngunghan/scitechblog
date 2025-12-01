@@ -5,7 +5,7 @@ categories: ['Algorithm', 'Baekjoon']
 tags: ['Algorithm', 'Baekjoon', '구현']
 description: "백준 2557번: Hello World 풀이"
 image:
-  path: /scitechblog/assets/img/posts/algo/baekjoon.png
+  path: assets/img/posts/algo/baekjoon.png
   alt: [BOJ] 2557. Hello World
 ---
 
