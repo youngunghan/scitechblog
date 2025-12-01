@@ -64,16 +64,22 @@ I restored `_layouts/home.html` to its original state, removing any `relative_ur
 I updated all Markdown files to use **relative paths without a leading slash**:
 
 ```yaml
-# BEFORE (Wrong)
-image:
-  path: /scitechblog/assets/img/posts/algo/leetcode.png
-
-# AFTER (Correct)
 image:
   path: assets/img/posts/algo/leetcode.png
 ```
 
-By using `assets/img/...`, I allowed the theme to correctly resolve the path to `/scitechblog/assets/img/...` during the build process.
+### 3. Layout Adjustment (The Real Fix)
+However, simply using relative paths caused issues on pagination pages (e.g., `/page2/`). The theme expects **absolute paths** (starting with `/`) to correctly prepend the `baseurl`.
+
+I modified `_layouts/home.html` to ensure all image paths start with `/`, but **without** using the `relative_url` filter (which causes double duplication).
+
+```liquid
+<!-- _layouts/home.html -->
+{% assign src = '/' | append: src | replace: '//', '/' %}
+<img src="{{ src }}" ...>
+```
+
+This forces the path to be `/assets/img/...`. The theme's internal logic then detects this absolute path and automatically prepends `/scitechblog`, resulting in the correct `/scitechblog/assets/img/...`.
 
 ## Comparison: Original vs. Fork
 
