@@ -8,6 +8,7 @@ description: "A review of UNet++ (IEEE TMI 2019), a powerful evolution of the U-
 image:
   path: assets/img/posts/paper-reviews/unetpp-arch.png
   alt: UNet++ Architecture
+math: true
 ---
 
 > **Note**: This is a review of the paper **"UNet++: Redesigning Skip Connections to Exploit Multiscale Features in Image Segmentation"** (IEEE TMI 2019).

@@ -7,6 +7,7 @@ author: seoultech
 image:
   path: assets/img/posts/python-import/path_problem.png
   alt: Python Import Path Problem
+math: true
 ---
 
 ## Project Structure
