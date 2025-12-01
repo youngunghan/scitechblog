@@ -5,7 +5,7 @@ categories: [Blogging, Troubleshooting]
 tags: [jekyll, chirpy, htmlproofer, github-pages, ci-cd]
 description: "Resolving the 'internal image does not exist' error caused by double baseurl duplication in Jekyll Chirpy theme."
 image:
-  path: assets/img/posts/python-import/path_problem.png
+  path: assets/img/posts/troubleshooting/thumbnail.png
   alt: Troubleshooting Log
 ---
 
