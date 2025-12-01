@@ -7,6 +7,7 @@ author: seoultech
 image:
   path: assets/img/posts/tauri-setup/my_tauri_app.png
   alt: Tauri Application Setup
+math: true
 ---
 
 ## Prerequisites (One-time Setup)

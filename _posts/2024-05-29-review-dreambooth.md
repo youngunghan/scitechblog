@@ -8,6 +8,7 @@ description: "A deep dive into DreamBooth (CVPR 2023), a method for personalizin
 image:
   path: assets/img/posts/paper-reviews/dreambooth-teaser.png
   alt: DreamBooth Teaser
+math: true
 ---
 
 > **Note**: This is a review of the paper **"DreamBooth: Fine Tuning Text-to-Image Diffusion Models for Subject-Driven Generation"** (CVPR 2023).

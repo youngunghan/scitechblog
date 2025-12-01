@@ -7,6 +7,7 @@ author: seoultech
 image:
   path: assets/img/posts/cicd-pipeline/cicd_architecture_1764065137677.png
   alt: CI/CD Architecture Diagram
+math: true
 ---
 
 ## Introduction

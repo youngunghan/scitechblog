@@ -7,6 +7,7 @@ description: "A classic algorithmic problem that demonstrates the power of Hash 
 image:
   path: assets/img/posts/algo/leetcode.png
   alt: "[LeetCode] 1. Two Sum"
+math: true
 ---
 
 ## Introduction
