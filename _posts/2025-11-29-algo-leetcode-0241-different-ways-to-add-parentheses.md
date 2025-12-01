@@ -65,6 +65,24 @@ Using appropriate data structures (List, Dictionary, Set) to optimize complexity
 2.  **Logic Design**: Break down the requirements into steps.
 3.  **Edge Cases**: Handle boundary cases and special conditions.
 
+### Code Analysis
+**Code Comments Analysis**:
+- Use memoization to store results of sub-expressions to avoid redundant calculations.
+- Base case: if the expression contains only a number, return it as a list of integer.
+- end if
+- Iterate through each character to find operators.
+- Divide the expression into left and right parts at the operator.
+- Recursively compute all possible results for both parts.
+- Combine every result from the left part with every result from the right part using the current operator.
+- char == '*'
+- end if
+- end for
+- end for
+- end if
+- end for
+- end def
+- end def
+
 ### 3. Troubleshooting
 - **Edge Cases**: Missed cases where input is 0, 1, or empty, causing runtime errors. Added conditional checks to handle them.
 - **Index Error**: Accessed array out of bounds. Carefully reviewed loop boundaries to fix it.

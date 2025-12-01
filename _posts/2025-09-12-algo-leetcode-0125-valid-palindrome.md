@@ -65,6 +65,14 @@ Using appropriate data structures (List, Dictionary, Set) to optimize complexity
 2.  **Logic Design**: Break down the requirements into steps.
 3.  **Edge Cases**: Handle boundary cases and special conditions.
 
+### Code Analysis
+**Code Comments Analysis**:
+- Initialize two pointers from both ends
+- Skip non-alphanumeric characters from left
+- Skip non-alphanumeric characters from right
+- Compare characters (case-insensitive)
+- Move both pointers inward
+
 ### 3. Troubleshooting
 - **Edge Cases**: Missed cases where input is 0, 1, or empty, causing runtime errors. Added conditional checks to handle them.
 - **Index Error**: Accessed array out of bounds. Carefully reviewed loop boundaries to fix it.

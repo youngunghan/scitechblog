@@ -63,6 +63,16 @@ Using appropriate data structures (List, Dictionary, Set) to optimize complexity
 2.  **Logic Design**: Break down the requirements into steps.
 3.  **Edge Cases**: Handle boundary cases and special conditions.
 
+### Code Analysis
+**Code Comments Analysis**:
+- Dictionary to track characters in current window
+- Left pointer of sliding window and result
+- Right pointer moves through the string
+- If character already exists in current window
+- Move left pointer to skip the duplicate
+- Update character's latest position
+- Update maximum length found so far
+
 ### 3. Troubleshooting
 - **Edge Cases**: Missed cases where input is 0, 1, or empty, causing runtime errors. Added conditional checks to handle them.
 - **Index Error**: Accessed array out of bounds. Carefully reviewed loop boundaries to fix it.
