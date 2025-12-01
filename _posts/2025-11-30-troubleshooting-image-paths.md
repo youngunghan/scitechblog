@@ -1,6 +1,6 @@
 ---
 title: "[Troubleshooting] Jekyll Blog Image Path & HTMLProofer Errors (Double Baseurl)"
-date: 2025-12-01 11:30:00 +0900
+date: 2025-11-30 11:30:00 +0900
 categories: [Blogging, Troubleshooting]
 tags: [jekyll, chirpy, htmlproofer, github-pages, ci-cd]
 description: "Resolving the 'internal image does not exist' error caused by double baseurl duplication in Jekyll Chirpy theme."
