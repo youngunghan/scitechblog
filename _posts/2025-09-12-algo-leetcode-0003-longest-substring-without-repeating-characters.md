@@ -53,9 +53,9 @@ Notice that the answer must be a substring, &quot;pwke&quot; is a subsequence an
 
 
 ## Approach
-The solution is implemented in Python.
+This problem focuses on **Implementation** skills.
 
-Based on the problem constraints and requirements, an efficient approach is needed. The code below demonstrates how to solve the problem within the given limits.
+The key is to translate the problem requirements into code accurately, handling all edge cases and constraints without relying on complex algorithms.
 
 ## Solution
 ```python

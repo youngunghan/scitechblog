@@ -53,9 +53,9 @@ This is a solution for **[Palindrome Number](https://leetcode.com/problems/palin
 <strong>Follow up:</strong> Could you solve it without converting the integer to a string?
 
 ## Approach
-The solution is implemented in Python.
+This problem focuses on **Implementation** skills.
 
-Based on the problem constraints and requirements, an efficient approach is needed. The code below demonstrates how to solve the problem within the given limits.
+The key is to translate the problem requirements into code accurately, handling all edge cases and constraints without relying on complex algorithms.
 
 ## Solution
 ```python
