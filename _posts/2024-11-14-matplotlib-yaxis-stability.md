@@ -5,7 +5,7 @@ categories: [Python, Data Visualization]
 tags: [python, matplotlib, pyplot, data-visualization, pandas]
 author: seoultech
 image:
-  path: /assets/img/posts/matplotlib-yaxis/y-axis_stability.png
+  path: /scitechblog/assets/img/posts/matplotlib-yaxis/y-axis_stability.png
   alt: Y-axis Stability in Matplotlib
 ---
 

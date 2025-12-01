@@ -6,7 +6,7 @@ tags: [Diffusion, Computer Vision, Personalization, Google Research]
 canonical_url: https://blog.outta.ai/73
 description: "A deep dive into DreamBooth (CVPR 2023), a method for personalizing text-to-image diffusion models with just a few subject images."
 image:
-  path: /assets/img/posts/paper-reviews/dreambooth-teaser.png
+  path: /scitechblog/assets/img/posts/paper-reviews/dreambooth-teaser.png
   alt: DreamBooth Teaser
 ---
 

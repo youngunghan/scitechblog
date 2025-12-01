@@ -5,7 +5,7 @@ categories: ['Algorithm', 'LeetCode']
 tags: ['Algorithm', 'LeetCode', 'Easy']
 description: "Solution for LeetCode 217: Contains Duplicate"
 image:
-  path: /assets/img/posts/algo/leetcode.png
+  path: /scitechblog/assets/img/posts/algo/leetcode.png
   alt: [LeetCode] 217. Contains Duplicate
 ---
 

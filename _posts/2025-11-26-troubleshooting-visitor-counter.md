@@ -5,7 +5,7 @@ categories: [Development, Jekyll]
 tags: [jekyll, chirpy, visitor-counter, troubleshooting, busuanzi, ci-cd]
 author: seoultech
 image:
-  path: /assets/img/posts/visitor-counter/final-counter.png
+  path: /scitechblog/assets/img/posts/visitor-counter/final-counter.png
   alt: Final Visitor Counter Design
 ---
 
