@@ -5,7 +5,7 @@ categories: [DevOps, CI/CD]
 tags: [fastapi, github-actions, aws-ec2, docker, mysql, alembic]
 author: seoultech
 image:
-  path: /scitechblog/assets/img/posts/cicd-pipeline/cicd_architecture_1764065137677.png
+  path: assets/img/posts/cicd-pipeline/cicd_architecture_1764065137677.png
   alt: CI/CD Architecture Diagram
 ---
 

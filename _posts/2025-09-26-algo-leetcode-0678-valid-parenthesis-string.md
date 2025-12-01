@@ -5,8 +5,8 @@ categories: ['Algorithm', 'LeetCode']
 tags: ['Algorithm', 'LeetCode', 'Medium']
 description: "Solution for LeetCode 678: Valid Parenthesis String"
 image:
-  path: /scitechblog/assets/img/posts/algo/leetcode.png
-  alt: [LeetCode] 678. Valid Parenthesis String
+  path: assets/img/posts/algo/leetcode.png
+  alt: "[LeetCode] 678. Valid Parenthesis String"
 ---
 
 ## Introduction

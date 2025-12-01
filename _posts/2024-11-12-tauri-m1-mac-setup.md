@@ -5,7 +5,7 @@ categories: [Development, Tauri]
 tags: [tauri, react, vue, rust, m1-mac, desktop-app]
 author: seoultech
 image:
-  path: /scitechblog/assets/img/posts/tauri-setup/my_tauri_app.png
+  path: assets/img/posts/tauri-setup/my_tauri_app.png
   alt: Tauri Application Setup
 ---
 

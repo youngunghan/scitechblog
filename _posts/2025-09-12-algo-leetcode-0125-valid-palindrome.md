@@ -5,8 +5,8 @@ categories: ['Algorithm', 'LeetCode']
 tags: ['Algorithm', 'LeetCode', 'Easy']
 description: "Solution for LeetCode 125: Valid Palindrome"
 image:
-  path: /scitechblog/assets/img/posts/algo/leetcode.png
-  alt: [LeetCode] 125. Valid Palindrome
+  path: assets/img/posts/algo/leetcode.png
+  alt: "[LeetCode] 125. Valid Palindrome"
 ---
 
 ## Introduction

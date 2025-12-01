@@ -5,8 +5,8 @@ categories: ['Algorithm', 'LeetCode']
 tags: ['Algorithm', 'LeetCode', 'Easy']
 description: "Solution for LeetCode 104: Maximum Depth Of Binary Tree"
 image:
-  path: /scitechblog/assets/img/posts/algo/leetcode.png
-  alt: [LeetCode] 104. Maximum Depth Of Binary Tree
+  path: assets/img/posts/algo/leetcode.png
+  alt: "[LeetCode] 104. Maximum Depth Of Binary Tree"
 ---
 
 ## Introduction
