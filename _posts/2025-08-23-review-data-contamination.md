@@ -6,7 +6,7 @@ tags: [LLM, Data Contamination, Evaluation, Pre-training]
 canonical_url: https://blog.outta.ai/339
 description: "Review of a critical study on data contamination in LLMs, questioning whether performance gains are due to memorization of test data."
 image:
-  path: /assets/img/posts/paper-reviews/contamination-factor.png
+  path: /scitechblog/assets/img/posts/paper-reviews/contamination-factor.png
   alt: Contamination Factor Analysis
 ---
 
