@@ -5,7 +5,7 @@ categories: ['Algorithm', 'LeetCode']
 tags: ['Algorithm', 'LeetCode', 'Easy']
 description: "Solution for LeetCode 9: Palindrome Number"
 image:
-  path: /scitechblog/assets/img/posts/algo/leetcode.png
+  path: /assets/img/posts/algo/leetcode.png
   alt: [LeetCode] 9. Palindrome Number
 ---
 
