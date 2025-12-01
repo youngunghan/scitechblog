@@ -86,6 +86,7 @@ layout: default
       {% assign alt = post.image.alt | xml_escape | default: 'Preview Image' %}
 
       <div class="col-md-5">
+        {% assign src = '/' | append: src | replace: '//', '/' %}
         <img src="{{ src }}" alt="{{ alt }}" {{ lqip_attr }}>
       </div>
 
