@@ -6,7 +6,7 @@ tags: ['Algorithm', 'Baekjoon', '구현']
 description: "백준 2557번: Hello World 풀이"
 image:
   path: assets/img/posts/algo/baekjoon.png
-  alt: [BOJ] 2557. Hello World
+  alt: "[BOJ] 2557. Hello World"
 ---
 
 ## Introduction

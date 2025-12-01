@@ -4,6 +4,9 @@ date: 2025-11-27 00:00:00 +0900
 categories: [Algorithm, LeetCode]
 tags: [Array, Hash Table, Python]
 description: "A classic algorithmic problem that demonstrates the power of Hash Maps for optimizing time complexity."
+image:
+  path: assets/img/posts/algo/leetcode.png
+  alt: "[LeetCode] 1. Two Sum"
 ---
 
 ## Introduction
