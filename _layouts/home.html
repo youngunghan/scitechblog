@@ -67,14 +67,10 @@ layout: default
       {% endif %}
 
       {% unless src contains '://' %}
+      {% assign src = src | relative_url %}
       {% if site.baseurl and site.baseurl != "" %}
-      {% assign baseurl_len = site.baseurl | size %}
-      {% assign src_prefix = src | slice: 0, baseurl_len %}
-      {% if src_prefix != site.baseurl %}
-      {% assign src = src | relative_url %}
-      {% endif %}
-      {% else %}
-      {% assign src = src | relative_url %}
+      {% assign double_base = site.baseurl | append: site.baseurl %}
+      {% assign src = src | replace: double_base, site.baseurl %}
       {% endif %}
       {% endunless %}
 
