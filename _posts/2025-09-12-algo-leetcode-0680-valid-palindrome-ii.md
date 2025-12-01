@@ -60,6 +60,15 @@ Using appropriate data structures (List, Dictionary, Set) to optimize complexity
 2.  **Logic Design**: Break down the requirements into steps.
 3.  **Edge Cases**: Handle boundary cases and special conditions.
 
+### Code Analysis
+**Code Comments Analysis**:
+- Use two pointers from both ends
+- If characters match, continue inward
+- First mismatch found - try deleting either character
+- Option 1: Delete left character (skip left pointer)
+- Option 2: Delete right character (skip right pointer)
+- No mismatch found - already a palindrome
+
 ### 3. Troubleshooting
 - **Edge Cases**: Missed cases where input is 0, 1, or empty, causing runtime errors. Added conditional checks to handle them.
 - **Index Error**: Accessed array out of bounds. Carefully reviewed loop boundaries to fix it.

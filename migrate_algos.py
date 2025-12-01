@@ -149,11 +149,57 @@ def get_thumbnail(source):
     else:
         return "/assets/img/posts/algo/leetcode.png"
 
-def get_approach_text(tags, lang="ko"):
+def analyze_code(code_content, lang="ko"):
+    """
+    Analyze python code to generate specific insights.
+    """
+    insights = []
+    troubleshooting = []
+    
+    # Check for comments
+    comments = re.findall(r'#\s*(.*)', code_content)
+    if comments:
+        # Filter out generic comments or encoding declarations
+        filtered_comments = [c.strip() for c in comments if not c.startswith("coding:") and len(c) > 5]
+        if filtered_comments:
+            if lang == "ko":
+                insights.append("**주석 기반 설명**:")
+            else:
+                insights.append("**Code Comments Analysis**:")
+            for c in filtered_comments:
+                insights.append(f"- {c}")
+
+    # Heuristics
+    if "sys.setrecursionlimit" in code_content:
+        if lang == "ko":
+            troubleshooting.append("- **재귀 깊이**: `sys.setrecursionlimit`을 사용하여 재귀 깊이 제한을 늘려 런타임 에러를 방지했습니다.")
+        else:
+            troubleshooting.append("- **Recursion Depth**: Increased recursion limit using `sys.setrecursionlimit` to prevent runtime errors.")
+            
+    if "sys.stdin.readline" in code_content:
+        if lang == "ko":
+            troubleshooting.append("- **입출력 속도**: `sys.stdin.readline`을 사용하여 대량의 입력을 빠르게 처리하여 시간 초과를 방지했습니다.")
+        else:
+            troubleshooting.append("- **I/O Speed**: Used `sys.stdin.readline` for fast input processing to avoid TLE.")
+            
+    if "dp =" in code_content or "dp [" in code_content:
+        if lang == "ko":
+            insights.append("- **DP 테이블**: 배열을 사용하여 중복 계산을 피하고 이전 상태값을 저장했습니다.")
+        else:
+            insights.append("- **DP Table**: Used an array to store previous states and avoid redundant calculations.")
+            
+    if "deque" in code_content:
+        if lang == "ko":
+            insights.append("- **Deque 활용**: `collections.deque`를 사용하여 큐 연산(삽입/삭제)을 O(1)로 효율적으로 처리했습니다.")
+        else:
+            insights.append("- **Deque**: Used `collections.deque` for efficient O(1) queue operations.")
+
+    return insights, troubleshooting
+
+def get_approach_text(tags, code_content, lang="ko"):
     tags_lower = [t.lower() for t in tags]
     templates = APPROACH_TEMPLATES if lang == "ko" else APPROACH_TEMPLATES_EN
     
-    # Simple priority matching
     key = "default"
     if any(t in tags_lower for t in ['dp', 'dynamic programming', '다이나믹 프로그래밍']):
         key = "dp"
@@ -166,13 +212,22 @@ def get_approach_text(tags, lang="ko"):
     elif any(t in tags_lower for t in ['search', 'binary search', '이분 탐색']):
         key = "search"
     
-    # Fallback for English if key missing
     if lang == "en" and key not in templates:
         key = "default"
         
-    return templates[key]
+    base_text = templates[key]
+    
+    # Enhance with code analysis
+    insights, _ = analyze_code(code_content, lang)
+    if insights:
+        if lang == "ko":
+            base_text += "\n\n### 코드 분석 (Code Analysis)\n" + "\n".join(insights)
+        else:
+            base_text += "\n\n### Code Analysis\n" + "\n".join(insights)
+            
+    return base_text
 
-def get_troubleshooting_text(tags, lang="ko"):
+def get_troubleshooting_text(tags, code_content, lang="ko"):
     tags_lower = [t.lower() for t in tags]
     templates = TROUBLESHOOTING_TEMPLATES if lang == "ko" else TROUBLESHOOTING_TEMPLATES_EN
     
@@ -187,7 +242,14 @@ def get_troubleshooting_text(tags, lang="ko"):
     if lang == "en" and key not in templates:
         key = "default"
         
-    return templates[key]
+    base_text = templates[key]
+    
+    # Enhance with code analysis
+    _, troubleshooting = analyze_code(code_content, lang)
+    if troubleshooting:
+        base_text += "\n" + "\n".join(troubleshooting)
+        
+    return base_text
 
 def get_git_date(repo_path, file_path):
     try:
@@ -301,8 +363,8 @@ def process_baekjoon():
                 code_content = f.read()
 
             # Generate Content
-            approach_text = get_approach_text(tags, lang="ko")
-            troubleshooting_text = get_troubleshooting_text(tags, lang="ko")
+            approach_text = get_approach_text(tags, code_content, lang="ko")
+            troubleshooting_text = get_troubleshooting_text(tags, code_content, lang="ko")
             thumbnail_path = get_thumbnail(source="boj")
 
             body = f"""## Introduction
@@ -387,8 +449,8 @@ def process_leetcode():
                 code_content = f.read()
 
             # Generate Content
-            approach_text = get_approach_text(tags, lang="en")
-            troubleshooting_text = get_troubleshooting_text(tags, lang="en")
+            approach_text = get_approach_text(tags, code_content, lang="en")
+            troubleshooting_text = get_troubleshooting_text(tags, code_content, lang="en")
             thumbnail_path = get_thumbnail(source="leetcode")
 
             body = f"""## Introduction
