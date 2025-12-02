@@ -9,7 +9,7 @@ image:
   alt: Architecture Overview
 ---
 
-![Architecture Overview](/assets/img/posts/fastapi-https/architecture_overview.png)
+
 
 # Introduction
 
@@ -21,7 +21,7 @@ The journey wasn't smooth—I encountered rate limits, missing configurations, a
 
 The system follows a standard CI/CD and containerized deployment pattern:
 
-![Architecture Diagram](/assets/img/posts/fastapi-https/architecture_overview.png)
+
 
 The architecture consists of:
 -   **FastAPI**: The backend application.
