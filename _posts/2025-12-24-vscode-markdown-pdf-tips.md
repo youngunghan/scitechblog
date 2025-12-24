@@ -37,11 +37,11 @@ The extension supports Mermaid diagrams (version 11.x as of this writing). Howev
 Certain words are reserved in Mermaid's parser:
 
 ```markdown
-<!-- ❌ Causes Syntax Error -->
+<!--  Causes Syntax Error -->
 A -->|"AND"| B
 A -->|"OR"| B
 
-<!-- ✅ Works -->
+<!--  Works -->
 A -->|"_AND_"| B
 A -->|"_OR_"| B
 ```
@@ -53,11 +53,11 @@ Use underscores to escape: `_AND_`, `_OR_`
 Content in angle brackets (`<>`) may be interpreted as HTML:
 
 ```markdown
-<!-- ❌ Error: Looks like HTML tag -->
+<!--  Error: Looks like HTML tag -->
 A -->|"response: <row>"| B
 A -->|"data: <unchanged>"| B
 
-<!-- ✅ Works: Add non-English characters -->
+<!--  Works: Add non-English characters -->
 A -->|"response: <해당row>"| B
 A -->|"data: <변경없음>"| B
 ```
@@ -67,12 +67,12 @@ A -->|"data: <변경없음>"| B
 Be especially careful with real HTML tag names:
 
 ```markdown
-<!-- ❌ ALWAYS fails -->
+<!--  ALWAYS fails -->
 <meta>
 <div>
 <span>
 
-<!-- ✅ Replace with alternatives -->
+<!--  Replace with alternatives -->
 <메타>
 <구역>
 <범위>
