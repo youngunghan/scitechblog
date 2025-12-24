@@ -258,7 +258,7 @@ git push origin master
 ### Symptom
 After successful build:
 ```
-Build and Deploy #3: ✅ Success (38s)
+Build and Deploy #3:  Success (38s)
 ```
 
 But visiting `https://youngunghan.github.io/scitechblog` showed:
@@ -403,18 +403,18 @@ scitechblog/
 
 ### Site Features
 
-✅ **Navigation:**
+ **Navigation:**
 ```
 HOME → ABOUT → CHALLENGE → CATEGORIES → TAGS → ARCHIVES
 ```
 
-✅ **Post Management:**
+ **Post Management:**
 - 4 technical posts successfully migrated
 - All images displaying correctly
 - Code syntax highlighting working
 - Korean text rendering properly
 
-✅ **Theme Features:**
+ **Theme Features:**
 - Dark/Light mode toggle
 - Search functionality
 - Category/Tag organization

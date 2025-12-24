@@ -172,7 +172,7 @@ req = urllib.request.Request(f"{domain}/api/users/", ...)
 **Result:**
 ```
 Status Code: 201
-✅ Signup Successful!
+ Signup Successful!
    - HTTPS connection: Verified
    - RDS Database Write: Verified
 ```
@@ -181,4 +181,4 @@ Status Code: 201
 
 Building a CI/CD pipeline is rarely a "set it and forget it" process on the first try. It requires careful management of environment variables, secrets, and configuration files. Through this assignment, I learned the importance of checking container logs (`docker logs`) immediately when things go wrong and ensuring that local configuration changes are properly reflected in the deployment pipeline.
 
-The final result is a fully automated, secure FastAPI server running on EC2. 🚀
+The final result is a fully automated, secure FastAPI server running on EC2. 

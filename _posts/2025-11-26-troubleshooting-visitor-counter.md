@@ -90,7 +90,7 @@ We moved the visitor counter **outside** of the `.sidebar-bottom` container and 
 ## Problem 4: UX/UI Refinement
 
 ### Symptom
-The initial design used a simple eye icon (`👁️`) and text, which felt outdated ("not cool") and lacked clarity.
+The initial design used a simple eye icon (``) and text, which felt outdated ("not cool") and lacked clarity.
 
 ### Solution
 We modernized the design using **Glassmorphism** and clear labeling:

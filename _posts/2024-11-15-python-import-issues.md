@@ -129,7 +129,7 @@ python src/vision_utils/train.py
 ```
 
 This method:
-- ✅ Works from any directory
-- ✅ Doesn't require environment variable manipulation
-- ✅ Matches production installation behavior
-- ✅ Simplifies testing and development
+-  Works from any directory
+-  Doesn't require environment variable manipulation
+-  Matches production installation behavior
+-  Simplifies testing and development

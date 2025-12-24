@@ -275,7 +275,7 @@ def logger(request):
 Each fixture should do one thing:
 
 ```python
-# ❌ Bad: Too much in one fixture
+#  Bad: Too much in one fixture
 @pytest.fixture
 def everything():
     db = Database()
@@ -284,7 +284,7 @@ def everything():
     return db, client, user
 # end def
 
-# ✅ Good: Separate concerns
+#  Good: Separate concerns
 @pytest.fixture
 def database():
     return Database()

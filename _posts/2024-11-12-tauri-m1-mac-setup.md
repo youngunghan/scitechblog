@@ -59,7 +59,7 @@ npm create vite@latest . -- --template react
 # Or for Vue
 npm create vite@latest . -- --template vue
 
-# ⚠️ Important: Select "Ignore files and continue" when prompted!
+#  Important: Select "Ignore files and continue" when prompted!
 
 # Install dependencies
 npm install

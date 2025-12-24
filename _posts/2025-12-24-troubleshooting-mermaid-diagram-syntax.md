@@ -42,7 +42,7 @@ flowchart LR
     Tester([Tester])
     API[Search API]
     
-    Tester -->|"q=[col, IS, val]"| API  ✅ Works!
+    Tester -->|"q=[col, IS, val]"| API   Works!
 ```
 
 ### Root Cause
@@ -59,8 +59,8 @@ q=[cond1, AND, cond2]
 q=[cond1, OR, cond2]
 
 <!-- After (Works) -->
-q=[cond1, _AND_, cond2]  ✅
-q=[cond1, _OR_, cond2]   ✅
+q=[cond1, _AND_, cond2]  
+q=[cond1, _OR_, cond2]   
 ```
 
 Alternatively, you can use symbols like `+` and `/`:
@@ -81,8 +81,8 @@ flowchart LR
     A[API]
     T([Tester])
     
-    A -.->|"200(rows=<row>)"| T      ❌ Error
-    A -.->|"200(rows=<unchanged>)"| T  ❌ Error
+    A -.->|"200(rows=<row>)"| T       Error
+    A -.->|"200(rows=<unchanged>)"| T   Error
 ```
 
 But these worked:
@@ -92,18 +92,18 @@ flowchart LR
     A[API]
     T([Tester])
     
-    A -.->|"200(rows=<1개>)"| T      ✅ Works
-    A -.->|"200(rows=<원래값>)"| T    ✅ Works
+    A -.->|"200(rows=<1개>)"| T       Works
+    A -.->|"200(rows=<원래값>)"| T     Works
 ```
 
 ### Root Cause Analysis
 
 | Pattern | Result | Reason |
 |---------|--------|--------|
-| `<row>` | ❌ Error | Looks like HTML `<row>` tag |
-| `<unchanged>` | ❌ Error | Looks like HTML `<unchanged>` tag |
-| `<1개>` | ✅ Works | Contains number, not a valid tag |
-| `<원래값>` | ✅ Works | Contains Korean, not a valid tag |
+| `<row>` |  Error | Looks like HTML `<row>` tag |
+| `<unchanged>` |  Error | Looks like HTML `<unchanged>` tag |
+| `<1개>` |  Works | Contains number, not a valid tag |
+| `<원래값>` |  Works | Contains Korean, not a valid tag |
 
 The Markdown PDF exporter (or underlying HTML renderer) interprets **English-only content in angle brackets** as potential HTML tags, breaking the Mermaid parser.
 
@@ -132,7 +132,7 @@ flowchart LR
     ML[Meta Listing API]
     T([Tester])
     
-    ML -.->|"200(rows=<meta값유지>)"| T  ❌ Always Error!
+    ML -.->|"200(rows=<meta값유지>)"| T   Always Error!
 ```
 
 ### Root Cause
