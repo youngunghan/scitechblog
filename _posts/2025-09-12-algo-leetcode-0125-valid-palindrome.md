@@ -5,7 +5,7 @@ categories: ['Algorithm', 'LeetCode']
 tags: ['Algorithm', 'LeetCode', 'Easy']
 description: "Solution for LeetCode 125: Valid Palindrome"
 image:
-  path: assets/img/posts/algo/leetcode.png
+  path: assets/img/posts/algo/leetcode_new.png
   alt: "[LeetCode] 125. Valid Palindrome"
 ---
 
@@ -13,7 +13,6 @@ image:
 This is a solution for **[Valid Palindrome](https://leetcode.com/problems/valid-palindrome)** on LeetCode.
 
 ## Problem Description
-> [Problem Link](https://leetcode.com/problems/valid-palindrome)
 
 <h2><a href="https://leetcode.com/problems/valid-palindrome">125. Valid Palindrome</a></h2><h3>Easy</h3><hr><p>A phrase is a <strong>palindrome</strong> if, after converting all uppercase letters into lowercase letters and removing all non-alphanumeric characters, it reads the same forward and backward. Alphanumeric characters include letters and numbers.</p>
 

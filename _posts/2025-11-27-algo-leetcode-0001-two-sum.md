@@ -5,7 +5,7 @@ categories: [Algorithm, LeetCode]
 tags: [Array, Hash Table, Python]
 description: "A classic algorithmic problem that demonstrates the power of Hash Maps for optimizing time complexity."
 image:
-  path: assets/img/posts/algo/leetcode.png
+  path: assets/img/posts/algo/leetcode_new.png
   alt: "[LeetCode] 1. Two Sum"
 math: true
 ---
@@ -14,7 +14,6 @@ math: true
 "Two Sum" is often the first problem developers encounter on LeetCode. While it seems deceptively simple, it serves as a perfect example to demonstrate the trade-off between time and space complexity. It teaches us how to move from a naive $O(N^2)$ solution to an optimized $O(N)$ one using a Hash Map.
 
 ## Problem Description
-> [Link to Problem](https://leetcode.com/problems/two-sum)
 
 Given an array of integers `nums` and an integer `target`, return *indices of the two numbers such that they add up to `target`*.
 

@@ -5,7 +5,7 @@ categories: ['Algorithm', 'LeetCode']
 tags: ['Algorithm', 'LeetCode', 'Easy']
 description: "Solution for LeetCode 217: Contains Duplicate"
 image:
-  path: assets/img/posts/algo/leetcode.png
+  path: assets/img/posts/algo/leetcode_new.png
   alt: "[LeetCode] 217. Contains Duplicate"
 ---
 
@@ -13,7 +13,6 @@ image:
 This is a solution for **[Contains Duplicate](https://leetcode.com/problems/contains-duplicate)** on LeetCode.
 
 ## Problem Description
-> [Problem Link](https://leetcode.com/problems/contains-duplicate)
 
 <h2><a href="https://leetcode.com/problems/contains-duplicate">217. Contains Duplicate</a></h2><h3>Easy</h3><hr><p>Given an integer array <code>nums</code>, return <code>true</code> if any value appears <strong>at least twice</strong> in the array, and return <code>false</code> if every element is distinct.</p>
 

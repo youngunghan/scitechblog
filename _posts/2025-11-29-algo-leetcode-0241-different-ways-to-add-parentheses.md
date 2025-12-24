@@ -5,7 +5,7 @@ categories: ['Algorithm', 'LeetCode']
 tags: ['Algorithm', 'LeetCode', 'Medium']
 description: "Solution for LeetCode 241: Different Ways To Add Parentheses"
 image:
-  path: assets/img/posts/algo/leetcode.png
+  path: assets/img/posts/algo/leetcode_new.png
   alt: "[LeetCode] 241. Different Ways To Add Parentheses"
 ---
 
@@ -13,7 +13,6 @@ image:
 This is a solution for **[Different Ways To Add Parentheses](https://leetcode.com/problems/different-ways-to-add-parentheses)** on LeetCode.
 
 ## Problem Description
-> [Problem Link](https://leetcode.com/problems/different-ways-to-add-parentheses)
 
 <h2><a href="https://leetcode.com/problems/different-ways-to-add-parentheses">241. Different Ways to Add Parentheses</a></h2><h3>Medium</h3><hr><p>Given a string <code>expression</code> of numbers and operators, return <em>all possible results from computing all the different possible ways to group numbers and operators</em>. You may return the answer in <strong>any order</strong>.</p>
 
