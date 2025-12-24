@@ -14,7 +14,7 @@ This is a solution for **[Valid Parenthesis String](https://leetcode.com/problem
 
 ## Problem Description
 
-<h2><a href="https://leetcode.com/problems/valid-parenthesis-string">678. Valid Parenthesis String</a></h2><h3>Medium</h3><hr><p>Given a string <code>s</code> containing only three types of characters: <code>&#39;(&#39;</code>, <code>&#39;)&#39;</code> and <code>&#39;*&#39;</code>, return <code>true</code> <em>if</em> <code>s</code> <em>is <strong>valid</strong></em>.</p>
+<p>Given a string <code>s</code> containing only three types of characters: <code>&#39;(&#39;</code>, <code>&#39;)&#39;</code> and <code>&#39;*&#39;</code>, return <code>true</code> <em>if</em> <code>s</code> <em>is <strong>valid</strong></em>.</p>
 
 <p>The following rules define a <strong>valid</strong> string:</p>
 
