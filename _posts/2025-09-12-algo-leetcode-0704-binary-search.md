@@ -5,7 +5,7 @@ categories: ['Algorithm', 'LeetCode']
 tags: ['Algorithm', 'LeetCode', 'Easy']
 description: "Solution for LeetCode 704: Binary Search"
 image:
-  path: assets/img/posts/algo/leetcode.png
+  path: assets/img/posts/algo/leetcode_new.png
   alt: "[LeetCode] 704. Binary Search"
 ---
 
@@ -13,7 +13,6 @@ image:
 This is a solution for **[Binary Search](https://leetcode.com/problems/binary-search)** on LeetCode.
 
 ## Problem Description
-> [Problem Link](https://leetcode.com/problems/binary-search)
 
 <h2><a href="https://leetcode.com/problems/binary-search">704. Binary Search</a></h2><h3>Easy</h3><hr><p>Given an array of integers <code>nums</code> which is sorted in ascending order, and an integer <code>target</code>, write a function to search <code>target</code> in <code>nums</code>. If <code>target</code> exists, then return its index. Otherwise, return <code>-1</code>.</p>
 

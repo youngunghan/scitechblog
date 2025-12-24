@@ -5,7 +5,7 @@ categories: ['Algorithm', 'LeetCode']
 tags: ['Algorithm', 'LeetCode', 'Easy']
 description: "Solution for LeetCode 1: Two Sum"
 image:
-  path: assets/img/posts/algo/leetcode.png
+  path: assets/img/posts/algo/leetcode_new.png
   alt: "[LeetCode] 1. Two Sum"
 ---
 
@@ -13,7 +13,6 @@ image:
 This is a solution for **[Two Sum](https://leetcode.com/problems/two-sum)** on LeetCode.
 
 ## Problem Description
-> [Problem Link](https://leetcode.com/problems/two-sum)
 
 <h2><a href="https://leetcode.com/problems/two-sum">1. Two Sum</a></h2><h3>Easy</h3><hr><p>Given an array of integers <code>nums</code>&nbsp;and an integer <code>target</code>, return <em>indices of the two numbers such that they add up to <code>target</code></em>.</p>
 

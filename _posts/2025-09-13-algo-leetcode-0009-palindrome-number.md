@@ -5,7 +5,7 @@ categories: ['Algorithm', 'LeetCode']
 tags: ['Algorithm', 'LeetCode', 'Easy']
 description: "Solution for LeetCode 9: Palindrome Number"
 image:
-  path: assets/img/posts/algo/leetcode.png
+  path: assets/img/posts/algo/leetcode_new.png
   alt: "[LeetCode] 9. Palindrome Number"
 ---
 
@@ -13,7 +13,6 @@ image:
 This is a solution for **[Palindrome Number](https://leetcode.com/problems/palindrome-number)** on LeetCode.
 
 ## Problem Description
-> [Problem Link](https://leetcode.com/problems/palindrome-number)
 
 <h2><a href="https://leetcode.com/problems/palindrome-number">9. Palindrome Number</a></h2><h3>Easy</h3><hr><p>Given an integer <code>x</code>, return <code>true</code><em> if </em><code>x</code><em> is a </em><span data-keyword="palindrome-integer"><em><strong>palindrome</strong></em></span><em>, and </em><code>false</code><em> otherwise</em>.</p>
 

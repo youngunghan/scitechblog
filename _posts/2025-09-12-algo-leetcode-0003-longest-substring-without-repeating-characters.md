@@ -5,7 +5,7 @@ categories: ['Algorithm', 'LeetCode']
 tags: ['Algorithm', 'LeetCode', 'Medium']
 description: "Solution for LeetCode 3: Longest Substring Without Repeating Characters"
 image:
-  path: assets/img/posts/algo/leetcode.png
+  path: assets/img/posts/algo/leetcode_new.png
   alt: "[LeetCode] 3. Longest Substring Without Repeating Characters"
 ---
 
@@ -13,7 +13,6 @@ image:
 This is a solution for **[Longest Substring Without Repeating Characters](https://leetcode.com/problems/longest-substring-without-repeating-characters)** on LeetCode.
 
 ## Problem Description
-> [Problem Link](https://leetcode.com/problems/longest-substring-without-repeating-characters)
 
 <h2><a href="https://leetcode.com/problems/longest-substring-without-repeating-characters">3. Longest Substring Without Repeating Characters</a></h2><h3>Medium</h3><hr><p>Given a string <code>s</code>, find the length of the <strong>longest</strong> <span data-keyword="substring-nonempty"><strong>substring</strong></span> without duplicate characters.</p>
 
