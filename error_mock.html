@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1e1e1e;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+        }
+
+        .terminal-window {
+            width: 800px;
+            height: 450px;
+            background-color: #000000;
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .terminal-header {
+            background-color: #333;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .red {
+            background-color: #ff5f56;
+        }
+
+        .yellow {
+            background-color: #ffbd2e;
+        }
+
+        .green {
+            background-color: #27c93f;
+        }
+
+        .terminal-body {
+            padding: 20px;
+            color: #d4d4d4;
+            font-size: 16px;
+            line-height: 1.5;
+        }
+
+        .command {
+            color: #4af626;
+        }
+
+        .error {
+            color: #ff5f56;
+        }
+
+        .path {
+            color: #569cd6;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="terminal-window">
+        <div class="terminal-header">
+            <div class="dot red"></div>
+            <div class="dot yellow"></div>
+            <div class="dot green"></div>
+        </div>
+        <div class="terminal-body">
+            <div><span class="command">root@scitechblog:~$</span> bundle exec htmlproofer _site</div>
+            <br>
+            <div>Running 3 checks (Images, Links, Scripts) in ["_site"] on *.html files ...</div>
+            <br>
+            <div>Checking 323 internal links</div>
+            <div>Ran on 141 files!</div>
+            <br>
+            <div class="error">For the Images check, the following failures were found:</div>
+            <br>
+            <div>* At _site/scitechblog/index.html:1053:</div>
+            <br>
+            <div class="error">&nbsp;&nbsp;internal image <span
+                    class="path">/scitechblog/scitechblog/assets/img/posts/algo/leetcode.png</span> does not exist</div>
+            <br>
+            <div class="error">HTML-Proofer found 1 failure!</div>
+            <br>
+            <div><span class="command">root@scitechblog:~$</span> <span class="cursor">_</span></div>
+        </div>
+    </div>
+</body>
+
+</html>
