@@ -10,26 +10,7 @@ order: 1
     Dedicated to solving complex, real-world challenges by leveraging mathematical frameworks and advanced computational methods.<br>
     Driven by the potential of data and algorithms to create tangible impact and innovation.
   </p>
-
-  <p>
-    <a href="/scitechblog/assets/pdf/Youngung_Han_CV.pdf">
-      <img src="https://img.shields.io/badge/CV-4285F4?style=flat-square&logo=adobe-acrobat-reader&logoColor=white" alt="CV"/>
-    </a>
-  </p>
 </div>
-
----
-
-## News
-
-- **[2025.02]** New paper on 3D MRI PNI Prediction accepted to **AAAI 2025 Workshop (W3PHIAI)**: *NeoNet: An End-to-End 3D MRI-Based Deep Learning Framework for Non-Invasive Prediction of Perineural Invasion via Generation-Driven Classification*
-- **[2025.01]** New paper on Self-supervised Medical Image Learning accepted to **ICEIC 2025**: *MAESIL: Masked Autoencoder for Enhanced Self-supervised Medical Image Learning*
-- **[2024.11]** New paper on Vision-Language Models accepted to **IEIE Fall 2024**: *MINTI: Micro-boundary INstructional Training for Intelligent anatomical vision-language model*
-- **[2024.09]** Joined **Wafflestudio** as a Backend Developer.
-- **[2024.11]** Joined **SNU Medical AI** as a Researcher.
-- **[2023.12]** Joined **AIDEEP** as a Senior Research Engineer.
-- **[2023.10]** Co-leading AI education initiatives at **OUTTA** as Executive & Mentor.
-- **[2020.03]** Received the **Songyee Yoon – Taekjin Kim Scholarship** from NCSoft.
 
 ---
 
