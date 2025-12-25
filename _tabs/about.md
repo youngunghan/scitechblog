@@ -12,15 +12,6 @@ order: 1
   </p>
 
   <p>
-    <a href="https://github.com/youngunghan">
-      <img src="https://img.shields.io/badge/GitHub-181717?style=flat-square&logo=github&logoColor=white" alt="GitHub"/>
-    </a>
-    <a href="mailto:youngunghan@gmail.com">
-      <img src="https://img.shields.io/badge/Email-D14836?style=flat-square&logo=gmail&logoColor=white" alt="Email"/>
-    </a>
-    <a href="https://youngunghan.github.io/scitechblog">
-      <img src="https://img.shields.io/badge/Blog-000000?style=flat-square&logo=rss&logoColor=white" alt="Blog"/>
-    </a>
     <a href="/scitechblog/assets/pdf/Youngung_Han_CV.pdf">
       <img src="https://img.shields.io/badge/CV-4285F4?style=flat-square&logo=adobe-acrobat-reader&logoColor=white" alt="CV"/>
     </a>
@@ -29,12 +20,12 @@ order: 1
 
 ---
 
-## 🔥 News
+## News
 
-- **[2026.02]** New paper on 3D MRI PNI Prediction accepted to **AAAI 2026 Workshop (W3PHIAI)**: *NeoNet: An End-to-End 3D MRI-Based Deep Learning Framework for Non-Invasive Prediction of Perineural Invasion via Generation-Driven Classification*
-- **[2026.01]** New paper on Self-supervised Medical Image Learning accepted to **ICEIC 2026**: *MAESIL: Masked Autoencoder for Enhanced Self-supervised Medical Image Learning*
-- **[2025.11]** New paper on Vision-Language Models accepted to **IEIE Fall 2025**: *MINTI: Micro-boundary INstructional Training for Intelligent anatomical vision-language model*
-- **[2025.09]** Joined **Wafflestudio** as a Backend Developer.
+- **[2025.02]** New paper on 3D MRI PNI Prediction accepted to **AAAI 2025 Workshop (W3PHIAI)**: *NeoNet: An End-to-End 3D MRI-Based Deep Learning Framework for Non-Invasive Prediction of Perineural Invasion via Generation-Driven Classification*
+- **[2025.01]** New paper on Self-supervised Medical Image Learning accepted to **ICEIC 2025**: *MAESIL: Masked Autoencoder for Enhanced Self-supervised Medical Image Learning*
+- **[2024.11]** New paper on Vision-Language Models accepted to **IEIE Fall 2024**: *MINTI: Micro-boundary INstructional Training for Intelligent anatomical vision-language model*
+- **[2024.09]** Joined **Wafflestudio** as a Backend Developer.
 - **[2024.11]** Joined **SNU Medical AI** as a Researcher.
 - **[2023.12]** Joined **AIDEEP** as a Senior Research Engineer.
 - **[2023.10]** Co-leading AI education initiatives at **OUTTA** as Executive & Mentor.
@@ -50,9 +41,11 @@ My focus lies at the intersection of theoretical foundations and high-impact app
 - **Objective:** To develop and deploy robust machine learning models that enhance diagnostic accuracy and efficiency in healthcare systems.
 - **Focus Areas:** Medical Imaging Analysis, Predictive Modeling, Clinical Data Mining.
 
-### Logistics Optimization
-- **Objective:** To apply Operations Research and mathematical modeling to optimize complex supply chains (SCM) and improve operational efficiency.
-- **Focus Areas:** Routing Algorithms, Demand Forecasting, Inventory Management, Network Optimization.
+### Railroad Science
+- **Objective:** To apply data-driven approaches to railway systems and transportation networks for improved safety and efficiency.
+- **Focus Areas:**
+  - **Logistics Optimization:** Routing Algorithms, Demand Forecasting, Inventory Management, Network Optimization.
+  - Supply Chain Management (SCM), Operations Research, Mathematical Modeling.
 
 ### Mathematics & Algorithmic Foundations
 - **Objective:** To deepen the understanding of the mathematical principles (Linear Algebra, Optimization, Probability) underlying AI and computation to design efficient algorithmic solutions.
@@ -102,22 +95,3 @@ I actively engage in organizations to broaden my expertise, collaborate on chall
   - Developing mathematical intuition and logical reasoning by exploring and discussing complex problems across diverse mathematical fields.
 - **[SCSC (SNU Computer Study Club)](https://scsc.oopy.io/)**
   - Engaging in in-depth studies and discussions on advanced topics within computer science.
-
----
-
-## Technical Proficiencies
-
-**Languages:**<br>
-<img src="https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python"/>&nbsp;&nbsp;&nbsp;
-<img src="https://img.shields.io/badge/C-00599C?style=flat-square&logo=c&logoColor=white" alt="C"/>
-<br><br>
-
-**AI/ML Frameworks:**<br>
-<img src="https://img.shields.io/badge/PyTorch-EE4C2C?style=flat-square&logo=pytorch&logoColor=white" alt="PyTorch"/>&nbsp;&nbsp;&nbsp;
-<img src="https://img.shields.io/badge/TensorFlow-FF6F00?style=flat-square&logo=tensorflow&logoColor=white" alt="TensorFlow"/>
-<br><br>
-
-**Data Science:**<br>
-<img src="https://img.shields.io/badge/Pandas-150458?style=flat-square&logo=pandas&logoColor=white" alt="Pandas"/>&nbsp;&nbsp;&nbsp;
-<img src="https://img.shields.io/badge/NumPy-013243?style=flat-square&logo=numpy&logoColor=white" alt="NumPy"/>&nbsp;&nbsp;&nbsp;
-<img src="https://img.shields.io/badge/Scikit--learn-F7931E?style=flat-square&logo=scikit-learn&logoColor=white" alt="Scikit-learn"/>
