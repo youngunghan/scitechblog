@@ -28,9 +28,11 @@ My focus lies at the intersection of theoretical foundations and high-impact app
   - **Logistics Optimization:** Routing Algorithms, Demand Forecasting, Inventory Management, Network Optimization.
   - Supply Chain Management (SCM), Operations Research, Mathematical Modeling.
 
-### Mathematics & Algorithmic Foundations
-- **Objective:** To deepen the understanding of the mathematical principles (Linear Algebra, Optimization, Probability) underlying AI and computation to design efficient algorithmic solutions.
-- **Focus Areas:** Algorithm Design, Optimization Theory, Computational Complexity.
+### Computer Science
+- **Objective:** To design efficient algorithmic solutions and deepen understanding of the mathematical principles underlying computation.
+- **Focus Areas:**
+  - **Algorithms:** Algorithm Design, Data Structures, Competitive Programming, Computational Complexity.
+  - **Mathematics:** Linear Algebra, Optimization Theory, Probability, Discrete Mathematics.
 
 ---
 
