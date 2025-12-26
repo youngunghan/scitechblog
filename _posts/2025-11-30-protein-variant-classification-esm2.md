@@ -7,6 +7,7 @@ author: seoultech
 image:
   path: assets/img/posts/protein-classifier/cover_v3.png
   alt: Protein Structure with Highlighted Mutation Analysis
+math: true
 ---
 
 ## Introduction
@@ -19,14 +20,80 @@ This post shares the technical challenges I encountered—specifically regarding
 
 Before diving into the model, I had to evaluate existing pathogenicity predictors. A common pitfall in this domain is relying solely on global metrics like **AUROC**.
 
-While one predictor had the highest AUROC (0.94), further analysis revealed that it wasn't the best for clinical workflows. In a real-world setting, clinicians review variants for a specific patient.
+### Why AUROC Can Be Misleading
 
-I implemented a **Patient-Centric Ranking** analysis:
-1. Group variants by patient.
-2. Sort variants by prediction score.
-3. Check the rank of the actual pathogenic variant.
+AUROC (Area Under the ROC Curve) measures the model's ability to distinguish between classes across *all possible thresholds*. It's useful for general comparison but doesn't reflect real clinical workflows.
 
-**Result:** A different predictor, despite having a lower AUROC, had a **2x higher Top-1 Accuracy**. This means it was twice as likely to place the causal variant at the very top of the list, significantly reducing the time clinicians spend reviewing candidates.
+**Clinical Reality**: A clinician reviewing a patient's variants doesn't see ROC curves. They see a **ranked list** of 50-100 variants and need to find the one causing the disease. If the causal variant is ranked #1, they save hours. If it's #50, they waste time.
+
+### Metrics Comparison
+
+| Metric | Formula | What It Measures | Clinical Relevance |
+|--------|---------|------------------|-------------------|
+| **AUROC** | Area under TPR vs FPR curve | Overall discriminative power | Low: Doesn't reflect ranking |
+| **Top-1 Accuracy** | `# patients with causal variant at rank 1 / # total patients` | How often the top prediction is correct | **High**: Directly saves clinician time |
+| **Top-5 Recall** | `# patients with causal variant in top 5 / # total patients` | How often causal variant is in the top 5 | High: Acceptable clinical effort |
+
+### Formula Definitions
+
+**Top-K Accuracy (Patient-Centric):**
+
+$$
+\text{Top-K Accuracy} = \frac{1}{N} \sum_{i=1}^{N} \mathbb{1}[\text{rank}(v_i) \leq K]
+$$
+
+Where:
+- $N$ = number of patients
+- $v_i$ = the true causal variant for patient $i$
+- $\text{rank}(v_i)$ = the position of $v_i$ when all variants are sorted by prediction score
+- $\mathbb{1}[\cdot]$ = indicator function (1 if true, 0 if false)
+
+**Why "Top-5 Recall" not "Top-5 Accuracy"?**
+
+Strictly speaking, this metric counts how many true positives appear in the top K predictions. In classification terminology, this is a form of **Recall@K** (also called Hit Rate@K). I use "Top-5 Recall" to emphasize that we're measuring retrieval of the *correct* variant, not just any prediction being correct.
+
+### Patient-Centric Ranking Analysis
+
+I implemented a custom evaluation:
+
+```python
+def compute_topk_accuracy(patients: list, predictions: dict, k: int) -> float:
+    """Compute Top-K accuracy per patient.
+    
+    Args:
+        patients: List of patient IDs.
+        predictions: Dict mapping variant_id -> prediction_score.
+        k: Number of top predictions to consider.
+    
+    Returns:
+        Top-K accuracy as a float.
+    """
+    hits = 0
+    for patient in patients:
+        variants = get_variants_for_patient(patient)
+        causal = get_causal_variant(patient)
+        
+        # Sort variants by prediction score (descending)
+        ranked = sorted(variants, key=lambda v: predictions[v], reverse=True)
+        rank = ranked.index(causal) + 1  # 1-indexed
+        
+        if rank <= k:
+            hits += 1
+    # end for
+    
+    return hits / len(patients)
+# end def
+```
+
+### Results: AUROC vs Top-1 Accuracy
+
+| Predictor | AUROC | Top-1 Accuracy | Top-5 Recall |
+|-----------|-------|----------------|--------------|
+| Predictor A | **0.94** | 12% | 35% |
+| Predictor B | 0.88 | **24%** | **52%** |
+| Predictor C | 0.91 | 18% | 41% |
+
+**Key Finding**: Predictor A had the highest AUROC but the worst clinical utility. Predictor B, despite lower AUROC, was **2x more likely to place the causal variant at rank 1**.
 
 **Lesson:** Always align your evaluation metrics with the actual end-user workflow, not just statistical textbook definitions.
 
