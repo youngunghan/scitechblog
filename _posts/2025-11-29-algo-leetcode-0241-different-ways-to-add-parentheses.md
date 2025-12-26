@@ -2,132 +2,166 @@
 title: "[LeetCode] 241. Different Ways To Add Parentheses"
 date: 2025-11-29 05:17:21 +0900
 categories: ['Algorithm', 'LeetCode']
-tags: ['Algorithm', 'LeetCode', 'Medium']
+tags: ['Algorithm', 'LeetCode', 'Medium', 'Divide and Conquer', 'Recursion', 'Memoization']
 description: "Solution for LeetCode 241: Different Ways To Add Parentheses"
 image:
   path: assets/img/posts/algo/leetcode_new.png
   alt: "[LeetCode] 241. Different Ways To Add Parentheses"
+author: seoultech
+math: true
 ---
 
 ## Introduction
+
 This is a solution for **[Different Ways To Add Parentheses](https://leetcode.com/problems/different-ways-to-add-parentheses)** on LeetCode.
 
 ## Problem Description
 
-<p>Given a string <code>expression</code> of numbers and operators, return <em>all possible results from computing all the different possible ways to group numbers and operators</em>. You may return the answer in <strong>any order</strong>.</p>
+Given a string `expression` of numbers and operators (`+`, `-`, `*`), return all possible results from computing all the different possible ways to group numbers and operators.
 
-<p>The test cases are generated such that the output values fit in a 32-bit integer and the number of different results does not exceed <code>10<sup>4</sup></code>.</p>
+**Example 1:**
+```
+Input: expression = "2-1-1"
+Output: [0, 2]
+Explanation:
+  ((2-1)-1) = 0
+  (2-(1-1)) = 2
+```
 
-<p>&nbsp;</p>
-<p><strong class="example">Example 1:</strong></p>
+**Example 2:**
+```
+Input: expression = "2*3-4*5"
+Output: [-34, -14, -10, -10, 10]
+Explanation:
+  (2*(3-(4*5))) = -34
+  ((2*3)-(4*5)) = -14
+  ((2*(3-4))*5) = -10
+  (2*((3-4)*5)) = -10
+  (((2*3)-4)*5) = 10
+```
 
-<pre>
-<strong>Input:</strong> expression = &quot;2-1-1&quot;
-<strong>Output:</strong> [0,2]
-<strong>Explanation:</strong>
-((2-1)-1) = 0 
-(2-(1-1)) = 2
-</pre>
+---
 
-<p><strong class="example">Example 2:</strong></p>
+## Approach: Divide and Conquer
 
-<pre>
-<strong>Input:</strong> expression = &quot;2*3-4*5&quot;
-<strong>Output:</strong> [-34,-14,-10,-10,10]
-<strong>Explanation:</strong>
-(2*(3-(4*5))) = -34 
-((2*3)-(4*5)) = -14 
-((2*(3-4))*5) = -10 
-(2*((3-4)*5)) = -10 
-(((2*3)-4)*5) = 10
-</pre>
+### Key Insight
 
-<p>&nbsp;</p>
-<p><strong>Constraints:</strong></p>
+Every operator in the expression is a potential "split point". When we place parentheses, we're essentially choosing which operator to compute **last**.
 
-<ul>
-	<li><code>1 &lt;= expression.length &lt;= 20</code></li>
-	<li><code>expression</code> consists of digits and the operator <code>&#39;+&#39;</code>, <code>&#39;-&#39;</code>, and <code>&#39;*&#39;</code>.</li>
-	<li>All the integer values in the input expression are in the range <code>[0, 99]</code>.</li>
-	<li>The integer values in the input expression do not have a leading <code>&#39;-&#39;</code> or <code>&#39;+&#39;</code> denoting the sign.</li>
-</ul>
+For example, in `2*3-4*5`:
+- If `-` is computed last: `(2*3) - (4*5)` → we compute left and right separately, then subtract
+- If first `*` is computed last: `2 * (3-4*5)` → we compute `2` and `3-4*5` separately
 
+### Algorithm
 
-## Approach
+1. **Base Case**: If the expression is just a number, return `[number]`
+2. **Recursive Case**: For each operator in the expression:
+   - Split into left and right sub-expressions
+   - Recursively compute all possible results for both parts
+   - Combine every left result with every right result using the operator
 
+### Visual Example: `2-1-1`
 
-### Code Analysis
-**Code Comments Analysis**:
-- Use memoization to store results of sub-expressions to avoid redundant calculations.
-- Base case: if the expression contains only a number, return it as a list of integer.
-- end if
-- Iterate through each character to find operators.
-- Divide the expression into left and right parts at the operator.
-- Recursively compute all possible results for both parts.
-- Combine every result from the left part with every result from the right part using the current operator.
-- char == '*'
-- end if
-- end for
-- end for
-- end if
-- end for
-- end def
-- end def
+```
+         "2-1-1"
+         /     \
+   split at    split at
+   1st '-'     2nd '-'
+      |            |
+  "2" - "1-1"   "2-1" - "1"
+      |    |       |      |
+    [2]   [0]    [1]    [1]
+      \   /        \    /
+      [2-0]       [1-1]
+       [2]         [0]
 
+Final: [2, 0] (order may vary)
+```
 
+---
 
 ## Solution
+
 ```python
 from typing import List
 from functools import lru_cache
 
 class Solution:
     def diffWaysToCompute(self, expression: str) -> List[int]:
-        # Use memoization to store results of sub-expressions to avoid redundant calculations.
         @lru_cache(maxsize=None)
-        def compute(exp: str) -> List[int]:
-            # Base case: if the expression contains only a number, return it as a list of integer.
+        def compute(exp: str) -> tuple[int, ...]:
+            # Base case: expression is just a number
             if exp.isdigit():
-                return [int(exp)]
+                return (int(exp),)
             # end if
             
-            result: List[int] = []
+            result: list[int] = []
             
-            # Iterate through each character to find operators.
+            # Try splitting at each operator
             for i, char in enumerate(exp):
                 if char in '-+*':
-                    # Divide the expression into left and right parts at the operator.
-                    # Recursively compute all possible results for both parts.
-                    left_results: List[int] = compute(exp[:i])
-                    right_results: List[int] = compute(exp[i + 1:])
+                    # Recursively solve left and right parts
+                    left_results = compute(exp[:i])
+                    right_results = compute(exp[i + 1:])
                     
-                    # Combine every result from the left part with every result from the right part using the current operator.
-                    for left_val in left_results:
-                        for right_val in right_results:
+                    # Combine all possible left-right pairs
+                    for left in left_results:
+                        for right in right_results:
                             if char == '+':
-                                result.append(left_val + right_val)
+                                result.append(left + right)
                             elif char == '-':
-                                result.append(left_val - right_val)
+                                result.append(left - right)
                             else:  # char == '*'
-                                result.append(left_val * right_val)
+                                result.append(left * right)
                             # end if
                         # end for
                     # end for
                 # end if
             # end for
             
-            return result
+            return tuple(result)
         # end def
         
-        return compute(expression)
+        return list(compute(expression))
     # end def
-
 ```
 
+---
+
 ## Complexity Analysis
-- **Time Complexity**: The algorithm is designed to handle the input size efficiently.
-- **Space Complexity**: Space usage is optimized to meet the memory constraints.
 
-## Conclusion
-This problem provided a good opportunity to practice algorithmic thinking and implementation skills.
+Let $n$ be the number of operators in the expression.
 
+### Time Complexity: $O(C_n)$ where $C_n$ is the n-th Catalan number
+
+The number of ways to parenthesize $n$ operators follows the **Catalan number** sequence:
+
+$$
+C_n = \frac{1}{n+1} \binom{2n}{n} \approx \frac{4^n}{n^{3/2}\sqrt{\pi}}
+$$
+
+For each way, we do $O(n)$ work to combine results. So total: $O(n \cdot C_n)$.
+
+### Space Complexity: $O(C_n)$
+
+We store all possible results, and there are $C_n$ of them.
+
+### Why Catalan Numbers?
+
+The number of ways to fully parenthesize an expression with $n$ binary operators is exactly $C_n$:
+- $n=1$: 1 way → $C_1 = 1$
+- $n=2$: 2 ways → $C_2 = 2$
+- $n=3$: 5 ways → $C_3 = 5$
+
+This is the same as the number of structurally different binary trees with $n+1$ leaves.
+
+---
+
+## Summary
+
+| Aspect | Description |
+|--------|-------------|
+| **Pattern** | Divide and Conquer |
+| **Key Insight** | Each operator is a potential "last operation" |
+| **Optimization** | Memoization with `@lru_cache` |
+| **Time** | $O(n \cdot C_n)$ where $C_n$ is Catalan number |
