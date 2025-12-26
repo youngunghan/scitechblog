@@ -13,6 +13,8 @@ math: true
 
 ## Problem
 
+> [LeetCode 241. Different Ways To Add Parentheses](https://leetcode.com/problems/different-ways-to-add-parentheses/)
+
 Given a string like `"2*3-4*5"`, return all possible results from different ways to add parentheses.
 
 ```
@@ -49,7 +51,7 @@ This is **Divide and Conquer**: split at each operator, solve recursively, combi
 
 ## Step-by-Step: `"2-1-1"`
 
-### Recursive Calls
+### Table
 
 | Call | Input | Split | Left | Right | Result |
 |------|-------|-------|------|-------|--------|
