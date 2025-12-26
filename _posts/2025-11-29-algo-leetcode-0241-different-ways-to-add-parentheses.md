@@ -9,78 +9,127 @@ image:
   alt: "[LeetCode] 241. Different Ways To Add Parentheses"
 author: seoultech
 math: true
+mermaid: true
 ---
 
-## Introduction
+## Problem
 
-This is a solution for **[Different Ways To Add Parentheses](https://leetcode.com/problems/different-ways-to-add-parentheses)** on LeetCode.
+Given a string like `"2*3-4*5"`, return all possible results from different ways to add parentheses.
 
-## Problem Description
-
-Given a string `expression` of numbers and operators (`+`, `-`, `*`), return all possible results from computing all the different possible ways to group numbers and operators.
-
-**Example 1:**
 ```
-Input: expression = "2-1-1"
+Input: "2-1-1"
 Output: [0, 2]
-Explanation:
-  ((2-1)-1) = 0
-  (2-(1-1)) = 2
-```
 
-**Example 2:**
-```
-Input: expression = "2*3-4*5"
-Output: [-34, -14, -10, -10, 10]
-Explanation:
-  (2*(3-(4*5))) = -34
-  ((2*3)-(4*5)) = -14
-  ((2*(3-4))*5) = -10
-  (2*((3-4)*5)) = -10
-  (((2*3)-4)*5) = 10
+((2-1)-1) = 0
+(2-(1-1)) = 2
 ```
 
 ---
 
-## Approach: Divide and Conquer
+## My First Approach (Failed)
 
-### Key Insight
+I initially tried to generate all possible parenthesis combinations and evaluate each one.
 
-Every operator in the expression is a potential "split point". When we place parentheses, we're essentially choosing which operator to compute **last**.
+```python
+# Pseudocode of my first attempt
+for each way to add parentheses:
+    evaluate the expression
+    add to results
+```
 
-For example, in `2*3-4*5`:
-- If `-` is computed last: `(2*3) - (4*5)` → we compute left and right separately, then subtract
-- If first `*` is computed last: `2 * (3-4*5)` → we compute `2` and `3-4*5` separately
+**Problem**: How do you even enumerate all parenthesis patterns? The number of valid patterns grows exponentially, and parsing nested parentheses is a nightmare.
 
-### Algorithm
+---
 
-1. **Base Case**: If the expression is just a number, return `[number]`
-2. **Recursive Case**: For each operator in the expression:
-   - Split into left and right sub-expressions
-   - Recursively compute all possible results for both parts
-   - Combine every left result with every right result using the operator
+## The Insight: Think About the LAST Operation
 
-### Visual Example: `2-1-1`
+Instead of thinking "where do I put parentheses?", I realized:
+
+> **Every operator can be the "last" operation to compute.**
+
+For `2*3-4*5`:
+- If `-` is computed last: `(2*3) - (4*5)` → left side and right side are computed first
+- If first `*` is last: `2 * (3-4*5)` → we compute `2` and `3-4*5` separately
+
+This is **Divide and Conquer**: split at each operator, solve left and right recursively, combine results.
+
+---
+
+## Step-by-Step: How `"2-1-1"` Works
+
+### Step 1: Find All Operators
 
 ```
-         "2-1-1"
-         /     \
-   split at    split at
-   1st '-'     2nd '-'
-      |            |
-  "2" - "1-1"   "2-1" - "1"
-      |    |       |      |
-    [2]   [0]    [1]    [1]
-      \   /        \    /
-      [2-0]       [1-1]
-       [2]         [0]
+"2-1-1"
+   ^   ^
+   |   |
+  op1  op2
+```
 
-Final: [2, 0] (order may vary)
+We can split at position 1 (first `-`) or position 3 (second `-`).
+
+### Step 2: Split at First `-`
+
+| Left | Operator | Right |
+|------|----------|-------|
+| `"2"` | `-` | `"1-1"` |
+
+- Left `"2"` → just a number → `[2]`
+- Right `"1-1"` → needs recursive call
+
+### Step 3: Recursively Solve `"1-1"`
+
+| Left | Operator | Right |
+|------|----------|-------|
+| `"1"` | `-` | `"1"` |
+
+- Left `"1"` → `[1]`
+- Right `"1"` → `[1]`
+- Combine: `1 - 1 = 0` → `[0]`
+
+### Step 4: Combine Step 2
+
+- Left results: `[2]`
+- Right results: `[0]` (from Step 3)
+- Combine: `2 - 0 = 2` → `[2]`
+
+### Step 5: Split at Second `-`
+
+| Left | Operator | Right |
+|------|----------|-------|
+| `"2-1"` | `-` | `"1"` |
+
+- Left `"2-1"` → `2 - 1 = 1` → `[1]`
+- Right `"1"` → `[1]`
+- Combine: `1 - 1 = 0` → `[0]`
+
+### Final Result
+
+Combining Step 4 and Step 5: `[2, 0]`
+
+---
+
+## Visualizing the Recursion Tree
+
+```
+                    "2-1-1"
+                   /       \
+            split@1st-    split@2nd-
+                |              |
+         "2" - "1-1"      "2-1" - "1"
+          |      |          |      |
+         [2]    [0]        [1]    [1]
+          \    /            \    /
+          2-0=2            1-1=0
+
+        Results: [2]        Results: [0]
+
+Final: [2, 0]
 ```
 
 ---
 
-## Solution
+## Solution Code
 
 ```python
 from typing import List
@@ -90,28 +139,27 @@ class Solution:
     def diffWaysToCompute(self, expression: str) -> List[int]:
         @lru_cache(maxsize=None)
         def compute(exp: str) -> tuple[int, ...]:
-            # Base case: expression is just a number
+            # Base case: just a number
             if exp.isdigit():
                 return (int(exp),)
             # end if
             
             result: list[int] = []
             
-            # Try splitting at each operator
+            # Try each operator as the "last" operation
             for i, char in enumerate(exp):
                 if char in '-+*':
-                    # Recursively solve left and right parts
                     left_results = compute(exp[:i])
                     right_results = compute(exp[i + 1:])
                     
-                    # Combine all possible left-right pairs
+                    # Combine all pairs
                     for left in left_results:
                         for right in right_results:
                             if char == '+':
                                 result.append(left + right)
                             elif char == '-':
                                 result.append(left - right)
-                            else:  # char == '*'
+                            else:
                                 result.append(left * right)
                             # end if
                         # end for
@@ -130,38 +178,29 @@ class Solution:
 
 ## Complexity Analysis
 
-Let $n$ be the number of operators in the expression.
+### Time: $O(C_n)$ - Catalan Number
 
-### Time Complexity: $O(C_n)$ where $C_n$ is the n-th Catalan number
+The number of ways to parenthesize $n$ operators is the **Catalan number**:
 
-The number of ways to parenthesize $n$ operators follows the **Catalan number** sequence:
+$$C_n = \frac{1}{n+1} \binom{2n}{n}$$
 
-$$
-C_n = \frac{1}{n+1} \binom{2n}{n} \approx \frac{4^n}{n^{3/2}\sqrt{\pi}}
-$$
+| Operators | $C_n$ | Examples |
+|-----------|-------|----------|
+| 1 | 1 | `a+b` → 1 way |
+| 2 | 2 | `a+b+c` → 2 ways |
+| 3 | 5 | `a+b+c+d` → 5 ways |
+| 4 | 14 | 14 ways |
 
-For each way, we do $O(n)$ work to combine results. So total: $O(n \cdot C_n)$.
+### Space: $O(C_n)$
 
-### Space Complexity: $O(C_n)$
-
-We store all possible results, and there are $C_n$ of them.
-
-### Why Catalan Numbers?
-
-The number of ways to fully parenthesize an expression with $n$ binary operators is exactly $C_n$:
-- $n=1$: 1 way → $C_1 = 1$
-- $n=2$: 2 ways → $C_2 = 2$
-- $n=3$: 5 ways → $C_3 = 5$
-
-This is the same as the number of structurally different binary trees with $n+1$ leaves.
+We store all possible results, and memoization caches intermediate results.
 
 ---
 
-## Summary
+## Key Takeaways
 
-| Aspect | Description |
+| Lesson | Description |
 |--------|-------------|
-| **Pattern** | Divide and Conquer |
-| **Key Insight** | Each operator is a potential "last operation" |
-| **Optimization** | Memoization with `@lru_cache` |
-| **Time** | $O(n \cdot C_n)$ where $C_n$ is Catalan number |
+| **Think about the last operation** | Instead of "where to add parentheses", think "which operator is computed last" |
+| **Divide and Conquer** | Split at each operator, solve recursively, combine |
+| **Memoization** | Same subexpressions appear multiple times, cache them |
