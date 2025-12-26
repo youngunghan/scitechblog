@@ -8,6 +8,7 @@ image:
   path: assets/img/posts/troubleshooting/uml_comparison_thumbnail.png
   alt: UML Diagram Comparison
 author: seoultech
+mermaid: true
 ---
 
 ## Introduction
