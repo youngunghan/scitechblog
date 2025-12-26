@@ -1,102 +1,77 @@
 ---
 title: "[LeetCode] 3. Longest Substring Without Repeating Characters"
-date: 2025-09-12 10:48:04 +0900
+date: 2025-09-12 18:16:57 +0900
 categories: ['Algorithm', 'LeetCode']
-tags: ['Algorithm', 'LeetCode', 'Medium']
+tags: ['Algorithm', 'LeetCode', 'Medium', 'Sliding Window', 'Hash Table']
 description: "Solution for LeetCode 3: Longest Substring Without Repeating Characters"
 image:
   path: assets/img/posts/algo/leetcode_new.png
   alt: "[LeetCode] 3. Longest Substring Without Repeating Characters"
+author: seoultech
+math: true
 ---
 
-## Introduction
-This is a solution for **[Longest Substring Without Repeating Characters](https://leetcode.com/problems/longest-substring-without-repeating-characters)** on LeetCode.
+## Problem
 
-## Problem Description
+> [LeetCode 3. Longest Substring Without Repeating Characters](https://leetcode.com/problems/longest-substring-without-repeating-characters/)
 
-<p>Given a string <code>s</code>, find the length of the <strong>longest</strong> <span data-keyword="substring-nonempty"><strong>substring</strong></span> without duplicate characters.</p>
+Given a string `s`, find the length of the longest substring without repeating characters.
 
-<p>&nbsp;</p>
-<p><strong class="example">Example 1:</strong></p>
+```
+Input: s = "abcabcbb"
+Output: 3
+Explanation: "abc" is the longest substring.
+```
 
-<pre>
-<strong>Input:</strong> s = &quot;abcabcbb&quot;
-<strong>Output:</strong> 3
-<strong>Explanation:</strong> The answer is &quot;abc&quot;, with the length of 3.
-</pre>
-
-<p><strong class="example">Example 2:</strong></p>
-
-<pre>
-<strong>Input:</strong> s = &quot;bbbbb&quot;
-<strong>Output:</strong> 1
-<strong>Explanation:</strong> The answer is &quot;b&quot;, with the length of 1.
-</pre>
-
-<p><strong class="example">Example 3:</strong></p>
-
-<pre>
-<strong>Input:</strong> s = &quot;pwwkew&quot;
-<strong>Output:</strong> 3
-<strong>Explanation:</strong> The answer is &quot;wke&quot;, with the length of 3.
-Notice that the answer must be a substring, &quot;pwke&quot; is a subsequence and not a substring.
-</pre>
-
-<p>&nbsp;</p>
-<p><strong>Constraints:</strong></p>
-
-<ul>
-	<li><code>0 &lt;= s.length &lt;= 5 * 10<sup>4</sup></code></li>
-	<li><code>s</code> consists of English letters, digits, symbols and spaces.</li>
-</ul>
-
+---
 
 ## Approach
 
+Use **Sliding Window** with a hash set.
 
-### Code Analysis
-**Code Comments Analysis**:
-- Dictionary to track characters in current window
-- Left pointer of sliding window and result
-- Right pointer moves through the string
-- If character already exists in current window
-- Move left pointer to skip the duplicate
-- Update character's latest position
-- Update maximum length found so far
+1. Maintain a window `[left, right]`
+2. Expand `right` to include new characters
+3. If duplicate found, shrink from `left` until no duplicate
+4. Track maximum window size
 
-
+---
 
 ## Solution
+
 ```python
 class Solution:
     def lengthOfLongestSubstring(self, s: str) -> int:
-        # Dictionary to track characters in current window
-        char_map = {}
-        
-        # Left pointer of sliding window and result
+        char_set = set()
         left = 0
         max_length = 0
         
-        # Right pointer moves through the string
-        for right, char in enumerate(s):
-            # If character already exists in current window
-            if char in char_map and char_map[char] >= left:
-                # Move left pointer to skip the duplicate
-                left = char_map[char] + 1
+        for right in range(len(s)):
+            # Shrink window until no duplicate
+            while s[right] in char_set:
+                char_set.remove(s[left])
+                left += 1
+            # end while
             
-            # Update character's latest position
-            char_map[char] = right
-            
-            # Update maximum length found so far
+            char_set.add(s[right])
             max_length = max(max_length, right - left + 1)
+        # end for
         
         return max_length
+    # end def
 ```
 
-## Complexity Analysis
-- **Time Complexity**: The algorithm is designed to handle the input size efficiently.
-- **Space Complexity**: Space usage is optimized to meet the memory constraints.
+---
 
-## Conclusion
-This problem provided a good opportunity to practice algorithmic thinking and implementation skills.
+## Complexity
 
+- **Time**: $O(n)$ - each character is added and removed at most once
+- **Space**: $O(min(n, m))$ - where $m$ is the character set size
+
+---
+
+## Key Takeaways
+
+| Point | Description |
+|-------|-------------|
+| **Sliding Window** | Classic pattern for substring problems |
+| **Hash Set** | $O(1)$ lookup for duplicate check |

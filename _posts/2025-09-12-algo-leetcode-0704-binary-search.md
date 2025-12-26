@@ -2,62 +2,46 @@
 title: "[LeetCode] 704. Binary Search"
 date: 2025-09-12 13:41:43 +0900
 categories: ['Algorithm', 'LeetCode']
-tags: ['Algorithm', 'LeetCode', 'Easy']
+tags: ['Algorithm', 'LeetCode', 'Easy', 'Binary Search']
 description: "Solution for LeetCode 704: Binary Search"
 image:
   path: assets/img/posts/algo/leetcode_new.png
   alt: "[LeetCode] 704. Binary Search"
+author: seoultech
+math: true
 ---
 
-## Introduction
-This is a solution for **[Binary Search](https://leetcode.com/problems/binary-search)** on LeetCode.
+## Problem
 
-## Problem Description
+> [LeetCode 704. Binary Search](https://leetcode.com/problems/binary-search/)
 
-<p>Given an array of integers <code>nums</code> which is sorted in ascending order, and an integer <code>target</code>, write a function to search <code>target</code> in <code>nums</code>. If <code>target</code> exists, then return its index. Otherwise, return <code>-1</code>.</p>
+Given a sorted array of integers `nums` and an integer `target`, return the index of `target` if it exists, otherwise return `-1`.
 
-<p>You must write an algorithm with <code>O(log n)</code> runtime complexity.</p>
+**Constraint**: You must write an algorithm with `O(log n)` runtime complexity.
 
-<p>&nbsp;</p>
-<p><strong class="example">Example 1:</strong></p>
+```
+Input: nums = [-1,0,3,5,9,12], target = 9
+Output: 4
+```
 
-<pre>
-<strong>Input:</strong> nums = [-1,0,3,5,9,12], target = 9
-<strong>Output:</strong> 4
-<strong>Explanation:</strong> 9 exists in nums and its index is 4
-</pre>
-
-<p><strong class="example">Example 2:</strong></p>
-
-<pre>
-<strong>Input:</strong> nums = [-1,0,3,5,9,12], target = 2
-<strong>Output:</strong> -1
-<strong>Explanation:</strong> 2 does not exist in nums so return -1
-</pre>
-
-<p>&nbsp;</p>
-<p><strong>Constraints:</strong></p>
-
-<ul>
-	<li><code>1 &lt;= nums.length &lt;= 10<sup>4</sup></code></li>
-	<li><code>-10<sup>4</sup> &lt; nums[i], target &lt; 10<sup>4</sup></code></li>
-	<li>All the integers in <code>nums</code> are <strong>unique</strong>.</li>
-	<li><code>nums</code> is sorted in ascending order.</li>
-</ul>
-
+---
 
 ## Approach
 
+Binary Search divides the search space in half with each comparison.
 
-### Code Analysis
-**Code Comments Analysis**:
-- Target is smaller, search left half
-- Target is larger, search right half
-- Target not found in the array
+1. Start with `left = 0`, `right = len(nums) - 1`
+2. While `left <= right`:
+   - Calculate `mid = left + (right - left) // 2`
+   - If `nums[mid] == target`: return `mid`
+   - If `nums[mid] > target`: search left half (`right = mid - 1`)
+   - Else: search right half (`left = mid + 1`)
+3. If not found, return `-1`
 
-
+---
 
 ## Solution
+
 ```python
 class Solution:
     def search(self, nums: List[int], target: int) -> int:
@@ -68,23 +52,28 @@ class Solution:
             
             if nums[mid] == target:
                 return mid
-                
-            # Target is smaller, search left half
             elif nums[mid] > target:
                 right = mid - 1
-                
-            # Target is larger, search right half
-            else:  
+            else:
                 left = mid + 1
+        # end while
         
-        # Target not found in the array
         return -1
+    # end def
 ```
 
-## Complexity Analysis
-- **Time Complexity**: The algorithm is designed to handle the input size efficiently.
-- **Space Complexity**: Space usage is optimized to meet the memory constraints.
+---
 
-## Conclusion
-This problem provided a good opportunity to practice algorithmic thinking and implementation skills.
+## Complexity
 
+- **Time**: $O(\log n)$ - halving the search space each iteration
+- **Space**: $O(1)$ - only using a few variables
+
+---
+
+## Key Takeaways
+
+| Point | Description |
+|-------|-------------|
+| **Overflow prevention** | Use `left + (right - left) // 2` instead of `(left + right) // 2` |
+| **Boundary condition** | `left <= right` (not `<`) to check the last element |

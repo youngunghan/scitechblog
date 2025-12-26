@@ -2,100 +2,83 @@
 title: "[LeetCode] 678. Valid Parenthesis String"
 date: 2025-09-26 08:08:26 +0900
 categories: ['Algorithm', 'LeetCode']
-tags: ['Algorithm', 'LeetCode', 'Medium']
+tags: ['Algorithm', 'LeetCode', 'Medium', 'Greedy', 'String']
 description: "Solution for LeetCode 678: Valid Parenthesis String"
 image:
   path: assets/img/posts/algo/leetcode_new.png
   alt: "[LeetCode] 678. Valid Parenthesis String"
+author: seoultech
+math: true
 ---
 
-## Introduction
-This is a solution for **[Valid Parenthesis String](https://leetcode.com/problems/valid-parenthesis-string)** on LeetCode.
+## Problem
 
-## Problem Description
+> [LeetCode 678. Valid Parenthesis String](https://leetcode.com/problems/valid-parenthesis-string/)
 
-<p>Given a string <code>s</code> containing only three types of characters: <code>&#39;(&#39;</code>, <code>&#39;)&#39;</code> and <code>&#39;*&#39;</code>, return <code>true</code> <em>if</em> <code>s</code> <em>is <strong>valid</strong></em>.</p>
+Given a string containing `(`, `)`, and `*`, determine if it's valid. The `*` can be treated as `(`, `)`, or empty.
 
-<p>The following rules define a <strong>valid</strong> string:</p>
+```
+Input: s = "(*)"
+Output: true
+```
 
-<ul>
-	<li>Any left parenthesis <code>&#39;(&#39;</code> must have a corresponding right parenthesis <code>&#39;)&#39;</code>.</li>
-	<li>Any right parenthesis <code>&#39;)&#39;</code> must have a corresponding left parenthesis <code>&#39;(&#39;</code>.</li>
-	<li>Left parenthesis <code>&#39;(&#39;</code> must go before the corresponding right parenthesis <code>&#39;)&#39;</code>.</li>
-	<li><code>&#39;*&#39;</code> could be treated as a single right parenthesis <code>&#39;)&#39;</code> or a single left parenthesis <code>&#39;(&#39;</code> or an empty string <code>&quot;&quot;</code>.</li>
-</ul>
-
-<p>&nbsp;</p>
-<p><strong class="example">Example 1:</strong></p>
-<pre><strong>Input:</strong> s = "()"
-<strong>Output:</strong> true
-</pre><p><strong class="example">Example 2:</strong></p>
-<pre><strong>Input:</strong> s = "(*)"
-<strong>Output:</strong> true
-</pre><p><strong class="example">Example 3:</strong></p>
-<pre><strong>Input:</strong> s = "(*))"
-<strong>Output:</strong> true
-</pre>
-<p>&nbsp;</p>
-<p><strong>Constraints:</strong></p>
-
-<ul>
-	<li><code>1 &lt;= s.length &lt;= 100</code></li>
-	<li><code>s[i]</code> is <code>&#39;(&#39;</code>, <code>&#39;)&#39;</code> or <code>&#39;*&#39;</code>.</li>
-</ul>
-
+---
 
 ## Approach
 
+Use **Greedy** with range tracking.
 
-### Code Analysis
-**Code Comments Analysis**:
-- minimum count of '(' characters
-- maximum count of '(' characters
-- increment both counters for '('
-- decrement both counters for ')'
-- char == '*'
-- treat '*' as ')' or empty string (minimum case)
-- treat '*' as '(' (maximum case)
-- if high becomes negative, too many ')' characters
-- reset low to 0 if negative (ignore unnecessary ')')
-- valid if we can balance all parentheses (low == 0)
+Instead of tracking exact count of `(`, track the possible range `[low, high]`:
+- `low`: minimum possible count of unmatched `(`
+- `high`: maximum possible count of unmatched `(`
 
-
+---
 
 ## Solution
+
 ```python
 class Solution:
     def checkValidString(self, s: str) -> bool:
-        low = 0   # minimum count of '(' characters
-        high = 0  # maximum count of '(' characters
+        low = 0   # minimum unmatched '('
+        high = 0  # maximum unmatched '('
         
         for char in s:
             if char == '(':
-                low += 1   # increment both counters for '('
+                low += 1
                 high += 1
             elif char == ')':
-                low -= 1   # decrement both counters for ')'
+                low -= 1
                 high -= 1
             else:  # char == '*'
-                low -= 1   # treat '*' as ')' or empty string (minimum case)
-                high += 1  # treat '*' as '(' (maximum case)
+                low -= 1   # treat as ')' or empty
+                high += 1  # treat as '('
+            # end if
             
-            # if high becomes negative, too many ')' characters
+            # Can't have negative high (too many ')')
             if high < 0:
                 return False
+            # end if
             
-            # reset low to 0 if negative (ignore unnecessary ')')
+            # low can't go negative
             low = max(low, 0)
+        # end for
         
-        # valid if we can balance all parentheses (low == 0)
         return low == 0
+    # end def
 ```
 
-## Complexity Analysis
-- **Time Complexity**: The algorithm is designed to handle the input size efficiently.
-- **Space Complexity**: Space usage is optimized to meet the memory constraints.
+---
 
-## Conclusion
-This problem provided a good opportunity to practice algorithmic thinking and implementation skills.
+## Complexity
 
+- **Time**: $O(n)$ - single pass
+- **Space**: $O(1)$ - only two variables
+
+---
+
+## Key Takeaways
+
+| Point | Description |
+|-------|-------------|
+| **Range tracking** | Instead of exact count, track min/max possible |
+| **Greedy insight** | `*` creates a range of possibilities |
