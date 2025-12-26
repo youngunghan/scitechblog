@@ -2,77 +2,79 @@
 title: "[LeetCode] 1. Two Sum"
 date: 2025-11-27 00:00:00 +0900
 categories: [Algorithm, LeetCode]
-tags: [Array, Hash Table, Python]
-description: "A classic algorithmic problem that demonstrates the power of Hash Maps for optimizing time complexity."
+tags: [Algorithm, LeetCode, Easy, Array, Hash Table]
+description: "Solution for LeetCode 1: Two Sum"
 image:
   path: assets/img/posts/algo/leetcode_new.png
   alt: "[LeetCode] 1. Two Sum"
+author: seoultech
 math: true
 ---
 
-## Introduction
-"Two Sum" is often the first problem developers encounter on LeetCode. While it seems deceptively simple, it serves as a perfect example to demonstrate the trade-off between time and space complexity. It teaches us how to move from a naive $O(N^2)$ solution to an optimized $O(N)$ one using a Hash Map.
+## Problem
 
-## Problem Description
+> [LeetCode 1. Two Sum](https://leetcode.com/problems/two-sum/)
 
-Given an array of integers `nums` and an integer `target`, return *indices of the two numbers such that they add up to `target`*.
+Given an array of integers `nums` and an integer `target`, return indices of the two numbers such that they add up to `target`.
 
-You may assume that each input would have **exactly one solution**, and you may not use the *same* element twice.
-
-**Example 1:**
 ```
 Input: nums = [2,7,11,15], target = 9
 Output: [0,1]
-Explanation: Because nums[0] + nums[1] == 9, we return [0, 1].
+Explanation: nums[0] + nums[1] == 9
 ```
+
+---
 
 ## Approach
 
-### 1. Initial Thought: Brute Force
-The most intuitive approach is to check every possible pair of numbers.
--   Iterate through each number `x`.
--   Iterate through every other number `y`.
--   If `x + y == target`, return their indices.
+### Initial Thought: Brute Force
 
-However, this results in a time complexity of $O(N^2)$, which is inefficient for large datasets.
+Check every possible pair of numbers: $O(N^2)$.
 
-### 2. Optimization: Hash Map (One-pass)
-We can improve this by using a **Hash Map** (Dictionary in Python) to store the numbers we have seen so far.
--   As we iterate through the array, for each number `num`, we calculate the `complement` needed to reach the `target` (`complement = target - num`).
--   If the `complement` is already in our map, it means we found the pair! We return the index of the complement and the current index.
--   If not, we add the current `num` and its index to the map and continue.
+### Optimization: Hash Map (One-pass)
 
-This reduces the lookup time to $O(1)$, making the overall complexity linear.
+Use a Hash Map to store numbers we've seen:
+1. For each `num`, calculate `complement = target - num`
+2. If `complement` is in the map, we found the pair
+3. Otherwise, add `num` to the map
+
+This reduces lookup to $O(1)$.
+
+---
 
 ## Solution
 
 ```python
 class Solution:
     def twoSum(self, nums: List[int], target: int) -> List[int]:
-        # Dictionary to store value -> index mapping for fast lookup
         num_map = {}
         
-        # Iterate through array with both index and value
         for i, num in enumerate(nums):
-            # Calculate the complement number needed to reach target
             complement = target - num
             
-            # Check if the complement exists in our hashmap (O(1) lookup)
             if complement in num_map:
-                # Found the pair! Return the indices of complement and current number
                 return [num_map[complement], i]
+            # end if
             
-            # Store current number and its index for future lookups
             num_map[num] = i
+        # end for
         
         return []
+    # end def
 ```
 
-## Complexity Analysis
--   **Time Complexity**: $O(N)$
-    -   We traverse the list containing $N$ elements exactly once. Each lookup in the hash table costs only $O(1)$ time.
--   **Space Complexity**: $O(N)$
-    -   The extra space required depends on the number of items stored in the hash table, which stores at most $N$ elements.
+---
 
-## Conclusion
-This problem is a great reminder that sometimes, sacrificing a bit of memory (Space Complexity) can lead to significant gains in speed (Time Complexity). The **Hash Map** strategy used here is a fundamental pattern applicable to many other algorithmic problems involving "finding pairs" or "checking existence".
+## Complexity
+
+- **Time**: $O(N)$ - single pass, $O(1)$ lookup per element
+- **Space**: $O(N)$ - storing up to N elements in hash map
+
+---
+
+## Key Takeaways
+
+| Point | Description |
+|-------|-------------|
+| **Hash Map** | Trade space for time: $O(N^2)$ → $O(N)$ |
+| **One-pass** | Check and store in the same loop |
