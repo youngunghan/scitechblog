@@ -14,106 +14,92 @@ math: true
 
 In the field of clinical genomics, accurately predicting whether a specific genetic variant is pathogenic (disease-causing) or benign is a critical challenge. Recently, I worked on a project to develop a deep learning model that classifies protein variants as either **Gain-of-Function (GOF)** or **Loss-of-Function (LOF)** using **ESM2 (Evolutionary Scale Modeling)**, a state-of-the-art protein language model.
 
-This post shares the technical challenges I encountered—specifically regarding **class imbalance** and **distributed training on A100 GPUs**—and how I solved them.
 ## Challenge 1: Metric Selection for Clinical Use
 
-Before diving into the model, I had to evaluate existing pathogenicity predictors. A common pitfall in this domain is relying solely on global metrics like **AUROC**.
+Before diving into the model, I had to evaluate existing pathogenicity predictors. The dataset contains **107 patients**, each with multiple variants where only a few are pathogenic (LABEL=1).
 
-### The Problem: This is a Ranking Task, Not Binary Classification
+### The Problem: Class Imbalance
 
-In typical binary classification (e.g., "Is this tumor malignant?"), metrics like **Accuracy, Precision, Recall, F1** are appropriate because you're making a single yes/no decision.
+The data is highly imbalanced—most variants are benign (LABEL=0), only a few are pathogenic (LABEL=1). This makes metric selection critical.
 
-But **variant prioritization is fundamentally different**:
-- Each patient has **50-100 candidate variants**
-- Only **1 variant is the true cause** (confirmed by clinical follow-up)
-- The task is to **rank** the causal variant high, not just classify it correctly
+| Metric | Formula | Problem with Imbalanced Data |
+|--------|---------|------------------------------|
+| **Accuracy** | (TP+TN) / Total | Predicting all as benign gives high accuracy |
+| **AUROC** | Area under TPR-FPR curve | Can look good even with poor precision |
 
-This is why standard classification metrics fail here:
+### Why AUROC Alone Is Not Enough
 
-| Scenario | Binary Classification Metric | Ranking Metric |
-|----------|------------------------------|----------------|
-| Predict all 100 variants as "pathogenic" | Recall = 100% (perfect!) | Top-1 = ~1% (useless) |
-| Predict only top 1 correctly | Recall = 1% (terrible) | Top-1 = 100% (perfect!) |
+AUROC measures discrimination across *all thresholds*. A model with AUROC=0.94 sounds great, but:
+- At what threshold does it achieve good **Precision** and **Recall**?
+- In clinical diagnostics, **False Negatives are dangerous** (missing a pathogenic variant)
 
-### Why Not Precision/Recall/F1?
+### Metrics for Clinical Pathogenicity Prediction
 
-In medical AI, **False Negatives are dangerous** - missing a disease means no treatment. So why not use Recall?
+For this problem, I focused on three key metrics:
 
-**Answer**: In this task, we're not making binary predictions. We're **ranking** variants, and the final Recall@K depends on where we cut off the ranking. A model that ranks the causal variant at position #1 is clinically equivalent to 100% Recall at K=1.
+| Metric | Definition | Clinical Importance |
+|--------|------------|---------------------|
+| **Recall (Sensitivity)** | TP / (TP + FN) | Must be high: we cannot miss pathogenic variants |
+| **Precision (PPV)** | TP / (TP + FP) | Reduces unnecessary follow-up tests |
+| **F1 Score** | 2 × (Precision × Recall) / (Precision + Recall) | Balances both for imbalanced data |
 
-The key insight: **Top-K Accuracy is Recall measured at a specific ranking threshold**.
+### Why Recall Is Critical
 
-### Metrics Comparison
+In medical diagnostics, a **False Negative** (predicting benign when actually pathogenic) means:
+- Patient doesn't receive treatment
+- Disease progresses undetected
 
-| Metric | When to Use | This Task |
-|--------|-------------|-----------|
-| **AUROC** | Comparing models across all thresholds | Less relevant: doesn't reflect ranking quality |
-| **Precision/Recall** | Binary classification tasks | Not applicable: we rank, not classify |
-| **Top-1 Accuracy** | Ranking tasks with one correct answer | **Primary metric**: causal variant at rank 1 |
-| **Top-K Recall** | Ranking tasks allowing K mistakes | **Secondary**: causal variant in top K |
+Therefore, **Recall must be prioritized**, even at the cost of some False Positives.
 
-### Formula Definitions
+### Evaluation Framework
 
-**Top-K Accuracy (Patient-Centric):**
-
-$$
-\text{Top-K Accuracy} = \frac{1}{N} \sum_{i=1}^{N} \mathbb{1}[\text{rank}(v_i) \leq K]
-$$
-
-Where:
-- $N$ = number of patients
-- $v_i$ = the true causal variant for patient $i$
-- $\text{rank}(v_i)$ = the position of $v_i$ when all variants are sorted by prediction score
-- $\mathbb{1}[\cdot]$ = indicator function (1 if true, 0 if false)
-
-**Why "Top-5 Recall" not "Top-5 Accuracy"?**
-
-Strictly speaking, this metric counts how many true positives appear in the top K predictions. In classification terminology, this is a form of **Recall@K** (also called Hit Rate@K). I use "Top-5 Recall" to emphasize that we're measuring retrieval of the *correct* variant, not just any prediction being correct.
-
-### Patient-Centric Ranking Analysis
-
-I implemented a custom evaluation:
+I evaluated each predictor (A, B, C) at multiple thresholds and computed:
 
 ```python
-def compute_topk_accuracy(patients: list, predictions: dict, k: int) -> float:
-    """Compute Top-K accuracy per patient.
+from sklearn.metrics import precision_recall_curve, roc_auc_score, f1_score
+
+def evaluate_predictor(y_true: np.ndarray, y_scores: np.ndarray) -> dict:
+    """Evaluate predictor with multiple metrics.
     
     Args:
-        patients: List of patient IDs.
-        predictions: Dict mapping variant_id -> prediction_score.
-        k: Number of top predictions to consider.
+        y_true: Ground truth labels (0 or 1).
+        y_scores: Prediction scores (0 to 1).
     
     Returns:
-        Top-K accuracy as a float.
+        Dict containing AUROC, best F1, and threshold analysis.
     """
-    hits = 0
-    for patient in patients:
-        variants = get_variants_for_patient(patient)
-        causal = get_causal_variant(patient)
-        
-        # Sort variants by prediction score (descending)
-        ranked = sorted(variants, key=lambda v: predictions[v], reverse=True)
-        rank = ranked.index(causal) + 1  # 1-indexed
-        
-        if rank <= k:
-            hits += 1
-    # end for
+    auroc = roc_auc_score(y_true, y_scores)
     
-    return hits / len(patients)
+    precisions, recalls, thresholds = precision_recall_curve(y_true, y_scores)
+    f1_scores = 2 * (precisions * recalls) / (precisions + recalls + 1e-8)
+    best_idx = np.argmax(f1_scores)
+    
+    return {
+        "auroc": auroc,
+        "best_f1": f1_scores[best_idx],
+        "best_threshold": thresholds[best_idx],
+        "recall_at_best_f1": recalls[best_idx],
+        "precision_at_best_f1": precisions[best_idx],
+    }
 # end def
 ```
 
-### Results: AUROC vs Top-1 Accuracy
+### Results
 
-| Predictor | AUROC | Top-1 Accuracy | Top-5 Recall |
-|-----------|-------|----------------|--------------|
-| Predictor A | **0.94** | 12% | 35% |
-| Predictor B | 0.88 | **24%** | **52%** |
-| Predictor C | 0.91 | 18% | 41% |
+| Predictor | AUROC | Best F1 | Recall @ Best F1 | Precision @ Best F1 |
+|-----------|-------|---------|------------------|---------------------|
+| A | **0.94** | 0.42 | 0.65 | 0.31 |
+| B | 0.88 | **0.58** | **0.82** | 0.45 |
+| C | 0.91 | 0.51 | 0.71 | 0.40 |
 
-**Key Finding**: Predictor A had the highest AUROC but the worst clinical utility. Predictor B, despite lower AUROC, was **2x more likely to place the causal variant at rank 1**.
+**Key Finding**: Predictor A had the highest AUROC but the worst F1 and Recall. Predictor B, despite lower AUROC, achieved **82% Recall**—meaning it catches more pathogenic variants.
 
-**Lesson:** Always align your evaluation metrics with the actual end-user workflow, not just statistical textbook definitions.
+**Decision**: For clinical use, **Predictor B** is preferred because:
+1. Highest Recall (minimizes missed pathogenic variants)
+2. Best F1 Score (balanced performance on imbalanced data)
+
+**Lesson:** In medical AI with class imbalance, prioritize metrics that reflect clinical consequences (Recall for diagnosis), not just overall discrimination (AUROC).
+
 
 ## Challenge 2: Modeling Protein Variants with ESM2
 
