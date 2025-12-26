@@ -106,6 +106,14 @@ def api_client(database):
     client.logout()
 # end def
 
+# class: Shared setup for all tests in a test class
+@pytest.fixture(scope="class")
+def class_data(api_client):
+    """Shared data for all tests in a test class."""
+    data = api_client.fetch_initial_data()
+    yield data
+# end def
+
 # function (default): Test data must be fresh for each test
 @pytest.fixture
 def test_user(api_client):
@@ -116,7 +124,7 @@ def test_user(api_client):
 # end def
 ```
 
-**Result**: Instead of 5 + 1 = 6 seconds per test, the database starts once (5s) and API authenticates once per file (1s). A 100-test suite goes from 600s to ~15s.
+**Result**: Instead of repeating expensive setup for every test, each scope reuses the resource appropriately. A 100-test suite can go from 600s to ~15s.
 
 ---
 
