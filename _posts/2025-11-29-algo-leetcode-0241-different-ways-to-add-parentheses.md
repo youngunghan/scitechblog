@@ -28,108 +28,81 @@ Output: [0, 2]
 
 ## My First Approach (Failed)
 
-I initially tried to generate all possible parenthesis combinations and evaluate each one.
+처음엔 모든 괄호 조합을 생성해서 각각 계산하려 했다.
 
 ```python
-# Pseudocode of my first attempt
+# 처음 생각한 방식
 for each way to add parentheses:
     evaluate the expression
     add to results
 ```
 
-**Problem**: How do you even enumerate all parenthesis patterns? The number of valid patterns grows exponentially, and parsing nested parentheses is a nightmare.
+**문제점**: 괄호 패턴을 어떻게 열거하지? 중첩된 괄호를 파싱하는 건 복잡하다.
 
 ---
 
-## The Insight: Think About the LAST Operation
+## Key Insight: 마지막 연산을 기준으로 생각하자
 
-Instead of thinking "where do I put parentheses?", I realized:
+괄호를 어디에 넣을지 고민하는 대신, 이렇게 생각을 바꿨다:
 
-> **Every operator can be the "last" operation to compute.**
+> **모든 operator는 "마지막으로 계산될" 가능성이 있다.**
 
-For `2*3-4*5`:
-- If `-` is computed last: `(2*3) - (4*5)` → left side and right side are computed first
-- If first `*` is last: `2 * (3-4*5)` → we compute `2` and `3-4*5` separately
+예를 들어 `2*3-4*5`에서:
+- `-`가 마지막이면: `(2*3) - (4*5)` → 좌우를 먼저 계산하고 빼기
+- 첫 번째 `*`가 마지막이면: `2 * (3-4*5)` → 2와 나머지를 따로 계산
 
-This is **Divide and Conquer**: split at each operator, solve left and right recursively, combine results.
+이게 바로 **Divide and Conquer**: operator마다 분할하고, 재귀적으로 풀고, 결과를 조합한다.
 
 ---
 
-## Step-by-Step: How `"2-1-1"` Works
+## Step-by-Step: `"2-1-1"` 전체 과정
 
-### Step 1: Find All Operators
+### 전체 재귀 호출 테이블
+
+| 호출 | 입력 | Split 위치 | Left | Right | 결과 |
+|------|------|-----------|------|-------|------|
+| ① | `"2-1-1"` | 1번째 `-` | `"2"` | `"1-1"` | → ②로 진행 |
+| ② | `"1-1"` | `-` | `"1"` | `"1"` | `[0]` |
+| ③ | `"2-1-1"` | 2번째 `-` | `"2-1"` | `"1"` | → ④로 진행 |
+| ④ | `"2-1"` | `-` | `"2"` | `"1"` | `[1]` |
+
+### 결과 조합 과정
 
 ```
-"2-1-1"
-   ^   ^
-   |   |
-  op1  op2
+호출 ②: "1-1" → left=[1], right=[1] → 1-1=0 → [0]
+호출 ①: "2" - "1-1" → left=[2], right=[0] → 2-0=2 → [2]
+
+호출 ④: "2-1" → left=[2], right=[1] → 2-1=1 → [1]  
+호출 ③: "2-1" - "1" → left=[1], right=[1] → 1-1=0 → [0]
+
+최종: [2] + [0] = [2, 0]
 ```
 
-We can split at position 1 (first `-`) or position 3 (second `-`).
-
-### Step 2: Split at First `-`
-
-| Left | Operator | Right |
-|------|----------|-------|
-| `"2"` | `-` | `"1-1"` |
-
-- Left `"2"` → just a number → `[2]`
-- Right `"1-1"` → needs recursive call
-
-### Step 3: Recursively Solve `"1-1"`
-
-| Left | Operator | Right |
-|------|----------|-------|
-| `"1"` | `-` | `"1"` |
-
-- Left `"1"` → `[1]`
-- Right `"1"` → `[1]`
-- Combine: `1 - 1 = 0` → `[0]`
-
-### Step 4: Combine Step 2
-
-- Left results: `[2]`
-- Right results: `[0]` (from Step 3)
-- Combine: `2 - 0 = 2` → `[2]`
-
-### Step 5: Split at Second `-`
-
-| Left | Operator | Right |
-|------|----------|-------|
-| `"2-1"` | `-` | `"1"` |
-
-- Left `"2-1"` → `2 - 1 = 1` → `[1]`
-- Right `"1"` → `[1]`
-- Combine: `1 - 1 = 0` → `[0]`
-
-### Final Result
-
-Combining Step 4 and Step 5: `[2, 0]`
-
----
-
-## Visualizing the Recursion Tree
+### ASCII 재귀 트리
 
 ```
                     "2-1-1"
                    /       \
-            split@1st-    split@2nd-
+            ①split@1      ③split@2
                 |              |
          "2" - "1-1"      "2-1" - "1"
           |      |          |      |
-         [2]    [0]        [1]    [1]
-          \    /            \    /
-          2-0=2            1-1=0
+         [2]    ②          ④     [1]
+                |           |
+            [1]-[1]     [2]-[1]
+               ↓           ↓
+             [0]         [1]
+              ↓           ↓
+           2-0=2       1-1=0
+              ↓           ↓
+            [2]         [0]
 
-        Results: [2]        Results: [0]
-
-Final: [2, 0]
+최종 결과: [2, 0]
 ```
 
 ---
 
-## Solution Code
+## Solution Code (주석 강화)
 
 ```python
 from typing import List
@@ -137,29 +110,32 @@ from functools import lru_cache
 
 class Solution:
     def diffWaysToCompute(self, expression: str) -> List[int]:
-        @lru_cache(maxsize=None)
+        
+        @lru_cache(maxsize=None)  # ← 같은 부분식 재계산 방지
         def compute(exp: str) -> tuple[int, ...]:
-            # Base case: just a number
+            
+            # Base case: 숫자만 있으면 그대로 반환
             if exp.isdigit():
-                return (int(exp),)
+                return (int(exp),)  # ← 예: "2" → (2,)
             # end if
             
             result: list[int] = []
             
-            # Try each operator as the "last" operation
+            # 각 operator를 "마지막 연산"으로 시도
             for i, char in enumerate(exp):
                 if char in '-+*':
-                    left_results = compute(exp[:i])
-                    right_results = compute(exp[i + 1:])
+                    # ↓ 여기서 분할!
+                    left_results = compute(exp[:i])      # 왼쪽 부분식
+                    right_results = compute(exp[i + 1:])  # 오른쪽 부분식
                     
-                    # Combine all pairs
+                    # 모든 (왼쪽, 오른쪽) 조합을 계산
                     for left in left_results:
                         for right in right_results:
                             if char == '+':
                                 result.append(left + right)
                             elif char == '-':
                                 result.append(left - right)
-                            else:
+                            else:  # char == '*'
                                 result.append(left * right)
                             # end if
                         # end for
@@ -174,33 +150,62 @@ class Solution:
     # end def
 ```
 
+### 코드-설명 매핑
+
+| 코드 라인 | 역할 |
+|----------|------|
+| `@lru_cache` | 같은 부분식이 여러 번 나오면 캐시에서 가져옴 |
+| `if exp.isdigit()` | Base case: `"2"` 같은 숫자만 남으면 종료 |
+| `for i, char in enumerate(exp)` | 모든 operator 위치를 시도 |
+| `exp[:i]`, `exp[i+1:]` | operator 기준 좌/우 분할 |
+| `for left... for right...` | 가능한 모든 조합 생성 |
+
 ---
 
 ## Complexity Analysis
 
-### Time: $O(C_n)$ - Catalan Number
+### Time: $O(n \cdot C_n)$ - Catalan Number
 
-The number of ways to parenthesize $n$ operators is the **Catalan number**:
+$n$개의 operator로 만들 수 있는 괄호 패턴 수는 **Catalan number**:
 
 $$C_n = \frac{1}{n+1} \binom{2n}{n}$$
 
-| Operators | $C_n$ | Examples |
-|-----------|-------|----------|
-| 1 | 1 | `a+b` → 1 way |
-| 2 | 2 | `a+b+c` → 2 ways |
-| 3 | 5 | `a+b+c+d` → 5 ways |
-| 4 | 14 | 14 ways |
+| Operators | $C_n$ | 예시 |
+|-----------|-------|------|
+| 1 | 1 | `a+b` → 1가지 |
+| 2 | 2 | `a+b-c` → 2가지 |
+| 3 | 5 | `a+b-c*d` → 5가지 |
+| 4 | 14 | 14가지 |
 
 ### Space: $O(C_n)$
 
-We store all possible results, and memoization caches intermediate results.
+모든 결과를 저장하고, memoization으로 중간 결과 캐싱.
+
+---
+
+## Related Problems (같은 패턴)
+
+이 문제와 같은 **"Divide and Conquer + Memoization"** 패턴을 쓰는 문제들:
+
+| Problem | 난이도 | 핵심 유사점 |
+|---------|--------|-----------|
+| [95. Unique Binary Search Trees II](https://leetcode.com/problems/unique-binary-search-trees-ii/) | Medium | 가능한 모든 BST 생성 (숫자 범위를 분할) |
+| [96. Unique Binary Search Trees](https://leetcode.com/problems/unique-binary-search-trees/) | Medium | 위 문제의 "개수만" 세는 버전 (Catalan!) |
+| [894. All Possible Full Binary Trees](https://leetcode.com/problems/all-possible-full-binary-trees/) | Medium | 가능한 모든 Full Binary Tree 생성 |
+| [932. Beautiful Array](https://leetcode.com/problems/beautiful-array/) | Medium | D&C로 조건 만족하는 배열 생성 |
+
+**공통점**: 
+1. 모든 가능한 구조를 생성
+2. 재귀적으로 부분 문제 해결
+3. 결과 조합 (또는 개수 계산)
 
 ---
 
 ## Key Takeaways
 
-| Lesson | Description |
-|--------|-------------|
-| **Think about the last operation** | Instead of "where to add parentheses", think "which operator is computed last" |
-| **Divide and Conquer** | Split at each operator, solve recursively, combine |
-| **Memoization** | Same subexpressions appear multiple times, cache them |
+| 교훈 | 설명 |
+|------|------|
+| **마지막 연산 기준 사고** | "어디에 괄호?" 대신 "어떤 연산이 마지막?" |
+| **Divide and Conquer** | Operator 기준 분할 → 재귀 → 조합 |
+| **Memoization 필수** | 같은 부분식이 여러 번 등장 |
+| **Catalan Number** | 이 패턴의 복잡도는 보통 Catalan |
