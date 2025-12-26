@@ -12,11 +12,11 @@ author: seoultech
 
 ## Introduction
 
-pytest fixtures are a powerful way to manage test setup and teardown. This post covers practical patterns that make tests cleaner and more maintainable.
+While refactoring a test suite with 200+ tests, I kept running into the same problems: duplicate setup code, slow tests due to repeated database connections, and tests that were impossible to read. This post documents the fixture patterns I learned to solve these issues.
 
-## Basic Fixture
+## What is a Fixture?
 
-A fixture is a function decorated with `@pytest.fixture`:
+A fixture is reusable setup/teardown code. Instead of repeating the same setup in every test, you define it once:
 
 ```python
 import pytest
@@ -32,317 +32,306 @@ def sample_user() -> dict:
 # end def
 
 def test_user_has_email(sample_user: dict) -> None:
-    """Verify user has email field."""
+    """Test uses the fixture by adding it as a parameter."""
     assert "email" in sample_user
 # end def
 ```
 
-## Scope Patterns
+---
 
-### Function Scope (Default)
+## Scope: Controlling Fixture Lifetime
 
-New instance for each test:
+The most confusing part of fixtures is **scope**. Here's when each scope runs:
 
-```python
-@pytest.fixture(scope="function")
-def db_connection():
-    """Fresh connection for each test."""
-    conn = create_connection()
-    yield conn
-    conn.close()
-# end def
+```mermaid
+flowchart TB
+    subgraph Session["Session Scope (once per pytest run)"]
+        DB[(Database)]
+    end
+    
+    subgraph Module1["Module: test_user.py"]
+        subgraph ModuleScope["Module Scope (once per file)"]
+            API[API Client]
+        end
+        subgraph Func1["test_create_user()"]
+            F1[Function Fixture]
+        end
+        subgraph Func2["test_delete_user()"]
+            F2[Function Fixture]
+        end
+    end
+    
+    subgraph Module2["Module: test_order.py"]
+        subgraph ModuleScope2["Module Scope (once per file)"]
+            API2[API Client]
+        end
+        subgraph Func3["test_create_order()"]
+            F3[Function Fixture]
+        end
+    end
+    
+    DB --> API
+    DB --> API2
+    API --> F1
+    API --> F2
+    API2 --> F3
 ```
 
-### Module Scope
+### Scope Comparison
 
-Shared across all tests in a file:
+| Scope | Lifetime | Created | Destroyed | Use Case |
+|-------|----------|---------|-----------|----------|
+| `function` | Per test | Before each test | After each test | **Default.** Test data that must be fresh (e.g., mutable objects) |
+| `class` | Per test class | Before first test in class | After last test in class | Shared state within a test class |
+| `module` | Per file | Before first test in file | After last test in file | Expensive setup shared by related tests (e.g., API clients) |
+| `session` | Entire run | Once at start | Once at end | Very expensive setup (e.g., database, Docker containers) |
 
-```python
-@pytest.fixture(scope="module")
-def api_client():
-    """Shared client for the module."""
-    client = APIClient()
-    client.authenticate()
-    yield client
-    client.logout()
-# end def
-```
-
-### Session Scope
-
-Shared across entire test session:
+### Real-World Example: When to Use Each Scope
 
 ```python
+# session: Database takes 5 seconds to start
 @pytest.fixture(scope="session")
 def database():
-    """Single database instance for all tests."""
+    """Start database once for entire test run."""
     db = Database()
-    db.migrate()
+    db.migrate()  # 5 seconds
     yield db
     db.cleanup()
 # end def
+
+# module: API client authentication takes 1 second
+@pytest.fixture(scope="module")
+def api_client(database):
+    """Shared API client for all tests in this file."""
+    client = APIClient(database)
+    client.authenticate()  # 1 second
+    yield client
+    client.logout()
+# end def
+
+# function (default): Test data must be fresh for each test
+@pytest.fixture
+def test_user(api_client):
+    """Fresh user for each test (default scope)."""
+    user = api_client.create_user(name="Test")
+    yield user
+    api_client.delete_user(user.id)  # Cleanup
+# end def
 ```
 
-## Factory Pattern
+**Result**: Instead of 5 + 1 = 6 seconds per test, the database starts once (5s) and API authenticates once per file (1s). A 100-test suite goes from 600s to ~15s.
 
-When you need multiple instances with different configurations:
+---
+
+## Factory vs Parameterized: Which Pattern to Use?
+
+These two patterns look similar but solve different problems:
+
+```mermaid
+flowchart LR
+    subgraph Factory["Factory Pattern"]
+        direction TB
+        FF[create_user fixture]
+        FF -->|"admin"| A[Admin User]
+        FF -->|"guest"| G[Guest User]
+        FF -->|"any name"| N[Custom User]
+    end
+    
+    subgraph Parameterized["Parameterized Fixture"]
+        direction TB
+        PF[user fixture with params]
+        PF -->|Run 1| U1[User Type A]
+        PF -->|Run 2| U2[User Type B]
+        PF -->|Run 3| U3[User Type C]
+    end
+```
+
+### Pattern Comparison
+
+| Aspect | Factory | Parameterized |
+|--------|---------|---------------|
+| **Test runs** | Once | N times (once per param) |
+| **Control** | Test decides what to create | Fixture decides all variations |
+| **Use case** | Need different objects in same test | Test same logic with different inputs |
+| **Output** | Function that creates objects | Each param value becomes a test |
+
+### Factory Pattern: Multiple Objects in One Test
+
+When you need **different objects within the same test**:
 
 ```python
 @pytest.fixture
-def create_user():
-    """Factory fixture for creating users."""
-    created_users = []
+def create_order():
+    """Factory: create orders with custom attributes."""
+    orders = []
     
-    def _create_user(name: str, role: str = "user") -> dict:
-        user = {"name": name, "role": role, "id": len(created_users) + 1}
-        created_users.append(user)
-        return user
+    def _create(product: str, quantity: int = 1) -> Order:
+        order = Order(product=product, quantity=quantity)
+        orders.append(order)
+        return order
     # end def
     
-    yield _create_user
+    yield _create
     
-    # Cleanup
-    for user in created_users:
-        # delete_user(user["id"])
-        pass
+    for order in orders:
+        order.delete()
     # end for
 # end def
 
-def test_multiple_users(create_user) -> None:
-    """Test with multiple users."""
-    admin = create_user("Admin", role="admin")
-    guest = create_user("Guest", role="guest")
+def test_order_total(create_order) -> None:
+    """Test needs multiple different orders."""
+    laptop = create_order("Laptop", quantity=2)
+    mouse = create_order("Mouse", quantity=5)
     
-    assert admin["role"] == "admin"
-    assert guest["role"] == "guest"
+    assert laptop.total > mouse.total
 # end def
 ```
 
-## Parameterized Fixtures
+### Parameterized Fixture: Same Test, Multiple Inputs
 
-Test with multiple input values:
+When you need to **run the same test with different inputs**:
 
 ```python
 @pytest.fixture(params=[
-    {"status": 200, "expected": "success"},
-    {"status": 404, "expected": "not found"},
-    {"status": 500, "expected": "error"},
+    {"role": "admin", "can_delete": True},
+    {"role": "editor", "can_delete": False},
+    {"role": "viewer", "can_delete": False},
 ])
-def api_response(request):
-    """Fixture with multiple response scenarios."""
+def user_permissions(request):
+    """Each param becomes a separate test run."""
     return request.param
 # end def
 
-def test_response_handling(api_response) -> None:
-    """Test runs 3 times with different responses."""
-    status = api_response["status"]
-    expected = api_response["expected"]
-    # Test logic here
+def test_delete_permission(user_permissions) -> None:
+    """This test runs 3 times (once per role)."""
+    role = user_permissions["role"]
+    expected = user_permissions["can_delete"]
+    
+    user = User(role=role)
+    assert user.can_delete() == expected
 # end def
 ```
 
-## Fixture Composition
+**Test output shows 3 tests:**
+```
+test_delete_permission[admin] PASSED
+test_delete_permission[editor] PASSED
+test_delete_permission[viewer] PASSED
+```
 
-Combine fixtures for complex setups:
+---
+
+## Fixture Composition: Building Complex Setups
+
+Chain fixtures to build complex objects from simple parts:
+
+```mermaid
+flowchart LR
+    DB[(database)] --> R[repository]
+    R --> S[service]
+    S --> C[controller]
+    
+    subgraph "Test uses controller"
+        T[test_api]
+    end
+    
+    C --> T
+```
 
 ```python
 @pytest.fixture
 def database():
-    """Database connection."""
     return Database()
 # end def
 
 @pytest.fixture
 def repository(database):
-    """Repository that uses database fixture."""
+    """Depends on database fixture."""
     return UserRepository(database)
 # end def
 
 @pytest.fixture
 def service(repository):
-    """Service that uses repository fixture."""
+    """Depends on repository fixture."""
     return UserService(repository)
 # end def
 
-def test_service(service) -> None:
-    """Service gets repository and database automatically."""
-    result = service.get_users()
-    assert result is not None
+def test_user_creation(service) -> None:
+    """Test only requests 'service', but automatically gets database + repository."""
+    user = service.create_user("Alice")
+    assert user.name == "Alice"
 # end def
 ```
 
-## Autouse Fixtures
+---
 
-Run automatically without explicit request:
+## Autouse: When to Use (and When Not To)
+
+`autouse=True` makes a fixture run for every test without explicitly requesting it.
+
+| Use Case | Autouse? | Why |
+|----------|----------|-----|
+| Reset environment variables | Yes | Every test needs clean environment |
+| Database transaction rollback | Yes | Every test needs isolation |
+| Mock external API | **No** | Only some tests need mocking |
+| Create test user | **No** | Not every test needs a user |
 
 ```python
 @pytest.fixture(autouse=True)
 def reset_environment():
-    """Reset before each test (auto-applied)."""
+    """Runs before EVERY test in this file."""
     os.environ["TEST_MODE"] = "true"
     yield
     os.environ.pop("TEST_MODE", None)
 # end def
-
-def test_something() -> None:
-    """Environment is automatically reset."""
-    assert os.environ.get("TEST_MODE") == "true"
-# end def
 ```
 
-## conftest.py Organization
+---
 
-Place shared fixtures in `conftest.py`:
+## conftest.py: Sharing Fixtures
+
+Fixtures in `conftest.py` are automatically available to all tests in that directory and subdirectories:
 
 ```
 tests/
-├── conftest.py          # Shared fixtures
+├── conftest.py          # Available to ALL tests
 ├── unit/
-│   ├── conftest.py      # Unit test specific fixtures
+│   ├── conftest.py      # Available to unit/ tests only
 │   └── test_user.py
 └── integration/
-    ├── conftest.py      # Integration test specific fixtures
+    ├── conftest.py      # Available to integration/ tests only
     └── test_api.py
 ```
 
-Example `conftest.py`:
+---
 
-```python
-# tests/conftest.py
-import pytest
+## Pattern Decision Flowchart
 
-@pytest.fixture(scope="session")
-def base_url() -> str:
-    """API base URL for all tests."""
-    return "http://localhost:8000"
-# end def
-
-@pytest.fixture
-def auth_headers(base_url: str) -> dict:
-    """Get authentication headers."""
-    # Login and get token
-    return {"Authorization": "Bearer test-token"}
-# end def
+```mermaid
+flowchart TD
+    Q1{Need same data for multiple tests?}
+    Q1 -->|No| INLINE[Just use inline setup]
+    Q1 -->|Yes| Q2{Need multiple objects in one test?}
+    
+    Q2 -->|Yes| FACTORY[Use Factory Pattern]
+    Q2 -->|No| Q3{Need to test same logic with different inputs?}
+    
+    Q3 -->|Yes| PARAM[Use Parameterized Fixture]
+    Q3 -->|No| Q4{Should run for every test automatically?}
+    
+    Q4 -->|Yes| AUTOUSE[Use autouse=True]
+    Q4 -->|No| BASIC[Use Basic Fixture]
 ```
 
-## Cleanup Pattern
-
-Ensure cleanup even if test fails:
-
-```python
-@pytest.fixture
-def temp_file():
-    """Create temporary file with guaranteed cleanup."""
-    import tempfile
-    import os
-    
-    fd, path = tempfile.mkstemp()
-    os.close(fd)
-    
-    yield path  # Test runs here
-    
-    # Cleanup runs even if test fails
-    if os.path.exists(path):
-        os.remove(path)
-    # end if
-# end def
-```
-
-## Request Context
-
-Access test information in fixtures:
-
-```python
-@pytest.fixture
-def logger(request):
-    """Logger with test name context."""
-    import logging
-    
-    test_name = request.node.name
-    logger = logging.getLogger(test_name)
-    logger.info(f"Starting test: {test_name}")
-    
-    yield logger
-    
-    logger.info(f"Finished test: {test_name}")
-# end def
-```
-
-## Best Practices
-
-### 1. Keep Fixtures Focused
-
-Each fixture should do one thing:
-
-```python
-#  Bad: Too much in one fixture
-@pytest.fixture
-def everything():
-    db = Database()
-    client = APIClient()
-    user = create_user()
-    return db, client, user
-# end def
-
-#  Good: Separate concerns
-@pytest.fixture
-def database():
-    return Database()
-# end def
-
-@pytest.fixture
-def api_client():
-    return APIClient()
-# end def
-
-@pytest.fixture
-def test_user():
-    return create_user()
-# end def
-```
-
-### 2. Use Type Hints
-
-Make fixtures self-documenting:
-
-```python
-@pytest.fixture
-def sample_data() -> list[dict[str, str]]:
-    """Return list of sample records."""
-    return [
-        {"id": "1", "name": "Item A"},
-        {"id": "2", "name": "Item B"},
-    ]
-# end def
-```
-
-### 3. Document with Docstrings
-
-Explain what the fixture provides:
-
-```python
-@pytest.fixture
-def authenticated_client(api_client, test_user) -> APIClient:
-    """
-    API client authenticated as test_user.
-    
-    Returns:
-        APIClient configured with valid auth token.
-    """
-    api_client.login(test_user)
-    return api_client
-# end def
-```
+---
 
 ## Summary
 
-| Pattern | Use Case |
-|---------|----------|
-| **Basic** | Simple setup/teardown |
-| **Scope** | Control instance lifetime |
-| **Factory** | Multiple instances with variations |
-| **Parameterized** | Test with multiple inputs |
-| **Composition** | Build complex setups from simple parts |
-| **Autouse** | Apply to all tests automatically |
-
-Master these patterns to write cleaner, more maintainable tests!
+| Pattern | When to Use | Example |
+|---------|-------------|---------|
+| **Basic** | Simple reusable setup | `sample_user` fixture |
+| **Scope** | Control when fixture is created/destroyed | `session` for DB, `function` for test data |
+| **Factory** | Need multiple different objects in one test | `create_order("Laptop")`, `create_order("Mouse")` |
+| **Parameterized** | Run same test with different inputs | Test 3 user roles with same logic |
+| **Composition** | Build complex objects from simple parts | `service` depends on `repository` depends on `database` |
+| **Autouse** | Must run for every test | Environment reset, transaction rollback |
