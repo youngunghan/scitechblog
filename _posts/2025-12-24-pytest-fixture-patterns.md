@@ -8,6 +8,7 @@ image:
   path: assets/img/posts/troubleshooting/pytest_fixture_thumbnail.png
   alt: pytest Fixture Patterns
 author: seoultech
+mermaid: true
 ---
 
 ## Introduction

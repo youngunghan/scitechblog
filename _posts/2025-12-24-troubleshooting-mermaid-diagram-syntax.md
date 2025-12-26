@@ -8,6 +8,7 @@ image:
   path: assets/img/posts/troubleshooting/mermaid_thumbnail.png
   alt: Mermaid Diagram Troubleshooting
 author: seoultech
+mermaid: true
 ---
 
 ## Introduction

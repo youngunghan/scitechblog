@@ -8,6 +8,7 @@ image:
   path: assets/img/posts/troubleshooting/vscode_markdown_pdf_thumbnail.png
   alt: VS Code Markdown PDF Tips
 author: seoultech
+mermaid: true
 ---
 
 ## Introduction

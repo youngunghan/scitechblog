@@ -8,6 +8,7 @@ image:
   path: assets/img/posts/troubleshooting/test_documentation_thumbnail.png
   alt: Test Scenario Documentation
 author: seoultech
+mermaid: true
 ---
 
 ## Introduction
