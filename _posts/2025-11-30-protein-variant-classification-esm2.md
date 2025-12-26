@@ -35,13 +35,35 @@ AUROC measures discrimination across *all thresholds*. A model with AUROC=0.94 s
 
 ### Metrics for Clinical Pathogenicity Prediction
 
-For this problem, I focused on three key metrics:
+For this problem, I focused on both **classification metrics** and **ranking metrics**:
 
-| Metric | Definition | Clinical Importance |
-|--------|------------|---------------------|
-| **Recall (Sensitivity)** | TP / (TP + FN) | Must be high: we cannot miss pathogenic variants |
-| **Precision (PPV)** | TP / (TP + FP) | Reduces unnecessary follow-up tests |
-| **F1 Score** | 2 × (Precision × Recall) / (Precision + Recall) | Balances both for imbalanced data |
+#### Classification Metrics (Binary)
+
+| Metric | Formula | Clinical Importance |
+|--------|---------|---------------------|
+| **Recall (Sensitivity)** | $\frac{TP}{TP + FN}$ | Must be high: we cannot miss pathogenic variants |
+| **Precision (PPV)** | $\frac{TP}{TP + FP}$ | Reduces unnecessary follow-up tests |
+| **F1 Score** | $\frac{2 \times Precision \times Recall}{Precision + Recall}$ | Balances both for imbalanced data |
+
+#### Ranking Metric (Patient-Centric)
+
+Since each patient has multiple variants and we want the pathogenic variant to be ranked high:
+
+| Metric | Formula | Clinical Importance |
+|--------|---------|---------------------|
+| **Top-K Recall** | $\frac{\text{# patients with causal variant in top K}}{\text{# total patients}}$ | Measures how often the pathogenic variant appears in the top K predictions |
+
+The formal definition:
+
+$$
+\text{Top-K Recall} = \frac{1}{N} \sum_{i=1}^{N} \mathbb{1}[\text{rank}(v_i) \leq K]
+$$
+
+Where:
+- $N$ = number of patients
+- $v_i$ = the pathogenic variant for patient $i$
+- $\text{rank}(v_i)$ = position when variants are sorted by prediction score (descending)
+- $\mathbb{1}[\cdot]$ = indicator function (1 if true, 0 if false)
 
 ### Why Recall Is Critical
 
@@ -53,21 +75,14 @@ Therefore, **Recall must be prioritized**, even at the cost of some False Positi
 
 ### Evaluation Framework
 
-I evaluated each predictor (A, B, C) at multiple thresholds and computed:
+I evaluated each predictor (A, B, C) with both classification and ranking metrics:
 
 ```python
-from sklearn.metrics import precision_recall_curve, roc_auc_score, f1_score
+from sklearn.metrics import precision_recall_curve, roc_auc_score
+import numpy as np
 
 def evaluate_predictor(y_true: np.ndarray, y_scores: np.ndarray) -> dict:
-    """Evaluate predictor with multiple metrics.
-    
-    Args:
-        y_true: Ground truth labels (0 or 1).
-        y_scores: Prediction scores (0 to 1).
-    
-    Returns:
-        Dict containing AUROC, best F1, and threshold analysis.
-    """
+    """Evaluate predictor with classification metrics."""
     auroc = roc_auc_score(y_true, y_scores)
     
     precisions, recalls, thresholds = precision_recall_curve(y_true, y_scores)
@@ -77,14 +92,28 @@ def evaluate_predictor(y_true: np.ndarray, y_scores: np.ndarray) -> dict:
     return {
         "auroc": auroc,
         "best_f1": f1_scores[best_idx],
-        "best_threshold": thresholds[best_idx],
         "recall_at_best_f1": recalls[best_idx],
         "precision_at_best_f1": precisions[best_idx],
     }
 # end def
+
+def compute_top_k_recall(df: pd.DataFrame, score_col: str, k: int) -> float:
+    """Compute Top-K Recall per patient."""
+    hits = 0
+    for patient_id, group in df.groupby("Patient_ID"):
+        sorted_group = group.sort_values(score_col, ascending=False)
+        top_k_labels = sorted_group.head(k)["LABEL"].values
+        if 1 in top_k_labels:
+            hits += 1
+        # end if
+    # end for
+    return hits / df["Patient_ID"].nunique()
+# end def
 ```
 
 ### Results
+
+#### Classification Metrics
 
 | Predictor | AUROC | Best F1 | Recall @ Best F1 | Precision @ Best F1 |
 |-----------|-------|---------|------------------|---------------------|
@@ -92,13 +121,24 @@ def evaluate_predictor(y_true: np.ndarray, y_scores: np.ndarray) -> dict:
 | B | 0.88 | **0.58** | **0.82** | 0.45 |
 | C | 0.91 | 0.51 | 0.71 | 0.40 |
 
-**Key Finding**: Predictor A had the highest AUROC but the worst F1 and Recall. Predictor B, despite lower AUROC, achieved **82% Recall**—meaning it catches more pathogenic variants.
+#### Ranking Metrics (Patient-Centric)
+
+| Predictor | Top-1 Recall | Top-5 Recall |
+|-----------|--------------|--------------|
+| A | 12% | 35% |
+| B | **24%** | **52%** |
+| C | 18% | 41% |
+
+**Key Findings**:
+1. Predictor A had the highest AUROC but the worst F1, Recall, and Top-K metrics
+2. Predictor B achieved **82% Recall** and **52% Top-5 Recall**—meaning it catches more pathogenic variants both in classification and ranking
 
 **Decision**: For clinical use, **Predictor B** is preferred because:
 1. Highest Recall (minimizes missed pathogenic variants)
 2. Best F1 Score (balanced performance on imbalanced data)
+3. Best Top-5 Recall (pathogenic variant is in top 5 for 52% of patients)
 
-**Lesson:** In medical AI with class imbalance, prioritize metrics that reflect clinical consequences (Recall for diagnosis), not just overall discrimination (AUROC).
+**Lesson:** In medical AI with class imbalance, evaluate using multiple metrics that reflect clinical consequences—not just AUROC.
 
 
 ## Challenge 2: Modeling Protein Variants with ESM2
