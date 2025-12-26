@@ -46,25 +46,33 @@ The most confusing part of fixtures is **scope**. Here's when each scope runs:
 
 ```mermaid
 flowchart LR
-    subgraph Session["Session (1x per run)"]
+    subgraph S["Session"]
         DB[(Database)]
     end
     
-    subgraph Module["Module (1x per file)"]
-        API[API Client]
+    subgraph M["Module"]
+        CLI[API Client]
     end
     
-    subgraph Function["Function (1x per test)"]
-        FIX[Test Data]
+    subgraph C["Class"]
+        SETUP[Class Setup]
     end
     
-    DB --> API --> FIX
+    subgraph F["Function"]
+        DATA[Test Data]
+    end
+    
+    DB --> CLI --> SETUP --> DATA
 ```
 
 **Scope Lifecycle:**
-- **Session**: Created once when `pytest` starts, destroyed when all tests finish
-- **Module**: Created once per test file, destroyed after file's tests complete
-- **Function**: Created fresh for each test, destroyed after test finishes
+
+| Scope | When Created | When Destroyed |
+|-------|-------------|----------------|
+| **session** | Once at pytest start | After all tests finish |
+| **module** | Once per test file | After file's tests complete |
+| **class** | Once per test class | After class's tests complete |
+| **function** | Once per test | After each test finishes |
 
 ### Scope Comparison
 
