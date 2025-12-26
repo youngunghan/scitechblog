@@ -12,241 +12,216 @@ author: seoultech
 
 ## Introduction
 
-Clear test scenario documentation makes debugging easier and helps new team members understand the system. This post covers best practices for documenting API test scenarios using diagrams and structured formats.
+I was debugging a failing integration test and realized I had no idea what the test was supposed to do. The test name was `test_update_api_3` and the code was 200 lines of setup with no comments. After spending an hour understanding it, I decided to document all our test scenarios properly. This post is the result of that effort.
+
+---
 
 ## Why Document Test Scenarios?
 
-- **Onboarding**: New developers understand the system faster
-- **Debugging**: Quickly identify which scenarios are failing
-- **Review**: Test coverage becomes visible
-- **Maintenance**: Easier to update when APIs change
+| Problem | How Documentation Solves It |
+|---------|----------------------------|
+| "What does this test do?" | Overview section with purpose and coverage |
+| "Why is this test failing?" | Diagram shows expected flow, easy to compare with actual |
+| "Did we test this edge case?" | Scenario categories make coverage visible |
+| "New dev takes 2 weeks to understand tests" | Structured docs reduce onboarding to 2 days |
 
-## Documentation Structure
+---
 
-### 1. Overview Section
+## Communication vs Sequence Diagram: When to Use Which
 
-Start with a high-level summary:
+Before diving into templates, decide which diagram type to use:
 
-```markdown
-# User Management API Tests
-
-## Overview
-- **Total Scenarios**: 15
-- **Coverage**: CRUD operations, authentication, error handling
-- **Dependencies**: Database, Auth Service
-
-## API Endpoints Covered
-| Endpoint | Method | Scenarios |
-|----------|--------|-----------|
-| /users | GET | 3 |
-| /users | POST | 4 |
-| /users/{id} | PUT | 4 |
-| /users/{id} | DELETE | 4 |
+```mermaid
+flowchart TD
+    Q1{What do you want to show?}
+    Q1 -->|"Which components interact"| COMM[Communication Diagram]
+    Q1 -->|"Exact order of events"| SEQ[Sequence Diagram]
+    
+    COMM --> C1["Compact, fits overview sections"]
+    SEQ --> S1["Vertical, shows activation bars"]
 ```
 
-### 2. Scenario Categories
+### Comparison Table
 
-Group scenarios logically:
+| Aspect | Communication Diagram | Sequence Diagram |
+|--------|----------------------|------------------|
+| **Focus** | Object relationships | Time ordering |
+| **Layout** | Free-form (network) | Vertical timeline |
+| **Message Numbering** | Hierarchical (1, 1.1, 1.2) | Implicit (top→bottom) |
+| **Best For** | Overview, architecture | Detailed flows, debugging |
+| **When to Use** | "Who talks to whom?" | "What happens when?" |
 
-```markdown
-## Categories
+### Real Example: Same Scenario, Different Diagrams
 
-1. **Happy Path** (5 scenarios)
-   - Basic CRUD operations that should succeed
+**Scenario**: User login → Get user list
 
-2. **Error Handling** (6 scenarios)
-   - Invalid inputs, missing resources
+#### Communication Diagram (Overview)
 
-3. **Edge Cases** (4 scenarios)
-   - Boundary conditions, concurrent operations
-```
-
-## Diagram Best Practices
-
-### Use Communication Diagrams for Overview
-
-Show which components interact:
+Shows **which components interact**:
 
 ```mermaid
 flowchart LR
     T([Tester])
+    Auth[Auth Service]
     API[User API]
     DB[(Database)]
-    Auth[Auth Service]
     
     T -->|"1: POST /login"| Auth
     Auth -.->|"1.1: token"| T
     T -->|"2: GET /users"| API
     API -->|"2.1: query"| DB
-    DB -.->|"2.2: results"| API
+    DB -.->|"2.2: rows"| API
     API -.->|"2.3: 200"| T
 ```
 
-### Use Sequence Diagrams for Complex Flows
+#### Sequence Diagram (Detailed)
 
-When order matters:
+Shows **exact order and timing**:
 
 ```mermaid
 sequenceDiagram
     participant T as Tester
-    participant A as API
-    participant D as Database
+    participant Auth as Auth Service
+    participant API as User API
+    participant DB as Database
     
-    T->>+A: POST /users
-    A->>+D: INSERT
-    D-->>-A: success
-    A-->>-T: 201 Created
+    T->>+Auth: POST /login
+    Auth-->>-T: token
     
-    T->>+A: GET /users/{id}
-    A->>+D: SELECT
-    D-->>-A: user data
-    A-->>-T: 200 OK
+    T->>+API: GET /users (with token)
+    API->>+DB: SELECT * FROM users
+    DB-->>-API: rows
+    API-->>-T: 200 OK
 ```
+
+---
+
+## Documentation Structure
+
+### 1. Overview Section
+
+Start with what matters most:
+
+```markdown
+# User Management API Tests
+
+## Quick Stats
+| Metric | Value |
+|--------|-------|
+| Total Scenarios | 15 |
+| Happy Path | 5 |
+| Error Handling | 6 |
+| Edge Cases | 4 |
+
+## Endpoints Covered
+| Endpoint | Methods | Scenarios |
+|----------|---------|-----------|
+| /users | GET, POST | 7 |
+| /users/{id} | GET, PUT, DELETE | 8 |
+```
+
+### 2. Scenario Categories
+
+Group by **test purpose**, not by endpoint:
+
+| Category | Description | Example Scenarios |
+|----------|-------------|-------------------|
+| **Happy Path** | Normal operations | Create user, Update profile |
+| **Error Handling** | Expected failures | Invalid email format, Duplicate user |
+| **Edge Cases** | Boundary conditions | Empty list, Max length input |
+| **Security** | Auth/permission checks | Expired token, Forbidden access |
+
+---
 
 ## Scenario Template
 
-Use a consistent format for each scenario:
-
-```markdown
-## Scenario: Create User with Valid Data
-
-### Purpose
-Verify that a new user can be created with valid input.
-
-### Preconditions
-- Auth token is valid
-- Email is unique in the system
-
-### Steps
-1. POST /users with valid payload
-2. Verify response status is 201
-3. GET /users/{id} to confirm creation
-
-### Expected Results
-- Status: 201 Created
-- Response contains user ID
-- User exists in database
-
-### Diagram
-
-​```mermaid
-flowchart LR
-    T([Tester])
-    API[User API]
-    
-    T -->|"1: POST /users(name, email)"| API
-    API -.->|"1.1: 201(id=123)"| T
-​```
-```
-
-## Labeling Conventions
-
-### Message Format
-
-Use consistent notation:
-
-```
-{sequence}: {method} {endpoint}({parameters})
-```
-
-Examples:
-- `1: POST /users(name, email)`
-- `2: GET /users(id=123)`
-- `3: DELETE /users(id=123)`
-
-### Response Format
-
-```
-{sequence}.{sub}: {status}({key=value})
-```
-
-Examples:
-- `1.1: 200(count=5)`
-- `2.1: 404(error=not found)`
-- `3.1: 201(id=123)`
-
-### Conditional Notation
-
-For different response types:
-
-| Notation | Meaning |
-|----------|---------|
-| `<N개>` | Exactly N items |
-| `<...>` | One or more items |
-| `<>` | Empty result |
-| `<조건>` | Items matching condition |
-
-## Error Scenario Documentation
-
-Document expected failures clearly:
+Every scenario should answer: **What? Why? How? Expected?**
 
 ```markdown
 ## Scenario: Create User with Duplicate Email
 
-### Purpose
-Verify proper error handling for duplicate emails.
+### What (Purpose)
+Verify the API returns 400 when email already exists.
 
-### Steps
-1. Create user with email A (succeeds)
-2. Create another user with email A (fails)
+### Why (Business Context)
+Prevents duplicate accounts, maintains data integrity.
 
-### Expected Results
-- Status: 400 Bad Request
-- Error message indicates duplicate
+### How (Steps)
+1. Create user with email A → 201 Created
+2. Create another user with email A → 400 Bad Request
+
+### Expected Result
+- Status: 400
+- Body: `{"error": "Email already exists"}`
 
 ### Diagram
+```
 
-​```mermaid
+```mermaid
 flowchart LR
     T([Tester])
     API[User API]
     
-    T -->|"1: POST /users(email=A)"| API
+    T -->|"1: POST(email=A)"| API
     API -.->|"1.1: 201"| T
-    T -->|"2: POST /users(email=A)"| API
-    API -.->|"2.1: 400(error=duplicate)"| T
-​```
+    T -->|"2: POST(email=A)"| API
+    API -.->|"2.1: 400"| T
 ```
 
-## Tools and Automation
+---
 
-### Generate Diagrams from Tests
+## Labeling Conventions
 
-Consider generating diagrams programmatically:
+Consistent labels prevent confusion:
 
-```python
-def generate_scenario_diagram(steps: list) -> str:
-    """Generate Mermaid diagram from test steps."""
-    lines = ["flowchart LR", "    T([Tester])"]
-    
-    apis = set()
-    for step in steps:
-        apis.add(step.api_name)
-    
-    for api in apis:
-        lines.append(f"    {api}[{api}]")
-    
-    for i, step in enumerate(steps, 1):
-        lines.append(f"    T -->|\"{i}: {step.method} {step.endpoint}\"| {step.api_name}")
-        lines.append(f"    {step.api_name} -.->|\"{i}.1: {step.expected_status}\"| T")
-    
-    return "\n".join(lines)
+### Request Format
+```
+{sequence}: {METHOD} {endpoint}({params})
 ```
 
-### Version Control
+| Example | Meaning |
+|---------|---------|
+| `1: POST /users(name, email)` | First request: create user |
+| `2: GET /users(id=123)` | Second request: get user by ID |
+| `3: DELETE /users(id=123)` | Third request: delete user |
 
-- Keep documentation in the same repo as tests
-- Update diagrams when API changes
-- Review documentation changes in PRs
+### Response Format
+```
+{sequence}.{sub}: {status}({key=value})
+```
 
-## Conclusion
+| Example | Meaning |
+|---------|---------|
+| `1.1: 201(id=123)` | Response to request 1: created with ID |
+| `2.1: 404(error=not found)` | Response to request 2: not found |
 
-Good test documentation includes:
+---
 
-1. **Overview**: High-level summary with coverage stats
-2. **Categories**: Logical grouping of scenarios
-3. **Diagrams**: Visual representation of flows
-4. **Consistent Format**: Same template for all scenarios
-5. **Automation**: Generate where possible
+## Decision Flowchart: What to Document
 
-Clear documentation reduces debugging time and improves team collaboration!
+```mermaid
+flowchart TD
+    Q1{Is this a new feature?}
+    Q1 -->|Yes| A1[Document all scenarios]
+    Q1 -->|No| Q2{Is there a bug?}
+    
+    Q2 -->|Yes| A2[Add scenario that catches this bug]
+    Q2 -->|No| Q3{Is onboarding taking too long?}
+    
+    Q3 -->|Yes| A3[Add overview and diagrams]
+    Q3 -->|No| A4[Documentation is probably fine]
+```
+
+---
+
+## Summary
+
+| What to Document | How to Document |
+|------------------|-----------------|
+| API overview | Stats table + endpoint coverage |
+| Component interactions | Communication diagram |
+| Detailed flow | Sequence diagram |
+| Individual scenarios | Template (What/Why/How/Expected) |
+| Request/Response | Consistent labeling |
+
+Good documentation turns "What does this test do?" into "I know exactly what this tests in 10 seconds."
