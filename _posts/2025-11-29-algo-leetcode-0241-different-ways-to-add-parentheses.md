@@ -51,7 +51,7 @@ This is **Divide and Conquer**: split at each operator, solve recursively, combi
 
 ## Step-by-Step: `"2-1-1"`
 
-### Table
+### Table: Recursive Calls
 
 | Call | Input | Split | Left | Right | Result |
 |------|-------|-------|------|-------|--------|
@@ -60,7 +60,7 @@ This is **Divide and Conquer**: split at each operator, solve recursively, combi
 | ③ | `"2-1-1"` | 2nd `-` | `"2-1"` | `"1"` | → ④ |
 | ④ | `"2-1"` | `-` | `"2"` | `"1"` | `[1]` |
 
-### Visualization
+### Figure: Recursive Tree
 
 ```
                 "2-1-1"
