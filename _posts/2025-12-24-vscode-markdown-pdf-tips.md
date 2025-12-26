@@ -12,110 +12,123 @@ author: seoultech
 
 ## Introduction
 
-The **Markdown PDF** extension for VS Code is a convenient way to export Markdown documents to PDF, HTML, or images. However, it has some quirks, especially when working with Mermaid diagrams. This post covers practical tips and common gotchas.
+I spent 2 hours debugging a Mermaid diagram that worked perfectly in VS Code's preview but crashed during PDF export. The error message was just "Syntax error in text" with no line number. After multiple trial-and-error sessions, I compiled this list of gotchas that I wish I knew earlier.
 
-## Basic Setup
+---
 
-### Installation
+## The Three Common Traps
 
-1. Open VS Code Extensions (Ctrl+Shift+X)
-2. Search for "Markdown PDF" by yzane
-3. Install and reload VS Code
+Before diving into details, here's what causes 90% of PDF export failures:
 
-### Export Options
+| Trap | Problem | Solution |
+|------|---------|----------|
+| **Reserved Keywords** | `AND`, `OR` break the parser | Use `_AND_`, `_OR_` |
+| **Angle Brackets** | `<row>` looks like HTML | Use `<해당row>` (add non-English) |
+| **Real HTML Tags** | `<meta>`, `<div>` always fail | Use `<메타>`, `<구역>` |
 
-- `Markdown PDF: Export (pdf)` - Standard PDF export
-- `Markdown PDF: Export (html)` - HTML with embedded styles
-- `Markdown PDF: Export (png/jpeg)` - Image export
+---
 
-## Mermaid Diagram Support
+## Trap #1: Reserved Keywords
 
-The extension supports Mermaid diagrams (version 11.x as of this writing). However, syntax that works in GitHub or other renderers may fail here.
+Mermaid uses `AND`, `OR` as logical operators internally. Using them in labels can cause parsing issues.
 
-### Gotcha #1: Reserved Keywords
+```mermaid
+flowchart LR
+    subgraph "Error"
+        A1[A] -->|"AND"| B1[B]
+    end
+    subgraph "Works"
+        A2[A] -->|"_AND_"| B2[B]
+    end
+```
 
-Certain words are reserved in Mermaid's parser:
+### Affected Keywords
+
+| Keyword | Status | Alternative |
+|---------|--------|-------------|
+| `AND` | Error | `_AND_` |
+| `OR` | Error | `_OR_` |
+| `NOT` | Usually OK | `_NOT_` (safer) |
+| `IN` | Usually OK | `_IN_` (safer) |
+
+---
+
+## Trap #2: Angle Brackets = HTML?
+
+The PDF exporter uses Puppeteer (headless Chrome). Content in angle brackets can be interpreted as HTML tags.
+
+### Which Brackets Fail?
+
+| Content | Result | Why |
+|---------|--------|-----|
+| `<row>` | Error | Looks like HTML tag |
+| `<unchanged>` | Error | Looks like HTML tag |
+| `<1개>` | Works | Number makes it invalid HTML |
+| `<해당row>` | Works | Korean makes it invalid HTML |
+
+### Fix: Add Non-English Characters
 
 ```markdown
-<!--  Causes Syntax Error -->
-A -->|"AND"| B
-A -->|"OR"| B
+Before (Error):
+A -.->|"200(rows=<row>)"| T
 
-<!--  Works -->
-A -->|"_AND_"| B
-A -->|"_OR_"| B
+After (Works):
+A -.->|"200(rows=<해당row>)"| T
 ```
 
-Use underscores to escape: `_AND_`, `_OR_`
+---
 
-### Gotcha #2: HTML Tag Interpretation
+## Trap #3: Real HTML Tag Names
 
-Content in angle brackets (`<>`) may be interpreted as HTML:
+If your placeholder happens to be a real HTML tag name, it will **always** fail:
 
-```markdown
-<!--  Error: Looks like HTML tag -->
-A -->|"response: <row>"| B
-A -->|"data: <unchanged>"| B
+| Tag | Problem | Alternative |
+|-----|---------|-------------|
+| `<meta>` | Real HTML tag | `<메타>` or `META` |
+| `<div>` | Real HTML tag | `<구역>` or `DIV` |
+| `<span>` | Real HTML tag | `<범위>` or `SPAN` |
+| `<br>` | Real HTML tag | Remove or use `/` |
 
-<!--  Works: Add non-English characters -->
-A -->|"response: <해당row>"| B
-A -->|"data: <변경없음>"| B
+---
+
+## Quick Fix Checklist
+
+Before exporting to PDF, search for these patterns:
+
+```mermaid
+flowchart TD
+    Q1{Export Failed?}
+    Q1 -->|Yes| C1["Search: AND, OR"]
+    C1 --> F1["Replace with _AND_, _OR_"]
+    
+    F1 --> C2["Search: \u003cEnglish-only\u003e"]
+    C2 --> F2["Add Korean: \u003c한글\u003e"]
+    
+    F2 --> C3["Search: \u003cmeta\u003e, \u003cdiv\u003e, \u003cspan\u003e"]
+    C3 --> F3["Replace: \u003c메타\u003e, \u003c구역\u003e"]
+    
+    F3 --> Q2{Still Failing?}
+    Q2 -->|Yes| A1["Export incrementally to find the problematic section"]
+    Q2 -->|No| A2["Success!"]
 ```
 
-### Gotcha #3: Actual HTML Tag Names
+---
 
-Be especially careful with real HTML tag names:
+## Configuration Tips
 
-```markdown
-<!--  ALWAYS fails -->
-<meta>
-<div>
-<span>
+### Fix Korean Text Rendering
 
-<!--  Replace with alternatives -->
-<메타>
-<구역>
-<범위>
-```
-
-## Styling Tips
-
-### Custom CSS
-
-Create a custom CSS file for consistent styling:
-
-```css
-/* markdown-pdf.css */
-body {
-  font-family: 'Noto Sans KR', sans-serif;
-  line-height: 1.6;
-}
-
-code {
-  background-color: #f5f5f5;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-pre {
-  background-color: #2d2d2d;
-  color: #f8f8f2;
-  padding: 16px;
-  border-radius: 8px;
-}
-```
-
-Configure in `settings.json`:
+If Korean appears as boxes:
 
 ```json
 {
   "markdown-pdf.styles": [
-    "/path/to/markdown-pdf.css"
+    "https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap"
   ]
 }
 ```
 
-### Page Layout
+### Page Layout Settings
 
 ```json
 {
@@ -127,65 +140,32 @@ Configure in `settings.json`:
 }
 ```
 
-## Troubleshooting
+---
 
-### Problem: Diagrams Not Rendering
+## Workflow: Avoiding Export Pain
 
-**Symptom:** Mermaid code blocks show as raw text.
-
-**Solution:** Check if the extension is up to date. Restart VS Code after updating.
-
-### Problem: Korean Text Broken
-
-**Symptom:** Korean characters appear as boxes or question marks.
-
-**Solution:** Specify a font that supports Korean:
-
-```json
-{
-  "markdown-pdf.styles": [
-    "https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap"
-  ]
-}
+```mermaid
+flowchart LR
+    W[Write section] --> P[Preview in VS Code]
+    P --> E[Export to PDF]
+    E --> Q{Success?}
+    Q -->|Yes| W
+    Q -->|No| D[Debug with checklist]
+    D --> W
 ```
 
-### Problem: Export Takes Forever
+**Key**: Export after every few sections, not at the end. Finding the problematic line in a 200-line document is painful.
 
-**Symptom:** PDF export hangs on large documents.
+---
 
-**Solution:** 
-1. Split into multiple files
-2. Reduce diagram complexity
-3. Close other VS Code extensions temporarily
+## Summary
 
-## Best Practices
+| Problem | Quick Fix |
+|---------|-----------|
+| `AND`/`OR` errors | `_AND_`/`_OR_` |
+| `<english>` fails | `<한글>` |
+| `<meta>` fails | `<메타>` or `META` |
+| Korean is broken | Add Noto Sans KR font |
+| Export is slow | Split into smaller files |
 
-### 1. Test Incrementally
-
-Export after every few changes to catch issues early.
-
-### 2. Keep Diagrams Simple
-
-Markdown PDF uses a headless browser internally. Complex diagrams with many nodes can cause timeouts.
-
-### 3. Avoid Special Characters in Labels
-
-Characters that have meaning in HTML/Mermaid can cause issues:
-- `<`, `>` - Use `&lt;`, `&gt;` or Korean alternatives
-- `"` inside labels - Escape with backslash
-- `|` - Use sparingly, can conflict with Mermaid syntax
-
-### 4. Use Preview First
-
-Before exporting to PDF, use VS Code's built-in Markdown preview (Ctrl+Shift+V) to catch obvious rendering issues.
-
-## Conclusion
-
-Markdown PDF is powerful but has quirks, especially with Mermaid diagrams. Key takeaways:
-
-1. **Escape reserved keywords**: `_AND_`, `_OR_`
-2. **Avoid English-only angle brackets**: `<english>` → `<한글>`
-3. **Watch for HTML tag names**: `<meta>`, `<div>`, etc.
-4. **Configure Korean fonts** for proper rendering
-
-With these tips, you can produce professional PDF documentation directly from Markdown!
+The extension is powerful once you know the workarounds. Most issues come from Mermaid diagrams - fix those first!

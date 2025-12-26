@@ -12,58 +12,35 @@ author: seoultech
 
 ## Introduction
 
-When documenting system interactions, two UML diagram types often come up: **Communication Diagrams** and **Sequence Diagrams**. Both show object interactions, but they emphasize different aspects. This post explains when to use each.
+While writing test documentation, I kept switching between Communication and Sequence diagrams without a clear reason. One reviewer asked: "Why did you use a sequence diagram here but a communication diagram there?" I didn't have a good answer. After researching the UML spec and experimenting with both, I finally understood when to use each.
 
-## Quick Comparison
+---
 
-| Aspect | Communication Diagram | Sequence Diagram |
-|--------|----------------------|------------------|
-| **Focus** | Object relationships | Time ordering |
-| **Layout** | Free-form (network) | Vertical timeline |
-| **Message Numbering** | Hierarchical (1.1, 1.2) | Implicit (top to bottom) |
-| **Best For** | Architecture overview | Detailed flow |
-| **Mermaid Support** | `flowchart` (workaround) | `sequenceDiagram` (native) |
+## Same Scenario, Different Diagrams
 
-## Communication Diagram
+Let's visualize the same interaction both ways to see the difference:
 
-### Characteristics
+**Scenario**: Tester calls Update API, then calls Undo API
 
-- Objects arranged freely in a network layout
-- Messages labeled with sequence numbers (1, 1.1, 1.2, 2, ...)
-- Emphasizes **which objects communicate with which**
-- Good for showing the "big picture"
+### Communication Diagram
 
-### Example (Mermaid Workaround)
+Focus: **Who talks to whom** (structure)
 
 ```mermaid
 flowchart LR
-    Tester([Tester])
-    API1[Update API]
-    API2[Undo API]
+    T([Tester])
+    U[Update API]
+    D[Undo API]
     
-    Tester -->|"1: POST /update"| API1
-    API1 -.->|"1.1: 200"| Tester
-    Tester -->|"2: POST /undo"| API2
-    API2 -.->|"2.1: 200"| Tester
+    T -->|"1: POST /update"| U
+    U -.->|"1.1: 200"| T
+    T -->|"2: POST /undo"| D
+    D -.->|"2.1: 200"| T
 ```
 
-### When to Use
+### Sequence Diagram
 
-- **Architecture documentation**: Show which components interact
-- **API overview**: Quick summary of endpoints involved
-- **Testing scenarios**: Show test flow at a glance
-- **Space-constrained documents**: More compact than sequence diagrams
-
-## Sequence Diagram
-
-### Characteristics
-
-- Objects arranged horizontally at the top
-- Time flows vertically downward
-- Activation bars show when objects are "active"
-- Emphasizes **the order of events**
-
-### Example (Mermaid Native)
+Focus: **What happens when** (time)
 
 ```mermaid
 sequenceDiagram
@@ -77,66 +54,154 @@ sequenceDiagram
     D-->>-T: 200
 ```
 
-### When to Use
+**Notice the difference?** Communication shows the network of relationships. Sequence shows the timeline with activation bars.
 
-- **Detailed flow documentation**: Step-by-step process
-- **Complex interactions**: Many back-and-forth messages
-- **Async operations**: Show parallel/waiting states
-- **Debugging**: Trace exact message order
+---
 
-## Decision Guide
+## When to Use Each
 
+```mermaid
+flowchart TD
+    Q1{What question are you answering?}
+    
+    Q1 -->|"Which components interact?"| COMM
+    Q1 -->|"What happens step by step?"| SEQ
+    
+    COMM[Communication Diagram]
+    SEQ[Sequence Diagram]
+    
+    COMM --> C1["Architecture overview"]
+    COMM --> C2["Test scenario summary"]
+    COMM --> C3["Compact documentation"]
+    
+    SEQ --> S1["Detailed flow analysis"]
+    SEQ --> S2["Debugging/tracing"]
+    SEQ --> S3["Async/parallel operations"]
 ```
-Do you need to show...
 
-├── Object relationships? → Communication Diagram
-│   └── "Which components talk to which?"
-│
-├── Time-based flow? → Sequence Diagram
-│   └── "What happens first, second, third?"
-│
-├── Compact overview? → Communication Diagram
-│   └── Fits in a single view
-│
-└── Detailed interactions? → Sequence Diagram
-    └── Shows activation, async, loops
-```
+### Decision Table
 
-## Practical Tips
+| Question | Answer | Use |
+|----------|--------|-----|
+| "Which components are involved?" | Need to show connections | Communication |
+| "What happens first, second, third?" | Need to show order | Sequence |
+| "How does the whole system look?" | Architecture view | Communication |
+| "Why did step 3 fail?" | Debug/trace | Sequence |
+| "Space is limited" | Need compact diagram | Communication |
+| "Many back-and-forth messages" | Complex interaction | Sequence |
 
-### 1. Start with Communication, Detail with Sequence
+---
 
-For comprehensive documentation:
-1. Use **Communication Diagram** for overview section
-2. Use **Sequence Diagram** for detailed scenarios
+## Detailed Comparison
 
-### 2. Mermaid Limitations
+| Aspect | Communication Diagram | Sequence Diagram |
+|--------|----------------------|------------------|
+| **Layout** | Free-form network | Vertical timeline |
+| **Message Order** | Explicit numbers (1, 1.1, 2) | Implicit (top→bottom) |
+| **Activation** | Not shown | Bars show active objects |
+| **Loops/Alt** | Hard to show | Native support (`loop`, `alt`) |
+| **Space** | Compact, fits overview | Grows vertically |
+| **Mermaid** | Workaround (`flowchart`) | Native support |
+| **Best For** | "Big picture" | "Step-by-step" |
 
-Mermaid doesn't have native Communication Diagram support. Use `flowchart LR` as a workaround:
+---
+
+## Real-World Use Cases
+
+### 1. Test Scenario Overview (Communication)
+
+When documenting test coverage, show all APIs involved:
 
 ```mermaid
 flowchart LR
-    A[Object A]
-    B[Object B]
-    A -->|"1: message()"| B
-    B -.->|"1.1: response"| A
+    T([Tester])
+    L[Listing API]
+    S[Search API]
+    U[Update API]
+    X[Undo API]
+    
+    T --> L
+    T --> S
+    T --> U
+    T --> X
 ```
 
-### 3. Numbering Convention
+### 2. Single Test Flow (Sequence)
 
-For Communication Diagrams, use hierarchical numbering:
-- `1:` First message
-- `1.1:` Response to message 1
-- `2:` Second message
-- `2.1:` Response to message 2
+When documenting one specific test, show the exact steps:
 
-## Conclusion
+```mermaid
+sequenceDiagram
+    participant T as Tester
+    participant A as API
+    participant DB as Database
+    
+    T->>+A: GET /listing
+    A->>+DB: SELECT
+    DB-->>-A: rows
+    A-->>-T: 200 (original data)
+    
+    T->>+A: POST /update (modify row)
+    A->>+DB: UPDATE
+    DB-->>-A: affected=1
+    A-->>-T: 200
+    
+    T->>+A: GET /listing
+    A->>+DB: SELECT
+    DB-->>-A: rows
+    A-->>-T: 200 (modified data)
+```
 
-| Use Case | Diagram Type |
-|----------|--------------|
-| Architecture overview | Communication |
-| Test scenario summary | Communication |
-| Detailed API flow | Sequence |
-| Debugging/tracing | Sequence |
+---
 
-Both diagrams have their place. Choose based on whether you're emphasizing **structure** (Communication) or **time** (Sequence).
+## Mermaid Tips
+
+### Communication Diagram Workaround
+
+Mermaid doesn't support Communication Diagrams natively. Use `flowchart LR`:
+
+```markdown
+​```mermaid
+flowchart LR
+    A[Object A]
+    B[Object B]
+    
+    A -->|"1: request"| B
+    B -.->|"1.1: response"| A
+​```
+```
+
+**Conventions**:
+- `-->` for request (solid arrow)
+- `-.->` for response (dashed arrow)
+- `"1: message"` for numbered labels
+
+### Sequence Diagram Native
+
+```markdown
+​```mermaid
+sequenceDiagram
+    A->>+B: request
+    B-->>-A: response
+​```
+```
+
+**Conventions**:
+- `->>` for sync call
+- `-->>` for response
+- `+/-` for activation bars
+
+---
+
+## Summary
+
+| Situation | Use |
+|-----------|-----|
+| Overview documentation | Communication |
+| Test scenario list | Communication |
+| Detailed test flow | Sequence |
+| Debugging failed test | Sequence |
+| Architecture diagram | Communication |
+| API interaction trace | Sequence |
+
+**Rule of thumb**: Start with Communication for the overview, add Sequence for important details.
