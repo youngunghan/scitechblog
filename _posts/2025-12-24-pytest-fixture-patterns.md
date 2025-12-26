@@ -45,38 +45,26 @@ def test_user_has_email(sample_user: dict) -> None:
 The most confusing part of fixtures is **scope**. Here's when each scope runs:
 
 ```mermaid
-flowchart TB
-    subgraph Session["Session Scope (once per pytest run)"]
+flowchart LR
+    subgraph Session["Session (1x per run)"]
         DB[(Database)]
     end
     
-    subgraph Module1["Module: test_user.py"]
-        subgraph ModuleScope["Module Scope (once per file)"]
-            API[API Client]
-        end
-        subgraph Func1["test_create_user()"]
-            F1[Function Fixture]
-        end
-        subgraph Func2["test_delete_user()"]
-            F2[Function Fixture]
-        end
+    subgraph Module["Module (1x per file)"]
+        API[API Client]
     end
     
-    subgraph Module2["Module: test_order.py"]
-        subgraph ModuleScope2["Module Scope (once per file)"]
-            API2[API Client]
-        end
-        subgraph Func3["test_create_order()"]
-            F3[Function Fixture]
-        end
+    subgraph Function["Function (1x per test)"]
+        FIX[Test Data]
     end
     
-    DB --> API
-    DB --> API2
-    API --> F1
-    API --> F2
-    API2 --> F3
+    DB --> API --> FIX
 ```
+
+**Scope Lifecycle:**
+- **Session**: Created once when `pytest` starts, destroyed when all tests finish
+- **Module**: Created once per test file, destroyed after file's tests complete
+- **Function**: Created fresh for each test, destroyed after test finishes
 
 ### Scope Comparison
 
