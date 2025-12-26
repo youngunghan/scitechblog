@@ -1,103 +1,84 @@
 ---
-title: "[LeetCode] 680. Valid Palindrome Ii"
-date: 2025-09-12 09:21:50 +0900
+title: "[LeetCode] 680. Valid Palindrome II"
+date: 2025-09-12 17:42:34 +0900
 categories: ['Algorithm', 'LeetCode']
-tags: ['Algorithm', 'LeetCode', 'Easy']
-description: "Solution for LeetCode 680: Valid Palindrome Ii"
+tags: ['Algorithm', 'LeetCode', 'Easy', 'Two Pointers', 'String']
+description: "Solution for LeetCode 680: Valid Palindrome II"
 image:
   path: assets/img/posts/algo/leetcode_new.png
-  alt: "[LeetCode] 680. Valid Palindrome Ii"
+  alt: "[LeetCode] 680. Valid Palindrome II"
+author: seoultech
+math: true
 ---
 
-## Introduction
-This is a solution for **[Valid Palindrome Ii](https://leetcode.com/problems/valid-palindrome-ii)** on LeetCode.
+## Problem
 
-## Problem Description
+> [LeetCode 680. Valid Palindrome II](https://leetcode.com/problems/valid-palindrome-ii/)
 
-<p>Given a string <code>s</code>, return <code>true</code> <em>if the </em><code>s</code><em> can be palindrome after deleting <strong>at most one</strong> character from it</em>.</p>
+Given a string `s`, return `true` if you can make it a palindrome by deleting **at most one** character.
 
-<p>&nbsp;</p>
-<p><strong class="example">Example 1:</strong></p>
+```
+Input: s = "abca"
+Output: true
+Explanation: Delete 'c' to get "aba".
+```
 
-<pre>
-<strong>Input:</strong> s = &quot;aba&quot;
-<strong>Output:</strong> true
-</pre>
-
-<p><strong class="example">Example 2:</strong></p>
-
-<pre>
-<strong>Input:</strong> s = &quot;abca&quot;
-<strong>Output:</strong> true
-<strong>Explanation:</strong> You could delete the character &#39;c&#39;.
-</pre>
-
-<p><strong class="example">Example 3:</strong></p>
-
-<pre>
-<strong>Input:</strong> s = &quot;abc&quot;
-<strong>Output:</strong> false
-</pre>
-
-<p>&nbsp;</p>
-<p><strong>Constraints:</strong></p>
-
-<ul>
-	<li><code>1 &lt;= s.length &lt;= 10<sup>5</sup></code></li>
-	<li><code>s</code> consists of lowercase English letters.</li>
-</ul>
-
+---
 
 ## Approach
 
+Use **Two Pointers** with one chance to skip.
 
-### Code Analysis
-**Code Comments Analysis**:
-- Use two pointers from both ends
-- If characters match, continue inward
-- First mismatch found - try deleting either character
-- Option 1: Delete left character (skip left pointer)
-- Option 2: Delete right character (skip right pointer)
-- No mismatch found - already a palindrome
+1. Start with pointers at both ends
+2. If characters match, move both inward
+3. If mismatch, try skipping left OR right character
+4. Check if either resulting substring is a palindrome
 
-
+---
 
 ## Solution
+
 ```python
 class Solution:
     def validPalindrome(self, s: str) -> bool:
-        def is_palindrome_range(left, right):
-            """Helper function to check if substring is palindrome"""
+        def is_palindrome(left: int, right: int) -> bool:
             while left < right:
                 if s[left] != s[right]:
                     return False
+                # end if
                 left += 1
                 right -= 1
+            # end while
             return True
+        # end def
         
-        # Use two pointers from both ends
         left, right = 0, len(s) - 1
         
         while left < right:
-            # If characters match, continue inward
-            if s[left] == s[right]:
-                left += 1
-                right -= 1
-            else:
-                # First mismatch found - try deleting either character
-                # Option 1: Delete left character (skip left pointer)
-                # Option 2: Delete right character (skip right pointer)
-                return (is_palindrome_range(left + 1, right) or 
-                        is_palindrome_range(left, right - 1))
+            if s[left] != s[right]:
+                # Try skipping left or right character
+                return is_palindrome(left + 1, right) or is_palindrome(left, right - 1)
+            # end if
+            left += 1
+            right -= 1
+        # end while
         
-        # No mismatch found - already a palindrome
         return True
+    # end def
 ```
 
-## Complexity Analysis
-- **Time Complexity**: The algorithm is designed to handle the input size efficiently.
-- **Space Complexity**: Space usage is optimized to meet the memory constraints.
+---
 
-## Conclusion
-This problem provided a good opportunity to practice algorithmic thinking and implementation skills.
+## Complexity
 
+- **Time**: $O(n)$ - at most two passes through the string
+- **Space**: $O(1)$ - only using pointers
+
+---
+
+## Key Takeaways
+
+| Point | Description |
+|-------|-------------|
+| **Greedy skip** | Try both options (skip left or right) |
+| **Helper function** | Reuse palindrome check logic |

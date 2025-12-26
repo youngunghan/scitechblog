@@ -1,79 +1,70 @@
 ---
 title: "[LeetCode] 217. Contains Duplicate"
-date: 2025-09-12 10:50:15 +0900
+date: 2025-09-12 08:12:49 +0900
 categories: ['Algorithm', 'LeetCode']
-tags: ['Algorithm', 'LeetCode', 'Easy']
+tags: ['Algorithm', 'LeetCode', 'Easy', 'Hash Table', 'Array']
 description: "Solution for LeetCode 217: Contains Duplicate"
 image:
   path: assets/img/posts/algo/leetcode_new.png
   alt: "[LeetCode] 217. Contains Duplicate"
+author: seoultech
+math: true
 ---
 
-## Introduction
-This is a solution for **[Contains Duplicate](https://leetcode.com/problems/contains-duplicate)** on LeetCode.
+## Problem
 
-## Problem Description
+> [LeetCode 217. Contains Duplicate](https://leetcode.com/problems/contains-duplicate/)
 
-<p>Given an integer array <code>nums</code>, return <code>true</code> if any value appears <strong>at least twice</strong> in the array, and return <code>false</code> if every element is distinct.</p>
+Given an integer array `nums`, return `true` if any value appears at least twice, and return `false` if every element is distinct.
 
-<p>&nbsp;</p>
-<p><strong class="example">Example 1:</strong></p>
+```
+Input: nums = [1,2,3,1]
+Output: true
+```
 
-<div class="example-block">
-<p><strong>Input:</strong> <span class="example-io">nums = [1,2,3,1]</span></p>
-
-<p><strong>Output:</strong> <span class="example-io">true</span></p>
-
-<p><strong>Explanation:</strong></p>
-
-<p>The element 1 occurs at the indices 0 and 3.</p>
-</div>
-
-<p><strong class="example">Example 2:</strong></p>
-
-<div class="example-block">
-<p><strong>Input:</strong> <span class="example-io">nums = [1,2,3,4]</span></p>
-
-<p><strong>Output:</strong> <span class="example-io">false</span></p>
-
-<p><strong>Explanation:</strong></p>
-
-<p>All elements are distinct.</p>
-</div>
-
-<p><strong class="example">Example 3:</strong></p>
-
-<div class="example-block">
-<p><strong>Input:</strong> <span class="example-io">nums = [1,1,1,3,3,4,3,2,4,2]</span></p>
-
-<p><strong>Output:</strong> <span class="example-io">true</span></p>
-</div>
-
-<p>&nbsp;</p>
-<p><strong>Constraints:</strong></p>
-
-<ul>
-	<li><code>1 &lt;= nums.length &lt;= 10<sup>5</sup></code></li>
-	<li><code>-10<sup>9</sup> &lt;= nums[i] &lt;= 10<sup>9</sup></code></li>
-</ul>
-
+---
 
 ## Approach
 
+Use a **Hash Set** to track seen numbers.
 
+1. Iterate through the array
+2. If the number is already in the set, return `true`
+3. Otherwise, add it to the set
+4. If we finish without finding a duplicate, return `false`
 
+---
 
 ## Solution
+
 ```python
 class Solution:
     def containsDuplicate(self, nums: List[int]) -> bool:
-        return len(nums) != len(set(nums))
+        seen = set()
+        
+        for num in nums:
+            if num in seen:
+                return True
+            # end if
+            seen.add(num)
+        # end for
+        
+        return False
+    # end def
 ```
 
-## Complexity Analysis
-- **Time Complexity**: The algorithm is designed to handle the input size efficiently.
-- **Space Complexity**: Space usage is optimized to meet the memory constraints.
+---
 
-## Conclusion
-This problem provided a good opportunity to practice algorithmic thinking and implementation skills.
+## Complexity
 
+- **Time**: $O(n)$ - single pass through the array
+- **Space**: $O(n)$ - storing up to n elements in the set
+
+---
+
+## Key Takeaways
+
+| Point | Description |
+|-------|-------------|
+| **Hash Set** | $O(1)$ lookup makes this efficient |
+| **Alternative** | Sorting would be $O(n \log n)$ time, $O(1)$ space |

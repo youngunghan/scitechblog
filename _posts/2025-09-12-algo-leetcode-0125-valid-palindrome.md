@@ -2,103 +2,83 @@
 title: "[LeetCode] 125. Valid Palindrome"
 date: 2025-09-12 09:12:17 +0900
 categories: ['Algorithm', 'LeetCode']
-tags: ['Algorithm', 'LeetCode', 'Easy']
+tags: ['Algorithm', 'LeetCode', 'Easy', 'Two Pointers', 'String']
 description: "Solution for LeetCode 125: Valid Palindrome"
 image:
   path: assets/img/posts/algo/leetcode_new.png
   alt: "[LeetCode] 125. Valid Palindrome"
+author: seoultech
+math: true
 ---
 
-## Introduction
-This is a solution for **[Valid Palindrome](https://leetcode.com/problems/valid-palindrome)** on LeetCode.
+## Problem
 
-## Problem Description
+> [LeetCode 125. Valid Palindrome](https://leetcode.com/problems/valid-palindrome/)
 
-<p>A phrase is a <strong>palindrome</strong> if, after converting all uppercase letters into lowercase letters and removing all non-alphanumeric characters, it reads the same forward and backward. Alphanumeric characters include letters and numbers.</p>
+A phrase is a palindrome if, after converting all uppercase letters to lowercase and removing all non-alphanumeric characters, it reads the same forward and backward.
 
-<p>Given a string <code>s</code>, return <code>true</code><em> if it is a <strong>palindrome</strong>, or </em><code>false</code><em> otherwise</em>.</p>
+```
+Input: s = "A man, a plan, a canal: Panama"
+Output: true
+Explanation: "amanaplanacanalpanama" is a palindrome.
+```
 
-<p>&nbsp;</p>
-<p><strong class="example">Example 1:</strong></p>
-
-<pre>
-<strong>Input:</strong> s = &quot;A man, a plan, a canal: Panama&quot;
-<strong>Output:</strong> true
-<strong>Explanation:</strong> &quot;amanaplanacanalpanama&quot; is a palindrome.
-</pre>
-
-<p><strong class="example">Example 2:</strong></p>
-
-<pre>
-<strong>Input:</strong> s = &quot;race a car&quot;
-<strong>Output:</strong> false
-<strong>Explanation:</strong> &quot;raceacar&quot; is not a palindrome.
-</pre>
-
-<p><strong class="example">Example 3:</strong></p>
-
-<pre>
-<strong>Input:</strong> s = &quot; &quot;
-<strong>Output:</strong> true
-<strong>Explanation:</strong> s is an empty string &quot;&quot; after removing non-alphanumeric characters.
-Since an empty string reads the same forward and backward, it is a palindrome.
-</pre>
-
-<p>&nbsp;</p>
-<p><strong>Constraints:</strong></p>
-
-<ul>
-	<li><code>1 &lt;= s.length &lt;= 2 * 10<sup>5</sup></code></li>
-	<li><code>s</code> consists only of printable ASCII characters.</li>
-</ul>
-
+---
 
 ## Approach
 
+Use **Two Pointers** - one from the start, one from the end.
 
-### Code Analysis
-**Code Comments Analysis**:
-- Initialize two pointers from both ends
-- Skip non-alphanumeric characters from left
-- Skip non-alphanumeric characters from right
-- Compare characters (case-insensitive)
-- Move both pointers inward
+1. Skip non-alphanumeric characters
+2. Compare characters (case-insensitive)
+3. If any mismatch, return `false`
+4. If pointers meet, return `true`
 
-
+---
 
 ## Solution
+
 ```python
 class Solution:
     def isPalindrome(self, s: str) -> bool:
-        # Initialize two pointers from both ends
         left, right = 0, len(s) - 1
         
         while left < right:
-            # Skip non-alphanumeric characters from left
-            if not s[left].isalnum():
+            # Skip non-alphanumeric from left
+            while left < right and not s[left].isalnum():
                 left += 1
-                continue
-                
-            # Skip non-alphanumeric characters from right
-            if not s[right].isalnum():
+            # end while
+            
+            # Skip non-alphanumeric from right
+            while left < right and not s[right].isalnum():
                 right -= 1
-                continue
-                
-            # Compare characters (case-insensitive)
+            # end while
+            
+            # Compare (case-insensitive)
             if s[left].lower() != s[right].lower():
                 return False
-                
-            # Move both pointers inward
+            # end if
+            
             left += 1
             right -= 1
+        # end while
         
         return True
+    # end def
 ```
 
-## Complexity Analysis
-- **Time Complexity**: The algorithm is designed to handle the input size efficiently.
-- **Space Complexity**: Space usage is optimized to meet the memory constraints.
+---
 
-## Conclusion
-This problem provided a good opportunity to practice algorithmic thinking and implementation skills.
+## Complexity
 
+- **Time**: $O(n)$ - single pass through the string
+- **Space**: $O(1)$ - only using pointers
+
+---
+
+## Key Takeaways
+
+| Point | Description |
+|-------|-------------|
+| **Two Pointers** | Classic pattern for palindrome checking |
+| **In-place** | No need to create a cleaned string |

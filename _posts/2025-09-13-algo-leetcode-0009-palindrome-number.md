@@ -1,76 +1,73 @@
 ---
 title: "[LeetCode] 9. Palindrome Number"
-date: 2025-09-13 21:41:57 +0900
+date: 2025-09-13 13:55:54 +0900
 categories: ['Algorithm', 'LeetCode']
-tags: ['Algorithm', 'LeetCode', 'Easy']
+tags: ['Algorithm', 'LeetCode', 'Easy', 'Math']
 description: "Solution for LeetCode 9: Palindrome Number"
 image:
   path: assets/img/posts/algo/leetcode_new.png
   alt: "[LeetCode] 9. Palindrome Number"
+author: seoultech
+math: true
 ---
 
-## Introduction
-This is a solution for **[Palindrome Number](https://leetcode.com/problems/palindrome-number)** on LeetCode.
+## Problem
 
-## Problem Description
+> [LeetCode 9. Palindrome Number](https://leetcode.com/problems/palindrome-number/)
 
-<p>Given an integer <code>x</code>, return <code>true</code><em> if </em><code>x</code><em> is a </em><span data-keyword="palindrome-integer"><em><strong>palindrome</strong></em></span><em>, and </em><code>false</code><em> otherwise</em>.</p>
+Given an integer `x`, return `true` if it's a palindrome (reads the same backward).
 
-<p>&nbsp;</p>
-<p><strong class="example">Example 1:</strong></p>
+```
+Input: x = 121
+Output: true
+```
 
-<pre>
-<strong>Input:</strong> x = 121
-<strong>Output:</strong> true
-<strong>Explanation:</strong> 121 reads as 121 from left to right and from right to left.
-</pre>
-
-<p><strong class="example">Example 2:</strong></p>
-
-<pre>
-<strong>Input:</strong> x = -121
-<strong>Output:</strong> false
-<strong>Explanation:</strong> From left to right, it reads -121. From right to left, it becomes 121-. Therefore it is not a palindrome.
-</pre>
-
-<p><strong class="example">Example 3:</strong></p>
-
-<pre>
-<strong>Input:</strong> x = 10
-<strong>Output:</strong> false
-<strong>Explanation:</strong> Reads 01 from right to left. Therefore it is not a palindrome.
-</pre>
-
-<p>&nbsp;</p>
-<p><strong>Constraints:</strong></p>
-
-<ul>
-	<li><code>-2<sup>31</sup>&nbsp;&lt;= x &lt;= 2<sup>31</sup>&nbsp;- 1</code></li>
-</ul>
-
-<p>&nbsp;</p>
-<strong>Follow up:</strong> Could you solve it without converting the integer to a string?
+---
 
 ## Approach
 
+Reverse half the number and compare.
 
+1. Negative numbers are not palindromes
+2. Numbers ending in 0 (except 0 itself) are not palindromes
+3. Reverse the second half of the number
+4. Compare with the first half
 
+---
 
 ## Solution
+
 ```python
 class Solution:
     def isPalindrome(self, x: int) -> bool:
-        str_ = str(x)
-        for i in range(len(str_)):
-            if str_[i] != str_[-1 - i]:
-                return False
-        return True
+        # Negative or ends with 0 (but not 0 itself)
+        if x < 0 or (x % 10 == 0 and x != 0):
+            return False
+        # end if
+        
+        reversed_half = 0
+        while x > reversed_half:
+            reversed_half = reversed_half * 10 + x % 10
+            x //= 10
+        # end while
+        
+        # For odd-length numbers, middle digit is in reversed_half
+        return x == reversed_half or x == reversed_half // 10
+    # end def
 ```
 
-## Complexity Analysis
-- **Time Complexity**: The algorithm is designed to handle the input size efficiently.
-- **Space Complexity**: Space usage is optimized to meet the memory constraints.
+---
 
-## Conclusion
-This problem provided a good opportunity to practice algorithmic thinking and implementation skills.
+## Complexity
 
+- **Time**: $O(\log_{10} n)$ - processing half the digits
+- **Space**: $O(1)$ - only using a few variables
+
+---
+
+## Key Takeaways
+
+| Point | Description |
+|-------|-------------|
+| **Half reversal** | Avoids overflow, more elegant than string conversion |
+| **Edge cases** | Negative numbers, trailing zeros |
