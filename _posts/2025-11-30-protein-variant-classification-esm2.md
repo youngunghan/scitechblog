@@ -15,24 +15,42 @@ math: true
 In the field of clinical genomics, accurately predicting whether a specific genetic variant is pathogenic (disease-causing) or benign is a critical challenge. Recently, I worked on a project to develop a deep learning model that classifies protein variants as either **Gain-of-Function (GOF)** or **Loss-of-Function (LOF)** using **ESM2 (Evolutionary Scale Modeling)**, a state-of-the-art protein language model.
 
 This post shares the technical challenges I encountered—specifically regarding **class imbalance** and **distributed training on A100 GPUs**—and how I solved them.
-
 ## Challenge 1: Metric Selection for Clinical Use
 
 Before diving into the model, I had to evaluate existing pathogenicity predictors. A common pitfall in this domain is relying solely on global metrics like **AUROC**.
 
-### Why AUROC Can Be Misleading
+### The Problem: This is a Ranking Task, Not Binary Classification
 
-AUROC (Area Under the ROC Curve) measures the model's ability to distinguish between classes across *all possible thresholds*. It's useful for general comparison but doesn't reflect real clinical workflows.
+In typical binary classification (e.g., "Is this tumor malignant?"), metrics like **Accuracy, Precision, Recall, F1** are appropriate because you're making a single yes/no decision.
 
-**Clinical Reality**: A clinician reviewing a patient's variants doesn't see ROC curves. They see a **ranked list** of 50-100 variants and need to find the one causing the disease. If the causal variant is ranked #1, they save hours. If it's #50, they waste time.
+But **variant prioritization is fundamentally different**:
+- Each patient has **50-100 candidate variants**
+- Only **1 variant is the true cause** (confirmed by clinical follow-up)
+- The task is to **rank** the causal variant high, not just classify it correctly
+
+This is why standard classification metrics fail here:
+
+| Scenario | Binary Classification Metric | Ranking Metric |
+|----------|------------------------------|----------------|
+| Predict all 100 variants as "pathogenic" | Recall = 100% (perfect!) | Top-1 = ~1% (useless) |
+| Predict only top 1 correctly | Recall = 1% (terrible) | Top-1 = 100% (perfect!) |
+
+### Why Not Precision/Recall/F1?
+
+In medical AI, **False Negatives are dangerous** - missing a disease means no treatment. So why not use Recall?
+
+**Answer**: In this task, we're not making binary predictions. We're **ranking** variants, and the final Recall@K depends on where we cut off the ranking. A model that ranks the causal variant at position #1 is clinically equivalent to 100% Recall at K=1.
+
+The key insight: **Top-K Accuracy is Recall measured at a specific ranking threshold**.
 
 ### Metrics Comparison
 
-| Metric | Formula | What It Measures | Clinical Relevance |
-|--------|---------|------------------|-------------------|
-| **AUROC** | Area under TPR vs FPR curve | Overall discriminative power | Low: Doesn't reflect ranking |
-| **Top-1 Accuracy** | `# patients with causal variant at rank 1 / # total patients` | How often the top prediction is correct | **High**: Directly saves clinician time |
-| **Top-5 Recall** | `# patients with causal variant in top 5 / # total patients` | How often causal variant is in the top 5 | High: Acceptable clinical effort |
+| Metric | When to Use | This Task |
+|--------|-------------|-----------|
+| **AUROC** | Comparing models across all thresholds | Less relevant: doesn't reflect ranking quality |
+| **Precision/Recall** | Binary classification tasks | Not applicable: we rank, not classify |
+| **Top-1 Accuracy** | Ranking tasks with one correct answer | **Primary metric**: causal variant at rank 1 |
+| **Top-K Recall** | Ranking tasks allowing K mistakes | **Secondary**: causal variant in top K |
 
 ### Formula Definitions
 
