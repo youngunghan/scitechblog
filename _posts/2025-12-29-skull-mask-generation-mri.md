@@ -18,11 +18,9 @@ Recently, I worked on a task to generate **skull masks** from MRI images. The go
 - **Exclude** the outermost bright tissue (scalp)
 - **Include** the dark border inside (skull bone)
 
-Sounds like a textbook segmentation problem, right? My first instinct was to use **U-Net** or another deep learning model. But here's the catch: I only had **5 labeled images**. That's not even enough for a validation set, let alone training a neural network.
+My first instinct was **U-Net**. But I only had **5 labeled images**—not enough to train anything.
 
-This constraint forced me to think differently. Instead of reaching for the deep learning hammer, I had to carefully analyze the data and design a classical image processing pipeline. The result? **IoU 0.9795, Dice 0.9896**—performance that rivals many deep learning approaches.
-
-In this post, I'll walk you through the entire process, from data analysis to algorithm design, explaining each step as if I were mentoring a junior engineer.
+So I went with classical image processing instead. The result: **IoU 0.9795, Dice 0.9896**.
 
 ---
 
@@ -76,9 +74,7 @@ flowchart LR
     style K fill:#339af0,color:#fff
 ```
 
-The key insight: **Scalp touches the image border, Brain does not.** This simple observation drives the entire algorithm.
-
-Let me explain each step in detail.
+The key insight: **Scalp touches the image border, Brain does not.**
 
 ---
 
@@ -379,17 +375,10 @@ if __name__ == '__main__':
 
 ## Conclusion
 
-This project was a great reminder that **not every problem needs deep learning**. When you have:
-- Limited labeled data
-- Well-structured input (like medical images)
-- Clear domain knowledge about the problem
+**Key insights:**
+1. **Edge-touching property** was the breakthrough—Scalp touches borders, Brain doesn't
+2. **Iterate and measure**—v1-v4 failed, v5 worked
+3. **Simple can be powerful**—Otsu + Connected Components + Dilation = 98% IoU
 
-...a classical approach can be not only sufficient but optimal.
-
-The key insights were:
-1. **Understand your data first**: The edge-touching property was the breakthrough
-2. **Iterate and measure**: My first 4 versions didn't work; v5 was the turning point
-3. **Simple can be powerful**: Otsu + Connected Components + Dilation achieved 98% IoU
-
-Sometimes the best solution isn't the most complex one—it's the one that fits the constraints of your problem.
+Not every problem needs deep learning.
 
