@@ -55,15 +55,15 @@ Example: `s = "abca"`
 
 ```mermaid
 graph TD
-    S1[Start: left=0, right=0, char='a'] --> S2[Set: {'a'}, Len=1]
-    S2 --> S3[Expand: right=1, char='b']
-    S3 --> S4[Set: {'a', 'b'}, Len=2]
-    S4 --> S5[Expand: right=2, char='c']
-    S5 --> S6[Set: {'a', 'b', 'c'}, Len=3]
-    S6 --> S7[Expand: right=3, char='a' <br> Duplicate Found!]
+    S1["Start: left=0, right=0, char='a'"] --> S2["Set: {'a'}, Len=1"]
+    S2 --> S3["Expand: right=1, char='b'"]
+    S3 --> S4["Set: {'a', 'b'}, Len=2"]
+    S4 --> S5["Expand: right=2, char='c'"]
+    S5 --> S6["Set: {'a', 'b', 'c'}, Len=3"]
+    S6 --> S7["Expand: right=3, char='a' <br> Duplicate Found!"]
     
-    S7 --> S8[Shrink: Remove s[left]='a', left++]
-    S8 --> S9[Now Valid Again: {'b', 'c', 'a'}]
+    S7 --> S8["Shrink: Remove s[left]='a', left++"]
+    S8 --> S9["Now Valid Again: {'b', 'c', 'a'}"]
     style S7 fill:#ffaaaa
     style S9 fill:#90EE90
 ```

@@ -55,20 +55,20 @@ Tree: `3 -> [9, 20]`, `20 -> [15, 7]`
 
 ```mermaid
 graph TD
-    Root[3: Call maxDepth]
-    ChildL[9: Call maxDepth]
-    ChildR[20: Call maxDepth]
+    Root["3: Call maxDepth"]
+    ChildL["9: Call maxDepth"]
+    ChildR["20: Call maxDepth"]
     
     Root --> ChildL
     Root --> ChildR
     
-    ChildL --> L1[Return 1 + 0 = 1]
+    ChildL --> L1["Return 1 + 0 = 1"]
     
-    ChildR --> R1[15: Return 1]
-    ChildR --> R2[7: Return 1]
-    ChildR --> R3[Return 1 + 1 = 2]
+    ChildR --> R1["15: Return 1"]
+    ChildR --> R2["7: Return 1"]
+    ChildR --> R3["Return 1 + 1 = 2"]
     
-    Root --> Final[Return 1 + max<br>1, 2<br> = 3]
+    Root --> Final["Return 1 + max<br>1, 2<br> = 3"]
     style Final fill:#90EE90
 ```
 

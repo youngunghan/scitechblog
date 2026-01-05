@@ -56,16 +56,16 @@ Instead of tracking the *exact* number of open parentheses, we should track the 
 
 ```mermaid
 graph TD
-    S1[Start: min=0, max=0] --> C1[Char: '(']
-    C1 --> S2[min=1, max=1]
+    S1["Start: min=0, max=0"] --> C1["Char: '('"]
+    C1 --> S2["min=1, max=1"]
     
-    S2 --> C2[Char: '*']
-    C2 --> S3[Range Expansion: <br> min = 1-1 = 0 <br> max = 1+1 = 2 <br> Range: [0, 2]]
+    S2 --> C2["Char: '*'"]
+    C2 --> S3["Range Expansion: <br> min = 1-1 = 0 <br> max = 1+1 = 2 <br> Range: [0, 2]"]
     
-    S3 --> C3[Char: ')']
-    C3 --> S4[min = 0-1 = -1 -> 0 (clamped) <br> max = 2-1 = 1 <br> Range: [0, 1]]
+    S3 --> C3["Char: ')'"]
+    C3 --> S4["min = 0-1 = -1 -> 0 (clamped) <br> max = 2-1 = 1 <br> Range: [0, 1]"]
     
-    S4 --> F{Valid if min == 0?}
+    S4 --> F{"Valid if min == 0?"}
     F --> Success[True]
     style Success fill:#90EE90
 ```

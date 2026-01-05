@@ -55,11 +55,11 @@ However, reversing the *entire* number might cause **integer overflow** (in lang
 
 ```mermaid
 graph TD
-    S1[x=1221, rev=0] --> S2[Process 1: <br> rev = 0*10 + 1 = 1 <br> x = 122]
-    S2 --> S3[Process 2: <br> rev = 1*10 + 2 = 12 <br> x = 12]
-    S3 --> C{x <= rev?}
-    C -- Yes --> R[Compare x == rev?]
-    R --> F[12 == 12: True]
+    S1["x=1221, rev=0"] --> S2["Process 1: <br> rev = 0*10 + 1 = 1 <br> x = 122"]
+    S2 --> S3["Process 2: <br> rev = 1*10 + 2 = 12 <br> x = 12"]
+    S3 --> C{"x <= rev?"}
+    C -- Yes --> R["Compare x == rev?"]
+    R --> F["12 == 12: True"]
     style F fill:#90EE90
 ```
 

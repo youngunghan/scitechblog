@@ -54,9 +54,9 @@ This eliminates half of the search space in every step (**Binary Search**).
 
 ```mermaid
 graph TD
-    S1[Left=0, Right=5 <br> Mid=2, Val=3] -->|3 < 9| S2[Go Right <br> Left=3, Right=5]
-    S2 --> S3[Mid=4, Val=9]
-    S3 -->|Found!| F[Return 4]
+    S1["Left=0, Right=5 <br> Mid=2, Val=3"] -->|3 < 9| S2["Go Right <br> Left=3, Right=5"]
+    S2 --> S3["Mid=4, Val=9"]
+    S3 -->|Found!| F["Return 4"]
     style F fill:#90EE90
 ```
 
