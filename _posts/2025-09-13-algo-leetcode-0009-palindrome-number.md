@@ -9,6 +9,7 @@ image:
   alt: "[LeetCode] 9. Palindrome Number"
 author: seoultech
 math: true
+mermaid: true
 ---
 
 ## Problem
@@ -24,14 +25,47 @@ Output: true
 
 ---
 
-## Approach
+## Initial Thought (Failed)
 
-Reverse half the number and compare.
+Convert the integer to a string and check if it reads the same backwards.
+- `s = str(x)`
+- `return s == s[::-1]`
 
-1. Negative numbers are not palindromes
-2. Numbers ending in 0 (except 0 itself) are not palindromes
-3. Reverse the second half of the number
-4. Compare with the first half
+**Why avoid this?**
+- It uses **extra space** proportional to the number of digits.
+- The problem often asks (as a follow-up) to do it without converting to string.
+
+---
+
+## Key Insight
+
+We can construct the **reverse** of the number mathematically.
+However, reversing the *entire* number might cause **integer overflow** (in languages with fixed integer sizes).
+
+**Better Idea**: Revert only **half** of the number!
+- Given `1221`.
+- Right Half Reversed: `12`. Remaining Left Half: `12`.
+- `12 == 12`.
+
+---
+
+## Step-by-Step Analysis
+
+`x = 1221`
+
+```mermaid
+graph TD
+    S1[x=1221, rev=0] --> S2[Process 1: <br> rev = 0*10 + 1 = 1 <br> x = 122]
+    S2 --> S3[Process 2: <br> rev = 1*10 + 2 = 12 <br> x = 12]
+    S3 --> C{x <= rev?}
+    C -- Yes --> R[Compare x == rev?]
+    R --> F[12 == 12: True]
+    style F fill:#90EE90
+```
+
+1.  Stop loop when `x <= reversed_half`.
+2.  If even length (`1221`), `x == reversed_half`.
+3.  If odd length (`121`), `x == reversed_half // 10` (ignore middle digit).
 
 ---
 
@@ -40,7 +74,7 @@ Reverse half the number and compare.
 ```python
 class Solution:
     def isPalindrome(self, x: int) -> bool:
-        # Negative or ends with 0 (but not 0 itself)
+        # Edge cases: Negative numbers or numbers ending with 0 (except 0)
         if x < 0 or (x % 10 == 0 and x != 0):
             return False
         # end if
@@ -51,7 +85,7 @@ class Solution:
             x //= 10
         # end while
         
-        # For odd-length numbers, middle digit is in reversed_half
+        # Even length vs Odd length
         return x == reversed_half or x == reversed_half // 10
     # end def
 ```
@@ -60,8 +94,10 @@ class Solution:
 
 ## Complexity
 
-- **Time**: $O(\log_{10} n)$ - processing half the digits
-- **Space**: $O(1)$ - only using a few variables
+- **Time Complexity**: $O(\log_{10} N)$
+    - We iterate through half the number of digits.
+- **Space Complexity**: $O(1)$
+    - No strings, just integers.
 
 ---
 
@@ -69,5 +105,6 @@ class Solution:
 
 | Point | Description |
 |-------|-------------|
-| **Half reversal** | Avoids overflow, more elegant than string conversion |
-| **Edge cases** | Negative numbers, trailing zeros |
+| **Math Reversal** | `rev = rev * 10 + digit` pattern |
+| **Half Execution** | Stopping halfway avoids overflow and redundant checks |
+| **Edge Cases** | Negative numbers and logic for trailing zeros |

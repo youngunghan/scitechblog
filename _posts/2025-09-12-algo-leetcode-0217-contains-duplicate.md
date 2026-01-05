@@ -9,6 +9,7 @@ image:
   alt: "[LeetCode] 217. Contains Duplicate"
 author: seoultech
 math: true
+mermaid: true
 ---
 
 ## Problem
@@ -24,14 +25,53 @@ Output: true
 
 ---
 
-## Approach
+## Initial Thought (Failed)
 
-Use a **Hash Set** to track seen numbers.
+Check every pair of numbers to see if they are the same (**Brute Force**).
 
-1. Iterate through the array
-2. If the number is already in the set, return `true`
-3. Otherwise, add it to the set
-4. If we finish without finding a duplicate, return `false`
+- Compare `nums[i]` with `nums[j]` for all $i < j$.
+- **Time Complexity**: $O(N^2)$.
+- For large inputs ($N=10^5$), this will time out.
+
+**Alternative**: Sort the array first?
+- Sorting takes $O(N \log N)$.
+- Then check neighbors: `nums[i] == nums[i+1]`.
+- This is good, but can we be faster?
+
+---
+
+## Key Insight
+
+We need to check "Have I seen this number before?" in **$O(1)$** time.
+The **Hash Set** data structure is designed exactly for this.
+
+- Lookup: $O(1)$ on average.
+- Insert: $O(1)$ on average.
+- Total time: $O(N)$.
+
+---
+
+## Step-by-Step Analysis
+
+`nums = [1, 2, 3, 1]`
+
+```mermaid
+graph TD
+    S1[Start: Set={}] --> N1[Num: 1 <br> In Set? No]
+    N1 --> A1[Add 1: Set={1}]
+    A1 --> N2[Num: 2 <br> In Set? No]
+    N2 --> A2[Add 2: Set={1, 2}]
+    A2 --> N3[Num: 3 <br> In Set? No]
+    N3 --> A3[Add 3: Set={1, 2, 3}]
+    A3 --> N4[Num: 1 <br> In Set? YES!]
+    N4 --> F[Return True]
+    style F fill:#90EE90
+```
+
+1.  Initialize empty `seen` set.
+2.  Traverse `nums`.
+3.  If `num` in `seen` -> Duplicate found!
+4.  If end reached -> No duplicates.
 
 ---
 
@@ -57,8 +97,10 @@ class Solution:
 
 ## Complexity
 
-- **Time**: $O(n)$ - single pass through the array
-- **Space**: $O(n)$ - storing up to n elements in the set
+- **Time Complexity**: $O(N)$
+    - We iterate through the array once.
+- **Space Complexity**: $O(N)$
+    - In the worst case (no duplicates), all elements are stored in the set.
 
 ---
 
@@ -66,5 +108,5 @@ class Solution:
 
 | Point | Description |
 |-------|-------------|
-| **Hash Set** | $O(1)$ lookup makes this efficient |
-| **Alternative** | Sorting would be $O(n \log n)$ time, $O(1)$ space |
+| **Hash Set** | Trades space ($O(N)$) for speed ($O(1)$ lookup) |
+| **Trading Resource** | Choose between Space ($O(N)$ with Set) vs Time ($O(N \log N)$ with Sort) |
