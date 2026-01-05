@@ -9,6 +9,7 @@ image:
   alt: "[LeetCode] 1. Two Sum"
 author: seoultech
 math: true
+mermaid: true
 ---
 
 ## Problem
@@ -25,20 +26,44 @@ Explanation: nums[0] + nums[1] == 9
 
 ---
 
-## Approach
+## Initial Thought (Failed)
 
-### Initial Thought: Brute Force
+Check every possible pair of numbers (**Brute Force**).
 
-Check every possible pair of numbers: $O(N^2)$.
+- Loop `i` from $0$ to $N$.
+- Loop `j` from $i+1$ to $N$.
+- Check if `nums[i] + nums[j] == target`.
 
-### Optimization: Hash Map (One-pass)
+**Complexity**: $O(N^2)$.
+This is acceptable for small $N$, but we can do better.
 
-Use a Hash Map to store numbers we've seen:
-1. For each `num`, calculate `complement = target - num`
-2. If `complement` is in the map, we found the pair
-3. Otherwise, add `num` to the map
+---
 
-This reduces lookup to $O(1)$.
+## Key Insight
+
+We are looking for `target - num`.
+Instead of scanning the array again to find this complement, we can use a **Hash Map** for $O(1)$ lookup.
+
+- As we iterate, we store `{value: index}` in the map.
+- Before adding the current number, we check if its complement is already in the map.
+
+---
+
+## Step-by-Step Analysis
+
+`nums = [2, 7, 11, 15]`, `target = 9`
+
+```mermaid
+graph TD
+    S1[Start: Map={}] --> N1[Num: 2 <br> Need: 7 <br> In Map? No]
+    N1 --> A1[Map Add: {2: 0}]
+    A1 --> N2[Num: 7 <br> Need: 2 <br> In Map? YES!]
+    N2 --> F[Found Pair! <br> Indices: 0, 1]
+    style F fill:#90EE90
+```
+
+1.  Current: 2. Need: 9-2=7. Not found. Map `{2: 0}`.
+2.  Current: 7. Need: 9-7=2. Found at index 0. Return `[0, 1]`.
 
 ---
 
@@ -67,8 +92,10 @@ class Solution:
 
 ## Complexity
 
-- **Time**: $O(N)$ - single pass, $O(1)$ lookup per element
-- **Space**: $O(N)$ - storing up to N elements in hash map
+- **Time Complexity**: $O(N)$
+    - Single pass through the array. Map lookups are $O(1)$.
+- **Space Complexity**: $O(N)$
+    - Hash Map stores up to $N$ elements.
 
 ---
 
@@ -76,5 +103,5 @@ class Solution:
 
 | Point | Description |
 |-------|-------------|
-| **Hash Map** | Trade space for time: $O(N^2)$ → $O(N)$ |
-| **One-pass** | Check and store in the same loop |
+| **Space-Time Tradeoff** | Use memory ($O(N)$ Map) to save time ($O(N^2) \to O(N)$) |
+| **One-pass** | You don't need to populate the map first; check as you go |

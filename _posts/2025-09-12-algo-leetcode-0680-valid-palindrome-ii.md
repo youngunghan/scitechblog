@@ -9,6 +9,7 @@ image:
   alt: "[LeetCode] 680. Valid Palindrome II"
 author: seoultech
 math: true
+mermaid: true
 ---
 
 ## Problem
@@ -25,14 +26,51 @@ Explanation: Delete 'c' to get "aba".
 
 ---
 
-## Approach
+## Initial Thought (Failed)
 
-Use **Two Pointers** with one chance to skip.
+Try deleting every character one by one and checking if the rest is a palindrome?
 
-1. Start with pointers at both ends
-2. If characters match, move both inward
-3. If mismatch, try skipping left OR right character
-4. Check if either resulting substring is a palindrome
+- String length $N$.
+- $N$ possible deletions.
+- Each check takes $O(N)$.
+- Total: $O(N^2)$. Too slow for $N=10^5$.
+
+---
+
+## Key Insight
+
+We only need to act when we find a **mismatch**.
+Standard palindrome check (Two Pointers) works fine until `s[left] != s[right]`.
+
+At that moment locally, we have two choices to fix the mismatch:
+1.  Skip `left` character (delete `s[left]`).
+2.  Skip `right` character (delete `s[right]`).
+
+Since we can delete **at most one** character, if either of these modified substrings is a palindrome, the answer is True.
+
+---
+
+## Step-by-Step Analysis
+
+`s = "abca"`
+
+```mermaid
+graph TD
+    S1[L=0 'a', R=3 'a' <br> Match] --> S2[L=1 'b', R=2 'c' <br> Mismatch!]
+    S2 --> C1{Try Option 1: <br> Skip 'b'}
+    S2 --> C2{Try Option 2: <br> Skip 'c'}
+    
+    C1 --> R1[Left with "c" <br> Palindrome? YES]
+    C2 --> R2[Left with "b" <br> Palindrome? YES]
+    
+    R1 --> Success[Return True]
+    style Success fill:#90EE90
+```
+
+1.  Start `left`, `right`.
+2.  Loop while `left < right`.
+3.  If mismatch: return `isPalindrome(left+1, right)` OR `isPalindrome(left, right-1)`.
+4.  If loop finishes: return `True`.
 
 ---
 
@@ -41,14 +79,12 @@ Use **Two Pointers** with one chance to skip.
 ```python
 class Solution:
     def validPalindrome(self, s: str) -> bool:
-        def is_palindrome(left: int, right: int) -> bool:
-            while left < right:
-                if s[left] != s[right]:
+        def is_palindrome_range(l: int, r: int) -> bool:
+            while l < r:
+                if s[l] != s[r]:
                     return False
-                # end if
-                left += 1
-                right -= 1
-            # end while
+                l += 1
+                r -= 1
             return True
         # end def
         
@@ -56,8 +92,10 @@ class Solution:
         
         while left < right:
             if s[left] != s[right]:
-                # Try skipping left or right character
-                return is_palindrome(left + 1, right) or is_palindrome(left, right - 1)
+                # Try deleting s[left] OR s[right]
+                # If either one works, we are good.
+                return is_palindrome_range(left + 1, right) or \
+                       is_palindrome_range(left, right - 1)
             # end if
             left += 1
             right -= 1
@@ -71,8 +109,12 @@ class Solution:
 
 ## Complexity
 
-- **Time**: $O(n)$ - at most two passes through the string
-- **Space**: $O(1)$ - only using pointers
+- **Time Complexity**: $O(N)$
+    - Main loop runs at most $N/2$ steps.
+    - If mismatch, sub-checks run at most $N$ steps.
+    - Total is linear.
+- **Space Complexity**: $O(1)$
+    - Only variables.
 
 ---
 
@@ -80,5 +122,5 @@ class Solution:
 
 | Point | Description |
 |-------|-------------|
-| **Greedy skip** | Try both options (skip left or right) |
-| **Helper function** | Reuse palindrome check logic |
+| **Greedy Choice** | When stuck, we explore finite possibilities (only 2 here) |
+| **Reuse** | Helper function prevents code duplication |
