@@ -57,14 +57,14 @@ The **Hash Set** data structure is designed exactly for this.
 
 ```mermaid
 graph TD
-    S1[Start: Set={}] --> N1[Num: 1 <br> In Set? No]
-    N1 --> A1[Add 1: Set={1}]
-    A1 --> N2[Num: 2 <br> In Set? No]
-    N2 --> A2[Add 2: Set={1, 2}]
-    A2 --> N3[Num: 3 <br> In Set? No]
-    N3 --> A3[Add 3: Set={1, 2, 3}]
-    A3 --> N4[Num: 1 <br> In Set? YES!]
-    N4 --> F[Return True]
+    S1["Start: Set={}"] --> N1["Num: 1 <br> In Set? No"]
+    N1 --> A1["Add 1: Set={1}"]
+    A1 --> N2["Num: 2 <br> In Set? No"]
+    N2 --> A2["Add 2: Set={1, 2}"]
+    A2 --> N3["Num: 3 <br> In Set? No"]
+    N3 --> A3["Add 3: Set={1, 2, 3}"]
+    A3 --> N4["Num: 1 <br> In Set? YES!"]
+    N4 --> F["Return True"]
     style F fill:#90EE90
 ```
 

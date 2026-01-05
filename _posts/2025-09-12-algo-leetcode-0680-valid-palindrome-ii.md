@@ -56,12 +56,12 @@ Since we can delete **at most one** character, if either of these modified subst
 
 ```mermaid
 graph TD
-    S1[L=0 'a', R=3 'a' <br> Match] --> S2[L=1 'b', R=2 'c' <br> Mismatch!]
-    S2 --> C1{Try Option 1: <br> Skip 'b'}
-    S2 --> C2{Try Option 2: <br> Skip 'c'}
+    S1["L=0 'a', R=3 'a' <br> Match"] --> S2["L=1 'b', R=2 'c' <br> Mismatch!"]
+    S2 --> C1{"Try Option 1: <br> Skip 'b'"}
+    S2 --> C2{"Try Option 2: <br> Skip 'c'"}
     
-    C1 --> R1[Left with "c" <br> Palindrome? YES]
-    C2 --> R2[Left with "b" <br> Palindrome? YES]
+    C1 --> R1["Left with 'c' <br> Palindrome? YES"]
+    C2 --> R2["Left with 'b' <br> Palindrome? YES"]
     
     R1 --> Success[Return True]
     style Success fill:#90EE90

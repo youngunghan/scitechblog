@@ -55,10 +55,10 @@ Instead of scanning the array again to find this complement, we can use a **Hash
 
 ```mermaid
 graph TD
-    S1[Start: Map={}] --> N1[Num: 2 <br> Need: 7 <br> In Map? No]
-    N1 --> A1[Map Add: {2: 0}]
-    A1 --> N2[Num: 7 <br> Need: 2 <br> In Map? YES!]
-    N2 --> F[Found Pair! <br> Indices: 0, 1]
+    S1["Start: Map={}"] --> N1["Num: 2 <br> Need: 7 <br> In Map? No"]
+    N1 --> A1["Map Add: {2: 0}"]
+    A1 --> N2["Num: 7 <br> Need: 2 <br> In Map? YES!"]
+    N2 --> F["Found Pair! <br> Indices: 0, 1"]
     style F fill:#90EE90
 ```
 
