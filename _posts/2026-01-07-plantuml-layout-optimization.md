@@ -12,7 +12,7 @@ image:
 
 ## Introduction
 
-When documenting API test scenarios, the most critical goal is to **visualize complex scenarios at a glance**. Initially, I used Mermaid.js, but as the scenarios became more sophisticated, I hit a wall. This post documents the journey of **layout optimization (Grid -> Star -> Vertical)** I went through while migrating from Mermaid to PlantUML to resolve rendering issues.
+When documenting API test scenarios, the primary goal is to **visualize complex interactions at a glance**. While Mermaid.js is effective for simple diagrams, it often struggles with sophisticated scenarios. This post details the **layout optimization process (Grid → Star → Vertical)** undertaken while migrating to PlantUML to resolve rendering issues.
 
 ## Problem 1: Text Overlap in Mermaid
 
@@ -76,9 +76,9 @@ However, when the **Tester (Top-Left) called API3 (Bottom-Right)**, the arrow cr
 
 Forcing a **Star Topology** interaction (Single Orchestrator communicating with multiple components) into a **Grid** structure inevitably led to crossed paths.
 
-### Solution (Iterative Process)
+### Solution: Iterative Optimization
 
-I went through two structural changes to solve this.
+Two structural approaches were evaluated to resolve this.
 
 **Iteration 1: Horizontal Star (Failed)**
 - Placed the Tester at the top and APIs in a row at the bottom.
@@ -112,15 +112,20 @@ tester --> search
 
 ## Conclusion
 
-The **"Vertical Stack Layout"** was the answer.
+## Conclusion
 
-1.  **Readability**: The tall (Portrait) aspect ratio looks clear and spacious in the document.
-2.  **Integrity**: All arrows move horizontally in parallel, resulting in **0% line crossing**.
-3.  **Scalability**: Even if APIs are added, it only grows downwards, keeping the width constant.
+The **"Vertical Stack Layout"** proved to be the optimal solution.
 
-It was a journey of finding the **optimal topology** for the nature of the information, beyond just changing tools.
+1.  **Readability**: The tall (Portrait) aspect ratio provides a clear and spacious view.
+2.  **Integrity**: All arrows move horizontally in parallel, ensuring **0% line crossing**.
+3.  **Scalability**: The diagram grows vertically with added APIs, maintaining a constant, readable width.
 
-**Key Takeaways:**
-1.  Always apply `skinparam maxMessageSize` for long text.
-2.  Avoid Grid layout for 1:N relations (Orchestrator Pattern).
-3.  If it's too wide, consider a **Vertical Stack** using `left to right direction` and `hidden link`.
+Optimizing diagram layouts requires matching the topology to the information structure, rather than simply switching tools.
+
+## Key Takeaways
+
+| Component | Optimization Strategy |
+|-----------|-----------------------|
+| **Text Rendering** | Apply `skinparam maxMessageSize` to force text wrapping and prevent excessive width. |
+| **Topology** | Avoid **Grid Layouts** for 1:N (Orchestrator) relationships to eliminate line crossings. |
+| **Layout Direction** | Use **Vertical Stack** (`left to right direction` + `hidden link`) for a scalable, readable structure. |
