@@ -82,6 +82,8 @@ This is **Divide and Conquer**: split at each operator, solve recursively, combi
 Final: [2, 0]
 ```
 
+The algorithm produces results in evaluation order (`[2, 0]`), and LeetCode accepts the results in any order.
+
 ---
 
 ## Solution
@@ -133,9 +135,9 @@ class Solution:
 
 ## Complexity
 
-### Time: $O(C_n)$ - Catalan Number
+### Time: $O(C_n)$ - Catalan Number (output-sensitive)
 
-The number of ways to parenthesize $n$ operators:
+This is an **output-sensitive** problem: the number of results we must produce is itself the number of ways to parenthesize $n$ operators, which grows like the Catalan number $C_n$.
 
 $$C_n = \frac{1}{n+1} \binom{2n}{n}$$
 
@@ -145,6 +147,8 @@ $$C_n = \frac{1}{n+1} \binom{2n}{n}$$
 | 2 | 2 |
 | 3 | 5 |
 | 4 | 14 |
+
+So $O(C_n)$ is not a tight bound on raw operations — it is the time measured as *proportional to the number of results produced*. The total work is bounded by this (Catalan-sized) output count times the cost of combining left and right results at each split.
 
 ### Space: $O(C_n)$
 

@@ -50,23 +50,21 @@ We can simply compare characters from the **outside in** using **Two Pointers**.
 
 ## Step-by-Step Analysis
 
-`s = "A man"`
+`s = "a A"`
 
 ```mermaid
 graph TD
-    S1["L=0 ('A'), R=4 ('n') <br> Match? Yes"] --> S2["L=1 (' '), R=3 ('a') <br> Skip space"]
-    S2 --> S3["L=2 ('m'), R=3 ('a') <br> Match? No!"]
-    S3 --> F[Return False]
-    style F fill:#ffaaaa
+    S1["L=0 ('a'), R=2 ('A') <br> Match? Yes (case-insensitive)"] --> S2["Move both pointers to index 1 <br> (they meet)"]
+    S2 --> S3["Pointers met <br> Loop ends"]
+    S3 --> F[Return True]
+    style F fill:#aaffaa
 ```
 
-(Oops, wait. `s="A man"`. `A` vs `n`. Fail immediately. The diagram logic works.)
-
 Let's trace `s = "A b A"`:
-1.  L at 'A', R at 'A'. Match. Move L->1, R->1.
-2.  L at ' ', R at ' '. Skip.
-3.  L at 'b', R at 'b'. Match.
-4.  L > R. Success.
+1.  L at index 0 ('A'), R at index 4 ('A'). Match. Move L->1, R->3.
+2.  L at index 1 (space), R at index 3 (space). Skip both.
+3.  L at index 2 ('b'), R at index 2 ('b'). Match.
+4.  L == R (both at index 2), loop ends -> Success.
 
 ---
 

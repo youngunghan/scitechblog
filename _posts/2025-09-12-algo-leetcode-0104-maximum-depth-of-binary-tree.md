@@ -81,7 +81,21 @@ graph TD
 
 ## Solution
 
+> `Optional` and `TreeNode` are provided by the LeetCode runtime. To run locally, add the import below; `TreeNode` is the standard LeetCode binary-tree node (`val`, `left`, `right`).
+{: .prompt-tip }
+
 ```python
+from typing import Optional
+
+# Provided by LeetCode; included here for local runs
+class TreeNode:
+    def __init__(self, val=0, left=None, right=None):
+        self.val = val
+        self.left = left
+        self.right = right
+    # end def
+# end class
+
 class Solution:
     def maxDepth(self, root: Optional[TreeNode]) -> int:
         # Base Case
