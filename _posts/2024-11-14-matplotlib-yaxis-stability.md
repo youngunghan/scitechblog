@@ -1,5 +1,6 @@
 ---
 title: "Fixing Unstable Y-axis Range in Matplotlib Multi-scale Data Visualization"
+description: "Stabilizing the y-axis range when comparing multi-scale detection results in Matplotlib bar charts."
 date: 2024-11-14 00:00:00 +0900
 categories: [Python, Data Visualization]
 tags: [python, matplotlib, pyplot, data-visualization, pandas]
@@ -38,16 +39,29 @@ When dealing with multiple scale experiments:
 ### 1. Data Loading and Processing
 
 ```python
+import os
+import glob
+import re
+
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+
+
 def load_scale_results(base_path):
     """
     Load first detection results from each scale folder
     """
     scale_results = []
-    scale_folders = glob.glob(os.path.join(base_path, "*scale*"))
+    # glob order is not deterministic, so sort for reproducibility
+    scale_folders = sorted(glob.glob(os.path.join(base_path, "*scale*")))
     
     for folder in scale_folders:
-        scale = float(re.search(r'scale_(\d+\.\d+)', folder).group(1))
-        csv_files = glob.glob(os.path.join(folder, "output", "*.csv"))
+        match = re.search(r'scale_(\d+\.\d+)', folder)
+        if match is None:
+            continue
+        scale = float(match.group(1))
+        csv_files = sorted(glob.glob(os.path.join(folder, "output", "*.csv")))
         
         if csv_files:
             df = pd.read_csv(csv_files[0])
@@ -65,7 +79,7 @@ def load_scale_results(base_path):
 def plot_scale_comparison(scale_results, methods):
     plt.figure(figsize=(15, 8))
     
-    # Fix y-axis range first
+    # Set a fixed, explicit y-axis range (works before or after plotting)
     plt.ylim(0, 100)
     
     colors = plt.cm.rainbow(np.linspace(0, 1, len(scale_results)))
@@ -74,8 +88,8 @@ def plot_scale_comparison(scale_results, methods):
     
     for idx, data in enumerate(scale_results):
         scale = data['scale']
-        # Ensure numeric conversion
-        accuracies = pd.to_numeric(data['data']['acc'][1:9])
+        # Ensure numeric conversion; non-numeric cells become NaN instead of crashing
+        accuracies = pd.to_numeric(data['data']['acc'][1:9], errors="coerce").fillna(0)
         
         x_pos = x - (0.4 - width/2) + (idx * width)
         plt.bar(x_pos, accuracies, width, 
@@ -99,12 +113,27 @@ def plot_scale_comparison(scale_results, methods):
    - Handle missing values appropriately
 
 2. **Plot Stability**
-   - Set y-axis limits before plotting
+   - Set a fixed, explicit y-axis range that is identical across charts
    - Use consistent color schemes
    - Proper layout management
 
 3. **Best Practices**
-   - Fix axis ranges early in the plotting process
-   - Use `plt.ylim()` before creating plots
+   - Use a fixed, explicit y-axis range (it works whether `plt.ylim()` is called before or after plotting); the key is that the range is explicit and identical across every chart
    - Ensure data types are numeric before visualization
    - Apply `tight_layout()` for better spacing
+
+### A note on the object-oriented API
+
+The pyplot calls above are fine, but for anything beyond a quick script the
+object-oriented Matplotlib API is the cleaner general style. Create the figure
+and axes explicitly, then operate on the `ax` object — the fixed y-axis range
+stays just as explicit:
+
+```python
+fig, ax = plt.subplots(figsize=(15, 8))
+ax.set_ylim(0, 100)  # fixed, explicit range — identical across charts
+
+ax.bar(x_pos, accuracies, width, label=f'Scale {scale}', alpha=0.7)
+ax.set_xlabel('Methods', fontsize=12)
+ax.set_ylabel('Accuracy (%)', fontsize=12)
+```

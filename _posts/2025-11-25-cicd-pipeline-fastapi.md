@@ -1,5 +1,6 @@
 ---
 title: "Building a CI/CD Pipeline for FastAPI Application with GitHub Actions and AWS EC2"
+description: "Building an automated CI/CD pipeline that deploys a FastAPI app to AWS EC2 with GitHub Actions and Docker."
 date: 2025-11-25 00:00:00 +0900
 categories: [DevOps, CI/CD]
 tags: [fastapi, github-actions, aws-ec2, docker, mysql, alembic]
@@ -40,7 +41,6 @@ The pipeline architecture follows a standard CI/CD flow:
 The application uses two containers orchestrated by Docker Compose:
 
 ```yaml
-version: "3.8"
 services:
   db:
     image: mysql:8.0
@@ -71,6 +71,9 @@ services:
 ```
 
 **Key Design Choice:** The `depends_on` with `service_healthy` ensures the database is fully ready before the application starts. This prevents connection errors during startup.
+
+> **Note:** Modern Docker invokes Compose through the `docker compose` (v2 plugin) command rather than the legacy standalone `docker-compose` binary, and the top-level `version` key is now obsolete (Compose v2 ignores it and emits a warning).
+{: .prompt-tip }
 
 ### GitHub Actions Workflow
 
@@ -111,10 +114,13 @@ jobs:
           script: |
             cd ~/app
             sudo docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/myapp:latest
-            sudo DOCKER_HUB_USERNAME=${{ secrets.DOCKER_HUB_USERNAME }} docker-compose down
-            sudo DOCKER_HUB_USERNAME=${{ secrets.DOCKER_HUB_USERNAME }} docker-compose up -d
+            sudo DOCKER_HUB_USERNAME=${{ secrets.DOCKER_HUB_USERNAME }} docker compose down
+            sudo DOCKER_HUB_USERNAME=${{ secrets.DOCKER_HUB_USERNAME }} docker compose up -d
             sudo docker image prune -af
 ```
+
+> **Note:** This deploy step is a learning / first-automation example — it deploys `latest`, runs `docker compose down`, and prunes images with `docker image prune -af`. Before relying on it in production, harden it with immutable SHA tags, by avoiding deletion of the image you would roll back to, and by recreating only the app service. See the [Operational Notes](#operational-notes) section below.
+{: .prompt-warning }
 
 ## Problem 1: Missing Database Container
 
@@ -144,7 +150,7 @@ can't call await_only() here
 ```
 
 ### Root Cause
-The application correctly uses `aiomysql` (async driver) for runtime database operations. However, Alembic migrations run in a synchronous context and cannot use async drivers.
+The application correctly uses `aiomysql` (async driver) for runtime database operations. My Alembic `env.py`, however, was the default **synchronous** template, which calls `connectable.connect()` directly and therefore cannot drive an async (`+aiomysql`) URL. (Alembic *can* run migrations asynchronously — see its [asyncio cookbook recipe](https://alembic.sqlalchemy.org/en/latest/cookbook.html#using-asyncio-with-alembic) — but that requires an async-aware `env.py`, which I did not have here.)
 
 ### Analysis
 Looking at the error stack trace:
@@ -177,7 +183,7 @@ def run_migrations_online() -> None:
             context.run_migrations()
 ```
 
-**Lesson:** Async and sync contexts require different database drivers. Alembic migrations need synchronous drivers even when your application uses async operations.
+**Lesson:** Async and sync contexts require different database drivers. With this sync `env.py` setup, a sync URL (`+pymysql`) was needed even though the app runs on async (`+aiomysql`). If you instead adopt Alembic's [async `env.py` template](https://alembic.sqlalchemy.org/en/latest/cookbook.html#using-asyncio-with-alembic), you can keep the async driver for migrations too.
 
 ## Problem 3: Missing Authentication Secrets
 
@@ -267,9 +273,9 @@ Prefix all Docker commands with `sudo` in the deployment script:
 script: |
   cd ~/app
   sudo docker pull ${{ secrets.DOCKER_HUB_USERNAME }}/myapp:latest
-  sudo DOCKER_HUB_USERNAME=${{ secrets.DOCKER_HUB_USERNAME }} docker-compose pull
-  sudo DOCKER_HUB_USERNAME=${{ secrets.DOCKER_HUB_USERNAME }} docker-compose down
-  sudo DOCKER_HUB_USERNAME=${{ secrets.DOCKER_HUB_USERNAME }} docker-compose up -d
+  sudo DOCKER_HUB_USERNAME=${{ secrets.DOCKER_HUB_USERNAME }} docker compose pull
+  sudo DOCKER_HUB_USERNAME=${{ secrets.DOCKER_HUB_USERNAME }} docker compose down
+  sudo DOCKER_HUB_USERNAME=${{ secrets.DOCKER_HUB_USERNAME }} docker compose up -d
 ```
 
 **Important:** When using `sudo` with environment variables, you must explicitly pass them through `sudo VARIABLE=value command`.
@@ -288,7 +294,10 @@ The application is now accessible at the deployed endpoint, with Swagger UI show
 - Build time: ~2-3 minutes
 - Deployment time: ~30 seconds
 - Total automation: Push to production in under 4 minutes
-- Zero downtime deployments via Docker container orchestration
+- Simple, automated short-downtime deployment via Docker Compose
+
+> **Note:** This is *not* zero-downtime: the deploy script runs `docker compose down` then `up -d`, so the container is stopped and recreated, leaving a brief gap where the app is unavailable. True zero-downtime would require a blue-green or rolling-update strategy with a reverse proxy switching upstreams only after the new container passes health checks.
+{: .prompt-info }
 
 ## Security Considerations
 
@@ -300,10 +309,42 @@ The application is now accessible at the deployed endpoint, with Swagger UI show
 ## Key Takeaways
 
 1. **Database Health Checks:** Always wait for dependencies to be ready before starting dependent services
-2. **Async vs Sync Drivers:** Migration tools like Alembic need synchronous drivers even when the application uses async
+2. **Async vs Sync Drivers:** A sync Alembic `env.py` needs a sync driver even when the app uses async; Alembic also supports an async `env.py` if you prefer to keep the async driver
 3. **Environment Documentation:** Maintain example config files to document all required variables
 4. **SSH Key Formatting:** Private keys must preserve exact formatting including all line breaks
 5. **CI/CD Permissions:** Use explicit `sudo` in automated deployment scripts; don't rely on group memberships
+
+## Operational Notes
+
+A few caveats worth hardening before relying on this pipeline in production:
+
+- **Tag images immutably, not just `latest`:** Pushing only `latest` makes rollback painful, since the tag always points at the newest build. Also push an immutable tag — for example the commit SHA, `myapp:${GITHUB_SHA}` — so you can redeploy a specific known-good image when something breaks.
+- **Watch out for `docker image prune -af`:** This aggressively deletes *all* unused images, including the previous one you would roll back to. Be careful with it in the deploy script, or keep the last N tags around instead of pruning everything.
+- **`docker compose down` stops the DB too:** It brings down every service, including the database container, not just the app. To recreate only the application you can target it explicitly, e.g. `docker compose up -d --pull always app`.
+
+Putting those caveats together, a more production-leaning variant of the build and deploy steps looks like this:
+
+```yaml
+# --- production-leaning variant ---
+# CI: build & push BOTH an immutable SHA tag and latest
+- name: Build and Push
+  run: |
+    docker build -t $IMAGE:${{ github.sha }} -t $IMAGE:latest .
+    docker push $IMAGE:${{ github.sha }}
+    docker push $IMAGE:latest
+
+# Deploy on EC2: pull the exact SHA image and recreate ONLY the app service
+# (assumes the compose app service uses `image: ${APP_IMAGE}`)
+- name: Deploy to EC2
+  # ...ssh-action with host/username/key...
+  script: |
+    cd ~/app
+    sudo docker pull $IMAGE:${{ github.sha }}
+    sudo APP_IMAGE=$IMAGE:${{ github.sha }} docker compose up -d --no-deps app
+    sudo docker image prune -f   # dangling only, so rollback images survive
+```
+
+Pinning the SHA, recreating only `app` with `--no-deps`, and pruning just dangling layers keeps the database untouched and leaves the previous image available to roll back to.
 
 ## Conclusion
 

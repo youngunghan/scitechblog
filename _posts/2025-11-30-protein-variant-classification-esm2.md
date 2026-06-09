@@ -1,5 +1,6 @@
 ---
 title: "Building a Protein Variant Classifier with ESM2 and Multi-GPU Training"
+description: "Building a protein variant classifier with ESM2: clinical metric selection, a difference-vector architecture, class imbalance, and multi-GPU DDP."
 date: 2025-11-30 00:00:00 +0900
 categories: [AI, Bioinformatics]
 tags: [esm2, pytorch, multi-gpu, class-imbalance, protein-language-model]
@@ -14,7 +15,14 @@ math: true
 
 In the field of clinical genomics, accurately predicting whether a specific genetic variant is pathogenic (disease-causing) or benign is a critical challenge. Recently, I worked on a project to develop a deep learning model that classifies protein variants as either **Gain-of-Function (GOF)** or **Loss-of-Function (LOF)** using **ESM2 (Evolutionary Scale Modeling)**, a state-of-the-art protein language model.
 
-## Challenge 1: Metric Selection for Clinical Use
+This post covers **two related but distinct tasks** with **different label spaces**, so it is worth separating them up front to avoid conflating their labels:
+
+- **Task A — Pathogenic-variant prioritization & metric selection.** A binary `pathogenic (LABEL=1)` vs `benign (LABEL=0)` problem, used to evaluate and choose among existing pathogenicity predictors. (Covered in Challenge 1.)
+- **Task B — GOF/LOF classifier training.** A separate binary `GOF` vs `LOF` problem over the variants of interest, where we train our own ESM2-based model. (Covered in Challenges 2-4.)
+
+The two tasks share a class-imbalance theme but do **not** share labels: a "positive" in Task A is a pathogenic variant, whereas a "positive" in Task B is the minority GOF class.
+
+## Challenge 1 (Task A): Metric Selection for Clinical Use
 
 Before diving into the model, I had to evaluate existing pathogenicity predictors. The dataset contains **107 patients**, each with multiple variants where only a few are pathogenic (LABEL=1).
 
@@ -80,6 +88,7 @@ I evaluated each predictor (A, B, C) with both classification and ranking metric
 ```python
 from sklearn.metrics import precision_recall_curve, roc_auc_score
 import numpy as np
+import pandas as pd
 
 def evaluate_predictor(y_true: np.ndarray, y_scores: np.ndarray) -> dict:
     """Evaluate predictor with classification metrics."""
@@ -141,7 +150,7 @@ def compute_top_k_recall(df: pd.DataFrame, score_col: str, k: int) -> float:
 **Lesson:** In medical AI with class imbalance, evaluate using multiple metrics that reflect clinical consequences—not just AUROC.
 
 
-## Challenge 2: Modeling Protein Variants with ESM2
+## Challenge 2 (Task B): Modeling Protein Variants with ESM2
 
 The core task was to classify variants using `esm2_t33_650M_UR50D`.
 
@@ -162,7 +171,7 @@ Input = Concat(E_wt, E_mut, E_mut - E_wt)
 - **E_mut**: Embedding of the Mutant sequence
 - **Difference**: The vector representing the direction of change (Mutant - Wild-Type)
 
-This "Difference Vector" proved crucial for distinguishing between LOF (function loss) and GOF (function gain).
+This "Difference Vector" was a key design choice in my experiments for distinguishing between LOF (function loss) and GOF (function gain).
 
 ![Model Architecture](/assets/img/posts/protein-classifier/architecture.png)
 _Figure 2: Our Proposed Architecture. By explicitly feeding the difference vector (Mutant - WT), the model can directly focus on the functional shift caused by the variant._
@@ -170,6 +179,10 @@ _Figure 2: Our Proposed Architecture. By explicitly feeding the difference vecto
 ### Code Snippet: Model Architecture
 
 ```python
+import torch
+import torch.nn as nn
+from transformers import EsmModel
+
 class ESM2VariantClassifier(nn.Module):
     def __init__(self, model_name="facebook/esm2_t33_650M_UR50D"):
         super().__init__()
@@ -200,9 +213,11 @@ class ESM2VariantClassifier(nn.Module):
         return self.classifier(combined)
 ```
 
-## Challenge 3: Extreme Class Imbalance
+Here I pool each sequence using the CLS token (`last_hidden_state[:, 0, :]`); a common alternative is mean-pooling the hidden states over the non-special (non-CLS/EOS/padding) tokens, which can yield a more stable whole-sequence representation when the CLS token is not specifically trained as a summary.
 
-The dataset had a **9:1 imbalance** (90% LOF, 10% GOF). A standard model would simply predict "LOF" for everything and achieve 90% accuracy, which is useless.
+## Challenge 3 (Task B): Extreme Class Imbalance
+
+This imbalance is on Task B's GOF/LOF label space (distinct from the pathogenic/benign labels of Task A). The dataset had a **9:1 imbalance** (90% LOF, 10% GOF). A standard model would simply predict "LOF" for everything and achieve 90% accuracy, which is useless.
 
 ### Solution: Weighted Loss
 I used `CrossEntropyLoss` with class weights inversely proportional to the class frequencies.
@@ -215,7 +230,7 @@ criterion = nn.CrossEntropyLoss(weight=class_weights)
 
 This forces the model to pay 9x more attention to the minority GOF class, preventing it from being ignored.
 
-## Challenge 4: Distributed Training on A100s
+## Challenge 4 (Task B): Distributed Training on A100s
 
 To utilize 4x NVIDIA A100 GPUs, I used PyTorch's **DistributedDataParallel (DDP)**.
 
@@ -224,7 +239,9 @@ Key implementation details:
 2.  **`init_process_group`**: Sets up communication between GPUs.
 3.  **`torchrun`**: The launcher utility to manage processes.
 
-One interesting hurdle was **verifying DDP logic on a single local GPU**. I learned that you can use the `gloo` backend (CPU-based) with `torchrun --nproc_per_node=1` to simulate the distributed environment locally before deploying to the expensive cluster.
+One interesting hurdle was **verifying DDP logic on a single local GPU**. I learned that you can use the `gloo` backend with `torchrun --nproc_per_node=1` to simulate the distributed environment locally before deploying to the expensive cluster.
+
+A caveat on backends: [PyTorch recommends `nccl`](https://docs.pytorch.org/docs/stable/generated/torch.nn.parallel.DistributedDataParallel.html) as the default backend for distributed **GPU** training, while `gloo` is intended for CPU (or a local single-process smoke test). So the local `gloo` command below is purely for **logic verification**, not the real 4xA100 run—which should use `nccl`.
 
 ```bash
 # Local verification command

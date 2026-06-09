@@ -1,5 +1,6 @@
 ---
 title: "Polishing Jekyll Chirpy: Fixing UI Glitches and Content Visibility"
+description: "Fixing small UI glitches and content-visibility issues while polishing a Jekyll Chirpy blog."
 date: 2025-11-26 18:00:00 +0900
 categories: [Development, Jekyll]
 tags: [jekyll, chirpy, troubleshooting, ui-ux, markdown]
@@ -52,11 +53,33 @@ I switched to raw HTML to control the layout precisely:
 2.  Added non-breaking spaces (`&nbsp;`) for consistent horizontal spacing.
 3.  Wrapped them in a `<div>` or `<p>` with specific alignment classes if needed.
 
+**Quick fix:** chain non-breaking spaces between the images.
+
 ```html
 <img src="..." alt="Python"/>
 &nbsp;
 <img src="..." alt="C"/>
 ```
+
+**Recommended:** wrap the badges in a flex container and control spacing with CSS `gap`. This is more consistent and responsive than chaining `&nbsp;`.
+
+```html
+<div class="badge-row">
+  <img src="..." alt="Python"/>
+  <img src="..." alt="C"/>
+</div>
+```
+
+```css
+.badge-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+```
+
+*Note: Chaining `&nbsp;` works as a quick fix, but CSS/flexbox (e.g. a flex container with `gap`) or Shields.io's own spacing options are generally preferable for consistent, responsive layout.*
 
 ## Problem 3: The Broken Menu Links (Regression)
 

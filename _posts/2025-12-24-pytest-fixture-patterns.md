@@ -69,7 +69,7 @@ flowchart LR
 
 | Scope | When Created | When Destroyed |
 |-------|-------------|----------------|
-| **session** | Once at pytest start | After all tests finish |
+| **session** | When first requested in the run | After all tests finish |
 | **module** | Once per test file | After file's tests complete |
 | **class** | Once per test class | After class's tests complete |
 | **function** | Once per test | After each test finishes |
@@ -81,7 +81,7 @@ flowchart LR
 | `function` | Per test | Before each test | After each test | **Default.** Test data that must be fresh (e.g., mutable objects) |
 | `class` | Per test class | Before first test in class | After last test in class | Shared state within a test class |
 | `module` | Per file | Before first test in file | After last test in file | Expensive setup shared by related tests (e.g., API clients) |
-| `session` | Entire run | Once at start | Once at end | Very expensive setup (e.g., database, Docker containers) |
+| `session` | Entire run | When first requested in the run | Once at end | Very expensive setup (e.g., database, Docker containers) |
 
 ### Real-World Example: When to Use Each Scope
 
@@ -124,7 +124,7 @@ def test_user(api_client):
 # end def
 ```
 
-**Result**: Instead of repeating expensive setup for every test, each scope reuses the resource appropriately. A 100-test suite can go from 600s to ~15s.
+**Result**: Instead of repeating expensive setup for every test, each scope reuses the resource appropriately. A 100-test suite can go from 600s to ~15s (illustrative figures, not a measured benchmark).
 
 ---
 
@@ -282,6 +282,8 @@ def test_user_creation(service) -> None:
 | Create test user | **No** | Not every test needs a user |
 
 ```python
+import os
+
 @pytest.fixture(autouse=True)
 def reset_environment():
     """Runs before EVERY test in this file."""

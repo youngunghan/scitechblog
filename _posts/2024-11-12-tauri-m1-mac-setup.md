@@ -1,5 +1,6 @@
 ---
 title: "Complete Guide to Setting Up a Tauri Project with M1 Mac"
+description: "A step-by-step guide to setting up a Tauri v2 desktop app with a Vite frontend on an Apple Silicon (M1) Mac."
 date: 2024-11-12 00:00:00 +0900
 categories: [Development, Tauri]
 tags: [tauri, react, vue, rust, m1-mac, desktop-app]
@@ -23,11 +24,32 @@ curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 # 3. Apply environment variables
 source $HOME/.cargo/env
 
-# 4. Additional setup for M1 Mac users
+# 4. (Optional) Add the aarch64 target only for explicit-target or cross builds
+#    A normal local build on Apple Silicon already uses this target by default.
 rustup target add aarch64-apple-darwin
 ```
 
-## Project Setup
+## Project Setup (Recommended: Quick Path)
+
+The official, recommended way to create a Tauri v2 project is the `create-tauri-app` scaffolder. It sets up the frontend, the `src-tauri/` directory, and all configuration in one step.
+
+```bash
+# Navigate to your preferred location (e.g., Desktop/CSE)
+cd ~/Desktop/CSE
+
+# Scaffold a new Tauri app (pick a frontend like React or Vue when prompted)
+npm create tauri-app@latest
+
+# Move into the created project and install dependencies
+cd my-tauri-app
+npm install
+```
+
+When prompted, choose your frontend framework (e.g., React or Vue) and the Vite-based template. This produces the complete project structure shown below, including `src-tauri/`.
+
+## Project Setup (Manual: Add Tauri to an Existing Vite App)
+
+If you already have a Vite frontend (or want to wire things up by hand), follow this path instead. The key step is `npx tauri init`, which is what actually creates the `src-tauri/` directory.
 
 ### 1. Create Project Directory
 ```bash
@@ -63,6 +85,17 @@ npm create vite@latest . -- --template vue
 
 # Install dependencies
 npm install
+```
+
+### 4. Add Tauri (creates src-tauri/)
+```bash
+# This generates the src-tauri/ directory and its configuration.
+# Answer the prompts to match your Vite setup, e.g.:
+#   - dev server URL:        http://localhost:5173/
+#   - frontend dist dir:     ../dist
+#   - frontend dev command:  npm run dev
+#   - frontend build command: npm run build
+npx tauri init
 ```
 
 ## Project Structure
@@ -109,7 +142,7 @@ my-tauri-app/
   "build": {
     "beforeDevCommand": "npm run dev",
     "beforeBuildCommand": "npm run build",
-    "devUrl": "http://localhost:3000/",
+    "devUrl": "http://localhost:5173/",
     "frontendDist": "../dist"
   },
   "app": {
@@ -132,14 +165,19 @@ my-tauri-app/
 ## Running the Project
 
 ### 1. Development Mode
-Open two terminal windows:
+You only need a single command:
 
 ```bash
-# Terminal 1: Start frontend server
-npm run dev
-
-# Terminal 2: Start Tauri application
+# Start the Tauri application
 npm run tauri dev
+```
+
+Because `tauri.conf.json` sets `"beforeDevCommand": "npm run dev"`, running `npm run tauri dev` automatically starts the frontend dev server for you—there is no need to open a second terminal.
+
+```bash
+# Fallback only: if the dev server doesn't start automatically,
+# run it manually in a separate terminal
+npm run dev
 ```
 
 ![Front Server](/assets/img/posts/tauri-setup/my_tauri_app.png)
@@ -157,16 +195,16 @@ source $HOME/.cargo/env
 ### 2. Frontend Server Not Starting
 Check if you see this message:
 ```
-Warn Waiting for your frontend dev server to start on http://localhost:3000/
+Warn Waiting for your frontend dev server to start on http://localhost:5173/
 ```
 Solution: Open a new terminal and run `npm run dev`
 
 ### 3. Port Conflicts
-If port 3000 is in use, modify vite.config.js:
+If port 5173 is in use, modify vite.config.js:
 ```javascript
 export default defineConfig({
   server: {
-    port: 3001  // Change to available port
+    port: 5174  // Change to available port
   }
 })
 ```
@@ -183,13 +221,13 @@ export default defineConfig({
    - Configuration files stay in src-tauri/
 
 3. **Development Workflow**
-   - Always start both frontend server and Tauri app
+   - `npm run tauri dev` auto-starts the frontend dev server via beforeDevCommand
    - Changes to Rust code require restart
    - Frontend changes hot-reload automatically
 
 4. **M1 Mac Specific**
-   - Don't forget the aarch64-apple-darwin target
-   - Use recommended Rust version (1.70+)
+   - The aarch64-apple-darwin target is only needed for explicit-target or cross builds; a normal local build already uses it by default
+   - Use Rust 1.77.2+ (Tauri 2.x MSRV)
 
 ## Building for Production
 ```bash

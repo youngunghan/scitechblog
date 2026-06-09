@@ -1,5 +1,6 @@
 ---
 title: "Troubleshooting Visitor Counter Integration in Jekyll Chirpy"
+description: "Integrating a Busuanzi visitor counter into Jekyll Chirpy and getting it past CI/CD checks."
 date: 2025-11-26 17:00:00 +0900
 categories: [Development, Jekyll]
 tags: [jekyll, chirpy, visitor-counter, troubleshooting, busuanzi, ci-cd]
@@ -29,10 +30,13 @@ We switched to **Busuanzi (不蒜子)**, a lightweight script-based visitor coun
 - **Pros:** More reliable, text-based (allows custom styling), and widely used in static blogs.
 - **Cons:** Does not support "Today/Yesterday" views reliably in the stable version, so we focused on "Total Views".
 
+> **Caveat:** Busuanzi is an external third-party script, so it carries the usual privacy and availability trade-offs. Every page load calls out to a service you don't control, which can go down, slow your page, or be blocked in some networks, and visitor data passes through that third party. If those concerns matter to you, consider self-hosting the counter or using a privacy-friendly analytics option instead.
+{: .prompt-warning }
+
 ## Problem 2: CI/CD Build Failures
 
 ### Symptom
-After adding the Busuanzi script, the GitHub Actions deployment workflow failed:
+After adding the Busuanzi script, the GitHub Actions deployment workflow failed. HTML-Proofer reported two distinct problems:
 
 ```
 HTML-Proofer found errors:
@@ -40,12 +44,16 @@ HTML-Proofer found errors:
   *  ...
 ```
 
+The two symptoms were:
+1. **Internal hash error:** Our markup contained an anchor that linked to `#busuanzi_value_site_pv`, but that ID only exists on the `<span>` element that Busuanzi populates at runtime. Since the value is injected client-side by the script, the element is empty (and effectively absent) in the static HTML that HTML-Proofer scans, so it flagged the hash as a broken internal link.
+2. **Protocol-relative script URL:** The script was added using a protocol-relative URL, which the proofer failed to validate.
+
 ### Root Cause
-The script was added using a protocol-relative URL:
+The underlying issue causing the protocol-relative warning was the `//` prefix on the script source:
 ```html
 <script src="//busuanzi.ibruce.info/..."></script>
 ```
-The `htmlproofer` tool used in the CI pipeline (with `--disable-external` flag) was confused by the `//` prefix, potentially treating it as an internal link or failing to validate it properly.
+The `htmlproofer` tool used in the CI pipeline (with the `--disable-external` flag) does not treat the `//` prefix as an external URL to skip; instead it fails to validate it properly. Separately, we resolved the internal hash error by removing the explicit anchor link to the runtime-populated `#busuanzi_value_site_pv` element.
 
 ### Solution
 We explicitly specified the HTTPS protocol to ensure it's treated as a valid external resource:
@@ -110,6 +118,6 @@ We modernized the design using **Glassmorphism** and clear labeling:
 
 ## Conclusion
 
-What started as a simple badge addition turned into a lesson in **layout mechanics**, **CI/CD constraints**, and **UI design**. The result is a stable, aesthetically pleasing visitor counter that integrates perfectly with the Chirpy theme's dark mode.
+What started as a simple badge addition turned into a lesson in **layout mechanics**, **CI/CD constraints**, and **UI design**. The result is a stable, aesthetically pleasing visitor counter that integrates cleanly with the Chirpy theme's dark mode.
 
 **Key Takeaway:** When modifying a strict theme like Chirpy, always check the underlying Sass for layout constraints and verify your changes against the CI/CD pipeline.

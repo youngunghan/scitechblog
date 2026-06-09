@@ -1,9 +1,9 @@
 ---
-title: "Building a Skull Mask Generator for MRI Images Without Deep Learning"
+title: "A Classical Baseline for Skull-Mask Generation on a 5-Slice MRI Set"
 date: 2025-12-29 00:00:00 +0900
 categories: [AI, Medical Imaging]
 tags: [mri, image-segmentation, opencv, morphological-operations, skull-stripping]
-description: "A classical image processing approach to skull mask generation, achieving IoU 0.98 with only 5 labeled images—no deep learning required."
+description: "A classical image processing approach to skull mask generation, reaching IoU 0.98 in a small internal 5-slice experiment—no deep learning required."
 author: seoultech
 image:
   path: assets/img/posts/skull-mask/cover.png
@@ -18,9 +18,9 @@ Recently, I worked on a task to generate **skull masks** from MRI images. The go
 - **Exclude** the outermost bright tissue (scalp)
 - **Include** the dark border inside (skull bone)
 
-My first instinct was **U-Net**. But I only had **5 labeled images**—not enough to train anything.
+My first instinct was **U-Net**. But I only had **5 labeled images**—not enough to train a robust model from scratch.
 
-So I went with classical image processing instead. The result: **IoU 0.9795, Dice 0.9896**.
+So I went with classical image processing instead. The result: **IoU 0.9794, Dice 0.9896**.
 
 ---
 
@@ -76,13 +76,21 @@ flowchart LR
 
 The key insight: **Scalp touches the image border, Brain does not.**
 
+The snippets below assume these imports:
+
+```python
+import numpy as np
+import cv2
+from scipy import ndimage
+```
+
 ---
 
 ## Step 1: Normalization
 
 ### Why Normalize?
 
-OpenCV functions expect pixel values in the 0-255 range (uint8). Our raw MRI data ranges from `1.8e-07` to `3.5e-05`. If we feed these values directly to OpenCV, the functions won't work as expected.
+`cv2.threshold`/Otsu work on 8-bit (and 16-bit) single-channel images, so for this pipeline I normalized to 8-bit grayscale. Our raw MRI data ranges from `1.8e-07` to `3.5e-05`, and mapping it to a `[0, 255]` `uint8` range keeps the histogram-based threshold well-behaved.
 
 ### How It Works
 
@@ -90,6 +98,10 @@ OpenCV functions expect pixel values in the 0-255 range (uint8). Our raw MRI dat
 def normalize_image(image: np.ndarray) -> np.ndarray:
     img_min = image.min()
     img_max = image.max()
+    if img_max == img_min:
+        # Flat image: avoid division by zero
+        return np.zeros_like(image, dtype=np.uint8)
+    # end if
     img_norm = (image - img_min) / (img_max - img_min)
     img_uint8 = (img_norm * 255).astype(np.uint8)
     return img_uint8
@@ -123,7 +135,7 @@ But how do we know 100 is the right value? What if 80 or 120 is better?
 _, binary = cv2.threshold(img_uint8, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 ```
 
-For our MRI images, Otsu consistently found **threshold = 23**:
+Across these 5 slices, Otsu landed on **threshold = 23** each time (your own data may differ):
 
 ```
 Histogram Distribution:
@@ -244,7 +256,7 @@ I tested various dilation sizes:
 | 28 | 0.9788 | 0.9893 |
 | 30 | 0.9763 | 0.9880 |
 
-At 26 pixels, the expanded brain region perfectly captures the skull bone while not extending too far into the scalp.
+On these slices, 26 pixels gave the best trade-off—the expanded brain region covered the skull bone well without extending too far into the scalp.
 
 ---
 
@@ -280,13 +292,13 @@ skull_mask = ndimage.binary_fill_holes(skull_mask).astype(np.uint8)
 ### IoU (Intersection over Union)
 
 $$
-\text{IoU} = \frac{\text{Predicted} \cap \text{Ground Truth}}{\text{Predicted} \cup \text{Ground Truth}}
+\text{IoU} = \frac{|\text{Predicted} \cap \text{Ground Truth}|}{|\text{Predicted} \cup \text{Ground Truth}|}
 $$
 
 - **IoU = 1.0**: Perfect overlap
 - **IoU = 0.0**: No overlap at all
 
-Our result: **IoU = 0.9794** means 97.94% overlap with the ground truth.
+Our result: **IoU = 0.9794** means the intersection is 97.94% of the union with the ground truth.
 
 ### Dice Coefficient
 
@@ -295,6 +307,10 @@ $$
 $$
 
 Our result: **Dice = 0.9896** is considered excellent in medical image segmentation.
+
+### A Note on Validation Limits
+
+These numbers come from just 5 slices, so they describe how the pipeline fits this small internal set rather than how it would generalize. Real deployment would need external validation on unseen scans, 3D/volume-level splits (so slices from the same volume don't leak between tuning and evaluation), and awareness that scanner and acquisition-protocol differences can shift intensities enough to break a fixed threshold. For details on `cv2.threshold` and Otsu behavior, see the [OpenCV imgproc misc docs](https://docs.opencv.org/4.x/d7/d1b/group__imgproc__misc.html).
 
 ---
 
@@ -321,13 +337,13 @@ Given that this is a segmentation task, you might wonder why I didn't use U-Net 
 
 | Criterion | Classical Approach | Deep Learning |
 |:----------|:-------------------|:--------------|
-| **Training Data** | Not needed | 500-1,000+ images minimum |
+| **Training Data** | Not needed | typically many hundreds to thousands of images (rough rule of thumb) |
 | **2D Slice Support** | ✅ | ✅ |
 | **External Dependencies** | numpy, opencv, scipy | GPU, large frameworks |
 | **Interpretability** | Each step is clear | Black box |
-| **Current Accuracy** | IoU 0.98 | Potentially higher with enough data |
+| **Internal 5-slice IoU** | 0.98 (5 slices) | Potentially higher with enough data |
 
-With only 5 labeled images, deep learning was simply not an option. However, if 10,000+ labeled images became available, I would definitely consider training a U-Net for potentially even better results.
+With only 5 labeled images, deep learning was simply not an option. However, if a substantially larger labeled set (on the order of thousands of images or more) became available, I would consider training a U-Net for potentially even better results.
 
 ---
 
@@ -344,7 +360,7 @@ As part of the project, I also planned for processing 100,000 images within 2 we
 | Time for 100,000 images (single thread) | ~28 minutes |
 | Time for 100,000 images (8 cores) | ~4 minutes |
 
-The classical approach turned out to be extremely fast—no GPU required!
+The classical approach was fast enough for this scale on CPU (single-process vs 8 processes on the `(5, 768, 624)` slices)—no GPU required!
 
 ### Batch Processing Script
 
@@ -378,7 +394,7 @@ if __name__ == '__main__':
 **Key insights:**
 1. **Edge-touching property** was the breakthrough—Scalp touches borders, Brain doesn't
 2. **Iterate and measure**—v1-v4 failed, v5 worked
-3. **Simple can be powerful**—Otsu + Connected Components + Dilation = 98% IoU
+3. **Simple can be a strong baseline**—Otsu + Connected Components + Dilation = 98% IoU
 
 Not every problem needs deep learning.
 

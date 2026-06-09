@@ -1,5 +1,6 @@
 ---
 title: "[Troubleshooting] PlantUML Diagram Layout Optimization: From Grid to Vertical Stack"
+description: "Optimizing PlantUML diagram layout from a crossing-prone grid to a clean vertical stack."
 date: 2026-01-07 14:00:00 +0900
 categories: [Development, Documentation]
 tags: [plantuml, documentation, layout, troubleshooting, visualization, grid-layout]
@@ -112,12 +113,10 @@ tester --> search
 
 ## Conclusion
 
-## Conclusion
-
 The **"Vertical Stack Layout"** proved to be the optimal solution.
 
 1.  **Readability**: The tall (Portrait) aspect ratio provides a clear and spacious view.
-2.  **Integrity**: All arrows move horizontally in parallel, ensuring **0% line crossing**.
+2.  **Integrity**: All arrows move horizontally in parallel, ensuring **0% line crossing for this star-topology diagram**.
 3.  **Scalability**: The diagram grows vertically with added APIs, maintaining a constant, readable width.
 
 Optimizing diagram layouts requires matching the topology to the information structure, rather than simply switching tools.

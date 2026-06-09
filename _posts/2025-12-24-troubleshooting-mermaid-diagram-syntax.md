@@ -22,7 +22,7 @@ mermaid version 11.12.2
 
 The bizarre part? The diagrams looked **identical in structure**. This post documents the root causes and solutions for several hidden pitfalls in Mermaid diagram syntax.
 
-## Problem 1: `AND` and `OR` as Reserved Keywords
+## Problem 1: `AND` and `OR` Breaking Edge Labels
 
 ### Symptom
 
@@ -48,11 +48,14 @@ flowchart LR
 
 ### Root Cause
 
-`AND` and `OR` are **logical operators** in Mermaid's internal parser. Even when enclosed in quotes (`"..."`), they can interfere with parsing in certain contexts.
+This isn't a documented Mermaid feature, so treat the following as an empirical observation rather than a rule. In practice, `AND` and `OR` sitting bare inside an edge label seem to trigger a parsing conflict — likely an interaction with the surrounding brackets and commas in the label text — and even wrapping the label in quotes (`"..."`) doesn't always avoid it.
+
+> Note: the only officially reserved keyword in Mermaid flowcharts is the lowercase `end`. `AND` and `OR` are *not* documented reserved operators; this is just a workaround for the parsing conflict above.
+{: .prompt-info }
 
 ### Solution
 
-Use underscores to escape the reserved keywords:
+Add underscores around the offending words so they no longer trip the parser:
 
 ```markdown
 <!-- Before (Error) -->
@@ -70,6 +73,8 @@ Alternatively, you can use symbols like `+` and `/`:
 q=cond1 + cond2   <!-- AND -->
 q=cond1 / cond2   <!-- OR -->
 ```
+
+The most portable fix, though, is to rephrase the whole edge label so the operator words never appear (e.g. `q: cond1 + cond2` or `q: all conditions`).
 
 ## Problem 2: Angle Brackets Interpreted as HTML Tags
 
@@ -110,30 +115,46 @@ The Markdown PDF exporter (or underlying HTML renderer) interprets **English-onl
 
 ### Solution
 
-Add non-English characters (Korean, numbers, symbols) to break the HTML tag pattern:
+The recommended general fix is to stop the renderer from seeing the angle brackets as a tag in the first place. There are three robust approaches, in order of preference:
+
+1. **Escape the brackets as HTML entities** — replace `<` with `&lt;` and `>` with `&gt;` so they render as literal characters (this is the approach the [Mermaid flowchart docs](https://mermaid.js.org/syntax/flowchart.html) recommend for special characters in labels):
+
+   ```markdown
+   <!-- Before (Error) -->
+   rows=<row>
+   rows=<unchanged>
+
+   <!-- After (Works) -->
+   rows=&lt;row&gt;
+   rows=&lt;unchanged&gt;
+   ```
+
+2. **Wrap/quote the label text** so the brackets stay inside a quoted string, e.g. `|"200(rows=&lt;row&gt;)"|`, keeping the quotes already used in these edge labels.
+
+3. **Remove the angle brackets** entirely if they are purely decorative, e.g. `rows=row` or `rows=[row]`.
+
+As a secondary quick hack, you can also break the HTML tag pattern by adding a non-English character (Korean, a number, or a symbol) so the content no longer looks like a valid tag:
 
 ```markdown
-<!-- Before (Error) -->
-rows=<row>
-rows=<unchanged>
-
-<!-- After (Works) -->
+<!-- Quick hack -->
 rows=<해당row>
 rows=<변경없음>
 ```
+
+This works because the renderer only treats English-only content between `<` and `>` as a potential tag, but escaping is the more portable fix.
 
 ## Problem 3: The Infamous `<meta>` Tag
 
 ### Symptom
 
-This diagram always failed, even with Korean characters nearby:
+This diagram consistently failed in my Markdown-PDF (Puppeteer/HTML) export pipeline, even with Korean characters nearby:
 
 ```mermaid
 flowchart LR
     ML[Meta Listing API]
     T([Tester])
     
-    ML -.->|"200(rows=<meta값유지>)"| T   Always Error!
+    ML -.->|"200(rows=<meta값유지>)"| T   Failed in my Markdown-PDF export!
 ```
 
 ### Root Cause
@@ -148,13 +169,20 @@ Even though `<meta값유지>` contains Korean, the parser sees `<meta` and inter
 
 ### Solution
 
-Replace `meta` with its Korean equivalent:
+Because `<meta>` is a real tag, the Korean-character trick alone won't save you here — `<meta값유지>` still starts with `<meta`. Escape the brackets instead:
 
 ```markdown
 <!-- Before (Error) -->
 rows=<meta값유지>
 
 <!-- After (Works) -->
+rows=&lt;meta값유지&gt;
+```
+
+As a secondary quick hack, you can rename the token so the literal string `meta` no longer appears right after `<`, for example using its Korean equivalent:
+
+```markdown
+<!-- Quick hack -->
 rows=<메타값유지>
 ```
 
@@ -162,17 +190,17 @@ rows=<메타값유지>
 
 | Issue | Trigger | Solution |
 |-------|---------|----------|
-| Reserved Keywords | `AND`, `OR` in message labels | Use `+`, `/` or `_AND_`, `_OR_` |
-| HTML Tag Interpretation | `<english>` patterns | Add Korean/numbers: `<한글english>` |
-| Actual HTML Tags | `<meta>`, `<div>`, `<span>`, etc. | Replace with Korean: `<메타>` |
+| Edge-label parsing conflict | `AND`, `OR` in message labels | Use `+`, `/` or `_AND_`, `_OR_` |
+| HTML Tag Interpretation | `<english>` patterns | Escape as `&lt;row&gt;`, quote the label, or drop the brackets (quick hack: add Korean/numbers, `<한글english>`) |
+| Actual HTML Tags | `<meta>`, `<div>`, `<span>`, etc. | Escape as `&lt;meta&gt;` (quick hack: rename, e.g. `<메타>`) |
 
 ## Conclusion
 
 Mermaid is powerful for documentation, but its integration with HTML-based renderers (like VS Code's Markdown PDF extension) introduces hidden parsing conflicts.
 
 **Key Takeaways:**
-1. Avoid `AND`/`OR` keywords in message labels.
-2. Don't use pure English words inside angle brackets.
-3. Be especially careful with real HTML tag names like `<meta>`, `<div>`, `<span>`.
+1. Avoid bare `AND`/`OR` inside message labels (the only officially reserved flowchart keyword is `end`).
+2. For angle brackets in labels, escape them as HTML entities (`&lt;row&gt;`), keep the label quoted, or remove the brackets — this is the portable fix recommended by the [Mermaid flowchart docs](https://mermaid.js.org/syntax/flowchart.html).
+3. Be especially careful with real HTML tag names like `<meta>`, `<div>`, `<span>`; escaping handles these too.
 
-When in doubt, add a Korean character or number to break the pattern. This small trick saved hours of frustration!
+When in doubt, escape the brackets. As a quick hack you can add a Korean character or number to break the pattern, but `&lt;`/`&gt;` is the more reliable fix.

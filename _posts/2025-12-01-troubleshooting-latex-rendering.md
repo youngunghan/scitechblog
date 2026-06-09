@@ -17,7 +17,7 @@ After migrating my algorithm posts to Jekyll Chirpy, I noticed a glaring issue. 
 Instead of a beautifully rendered formula, I saw:
 `$O(N \log N)$`
 
-This post documents why this happened and how I automated the fix for over 30 posts using a Python script.
+This post documents why this happened and how I automated the fix across all my posts (13 of which were missing the flag) using a Python script.
 
 ## The Problem
 
@@ -100,8 +100,8 @@ if __name__ == "__main__":
 ### Result
 
 Running this script instantly fixed 13 posts that were missing the configuration, including:
-- `[BOJ] 11401. 이항 계수 3` (Heavy math content)
-- `[BOJ] 1920. 수 찾기` (Time complexity analysis)
+- `[BOJ] 11401. Binomial Coefficient 3` (Heavy math content)
+- `[BOJ] 1920. Finding a Number` (Time complexity analysis)
 
 Now, $O(N \log N)$ renders perfectly!
 

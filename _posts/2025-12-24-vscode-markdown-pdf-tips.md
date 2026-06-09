@@ -19,19 +19,19 @@ I spent 2 hours debugging a Mermaid diagram that worked perfectly in VS Code's p
 
 ## The Three Common Traps
 
-Before diving into details, here's what causes 90% of PDF export failures:
+Before diving into details, here are the most common causes of PDF export failures:
 
 | Trap | Problem | Solution |
 |------|---------|----------|
-| **Reserved Keywords** | `AND`, `OR` break the parser | Use `_AND_`, `_OR_` |
-| **Angle Brackets** | `<row>` looks like HTML | Use `<해당row>` (add non-English) |
-| **Real HTML Tags** | `<meta>`, `<div>` always fail | Use `<메타>`, `<구역>` |
+| **Parser-Breaking Tokens** | `AND`, `OR` can break edge labels | Use `_AND_`, `_OR_` |
+| **Angle Brackets** | `<row>` looks like HTML | Escape as `&lt;row&gt;`, quote, or drop the brackets (quick hack: add non-English, e.g. `<해당row>`) |
+| **Real HTML Tags** | `<meta>`, `<div>` consistently failed in my export pipeline | Escape as `&lt;meta&gt;`, quote, or rename (quick hack: `<메타>`, `<구역>`) |
 
 ---
 
-## Trap #1: Reserved Keywords
+## Trap #1: Tokens That Can Break the Parser in Edge Labels
 
-Mermaid uses `AND`, `OR` as logical operators internally. Using them in labels can cause parsing issues.
+Some uppercase tokens like `AND` and `OR` can confuse the Mermaid parser when they appear in edge labels, leading to "Syntax error in text". To be precise: Mermaid only officially reserves the lowercase keyword `end`. The behavior below is best treated as a practical, defensive workaround rather than a documented list of reserved operators.
 
 ```mermaid
 flowchart LR
@@ -43,14 +43,16 @@ flowchart LR
     end
 ```
 
-### Affected Keywords
+### Tokens to Watch For
 
-| Keyword | Status | Alternative |
+| Token | Status | Alternative |
 |---------|--------|-------------|
 | `AND` | Error | `_AND_` |
 | `OR` | Error | `_OR_` |
 | `NOT` | Usually OK | `_NOT_` (safer) |
 | `IN` | Usually OK | `_IN_` (safer) |
+
+The most portable fix is to rephrase the whole edge label so the operator words never appear at all (e.g. `q: cond1 + cond2` or `q: all conditions`).
 
 ---
 
@@ -67,13 +69,21 @@ The PDF exporter uses Puppeteer (headless Chrome). Content in angle brackets can
 | `<1개>` | Works | Number makes it invalid HTML |
 | `<해당row>` | Works | Korean makes it invalid HTML |
 
-### Fix: Add Non-English Characters
+### Fix: Escape, Quote, or Remove the Brackets
+
+The robust fix is to stop the brackets from looking like HTML: escape them as HTML entities (`&lt;`/`&gt;`), wrap the text in quotes, or just drop the angle brackets entirely.
 
 ```markdown
 Before (Error):
 A -.->|"200(rows=<row>)"| T
 
-After (Works):
+After (Works, escaped):
+A -.->|"200(rows=&lt;row&gt;)"| T
+```
+
+As a secondary quick hack, adding a non-English character also makes the content invalid as HTML so the parser leaves it alone:
+
+```markdown
 A -.->|"200(rows=<해당row>)"| T
 ```
 
@@ -81,13 +91,13 @@ A -.->|"200(rows=<해당row>)"| T
 
 ## Trap #3: Real HTML Tag Names
 
-If your placeholder happens to be a real HTML tag name, it will **always** fail:
+If your placeholder happens to be a real HTML tag name, it **consistently failed in my VS Code Markdown PDF (Puppeteer) export pipeline**. The reliable fix is the same as Trap #2: escape the brackets as `&lt;`/`&gt;`, quote the text, or drop the brackets and rename the placeholder. Adding a non-English token (the Korean form below) is a secondary quick hack.
 
 | Tag | Problem | Alternative |
 |-----|---------|-------------|
-| `<meta>` | Real HTML tag | `<메타>` or `META` |
-| `<div>` | Real HTML tag | `<구역>` or `DIV` |
-| `<span>` | Real HTML tag | `<범위>` or `SPAN` |
+| `<meta>` | Real HTML tag | `&lt;meta&gt;`, `META` (quick hack: `<메타>`) |
+| `<div>` | Real HTML tag | `&lt;div&gt;`, `DIV` (quick hack: `<구역>`) |
+| `<span>` | Real HTML tag | `&lt;span&gt;`, `SPAN` (quick hack: `<범위>`) |
 | `<br>` | Real HTML tag | Remove or use `/` |
 
 ---
@@ -102,11 +112,11 @@ flowchart TD
     Q1 -->|Yes| C1["Search: AND, OR"]
     C1 --> F1["Replace with _AND_, _OR_"]
     
-    F1 --> C2["Search: \u003cEnglish-only\u003e"]
-    C2 --> F2["Add Korean: \u003c한글\u003e"]
+    F1 --> C2["Search: &lt;English-only&gt;"]
+    C2 --> F2["Escape/quote/remove (quick hack: add Korean &lt;한글&gt;)"]
     
-    F2 --> C3["Search: \u003cmeta\u003e, \u003cdiv\u003e, \u003cspan\u003e"]
-    C3 --> F3["Replace: \u003c메타\u003e, \u003c구역\u003e"]
+    F2 --> C3["Search: &lt;meta&gt;, &lt;div&gt;, &lt;span&gt;"]
+    C3 --> F3["Escape/rename (quick hack: &lt;메타&gt;, &lt;구역&gt;)"]
     
     F3 --> Q2{Still Failing?}
     Q2 -->|Yes| A1["Export incrementally to find the problematic section"]
@@ -164,8 +174,8 @@ flowchart LR
 | Problem | Quick Fix |
 |---------|-----------|
 | `AND`/`OR` errors | `_AND_`/`_OR_` |
-| `<english>` fails | `<한글>` |
-| `<meta>` fails | `<메타>` or `META` |
+| `<english>` fails | Escape `&lt;english&gt;`, quote, or remove (quick hack: `<한글>`) |
+| `<meta>` fails | Escape `&lt;meta&gt;` or rename `META` (quick hack: `<메타>`) |
 | Korean is broken | Add Noto Sans KR font |
 | Export is slow | Split into smaller files |
 

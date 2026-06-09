@@ -1,5 +1,6 @@
 ---
 title: "Migrating Tech Blog from WENIVLOG to Jekyll Chirpy Theme"
+description: "Migrating a tech blog from WENIVLOG to the Jekyll Chirpy theme on GitHub Pages."
 date: 2025-11-26 00:00:00 +0900
 categories: [Development, Jekyll]
 tags: [jekyll, chirpy, github-pages, blog-migration, static-site]
@@ -248,7 +249,7 @@ Then removed the gemspec file:
 git rm jekyll-theme-chirpy.gemspec
 git add Gemfile
 git commit -m "fix: update Gemfile for blog usage"
-git push origin master
+git push origin main
 ```
 
 **Lesson:** Use Chirpy Starter template for blogs, not the theme repository. If you already forked the theme repo, replace the Gemfile completely.
@@ -409,7 +410,7 @@ HOME → ABOUT → CHALLENGE → CATEGORIES → TAGS → ARCHIVES
 ```
 
  **Post Management:**
-- 4 technical posts successfully migrated
+- 4 technical posts successfully migrated (at the time of migration)
 - All images displaying correctly
 - Code syntax highlighting working
 - Korean text rendering properly

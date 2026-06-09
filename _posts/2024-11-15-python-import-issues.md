@@ -3,6 +3,7 @@ title: "Resolving Python Import Issues in a Frequency Analysis Project"
 date: 2024-11-15 00:00:00 +0900
 categories: [Python, Development]
 tags: [python, import, pythonpath, module, project-structure]
+description: "Resolving ModuleNotFoundError in a src-layout Python project using PYTHONPATH, python -m, and editable installs."
 author: seoultech
 image:
   path: assets/img/posts/python-import/path_problem.png
@@ -68,6 +69,9 @@ python src/vision_utils/train.py --data-dir /path/to/dataset
 python -m vision_utils.train --data-dir /path/to/dataset
 ```
 
+> **Caveat:** `-m` only works when `src/` is on the path. Since the package lives under `src/`, running this from the project root raises the same `ModuleNotFoundError`. Run it from inside `src/`, or—better—after `pip install -e .` (see Method 3), so that `vision_utils` is importable from anywhere.
+{: .prompt-warning }
+
 ### Method 3: Development Installation
 ```bash
 # From project root
@@ -125,8 +129,10 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install -e .
 
 # Now you can run from anywhere
-python src/vision_utils/train.py
+python -m vision_utils.train
 ```
+
+Even cleaner: declare a `console_scripts` entry point in `setup.py` (e.g. `vision-train = vision_utils.train:main`), so after `pip install -e .` you can simply run `vision-train` directly from any directory.
 
 This method:
 -  Works from any directory

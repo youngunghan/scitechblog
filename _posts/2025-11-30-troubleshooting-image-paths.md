@@ -33,7 +33,7 @@ Both approaches resulted in the same error: **Double Baseurl**.
 The generated HTML looked like this:
 `<img src="/scitechblog/scitechblog/assets/img/..." ...>`
 
-This meant that *something* was prepending the `baseurl` automatically, and my manual attempts were adding it a second time.
+This meant that the `baseurl` was effectively being applied twice: the path already carried `/scitechblog`, and then it was prepended a second time. In other words, the duplication came from *also* adding `baseurl` manually to a path that already included it.
 
 ## Root Cause Analysis
 
@@ -47,9 +47,11 @@ I investigated the `_layouts/home.html` file, which renders the post previews.
 
 At first glance, it looks like raw output. However, the Jekyll Chirpy theme (and its plugins) has hidden logic to handle asset paths.
 
-1.  **Theme Logic**: The theme is designed to handle `assets/img/...` paths automatically.
-2.  **Conflict**: When I manually added `/scitechblog` in the Markdown front matter, the theme *still* prepended the `baseurl`, resulting in `/scitechblog/scitechblog/...`.
-3.  **HTML Modification**: Even when I tried to fix it in HTML using `relative_url` filter, it conflicted with the theme's internal processing (likely via `jekyll-relative-links` or similar plugins).
+First, a note on how this is *supposed* to work. Per the [Jekyll filters docs](https://jekyllrb.com/docs/liquid/filters/), the `relative_url` filter **prepends `baseurl` to the input path**. On a GitHub Pages subpath site like this one, `{{ path | relative_url }}` is the standard, correct way to build asset URLs — you give it a root-relative path and it adds `/scitechblog` for you. So `relative_url` is not the villain here; the problem is supplying it (or the theme's own path handling) a path that *already* contains `baseurl`.
+
+1.  **Theme Logic**: The theme already builds asset URLs with `baseurl` prepended.
+2.  **Conflict**: When I manually added `/scitechblog` in the Markdown front matter, the path already carried the `baseurl`. When the theme then prepended `baseurl` again, the result was `/scitechblog/scitechblog/...`.
+3.  **Double application**: The same thing happens if you run `relative_url` on a path that already starts with `baseurl` — it is correct on a clean root-relative path, but doubles up when the input already includes `/scitechblog`.
 
 ## The Solution
 
@@ -68,10 +70,10 @@ image:
   path: assets/img/posts/algo/leetcode.png
 ```
 
-### 3. Layout Adjustment (The Real Fix)
-However, simply using relative paths caused issues on pagination pages (e.g., `/page2/`). The theme expects **absolute paths** (starting with `/`) to correctly prepend the `baseurl`.
+### 3. Layout Adjustment (Fork-Specific Workaround)
+However, simply using relative paths caused issues on pagination pages (e.g., `/page2/`) with my forked layout. In my fork's `_layouts/home.html`, the path handling only added `baseurl` cleanly when the input was a leading-slash, root-relative path.
 
-I modified `_layouts/home.html` to ensure all image paths start with `/`, but **without** using the `relative_url` filter (which causes double duplication).
+So, scoped to *this* layout, I reverted the manual `baseurl` and instead forced a leading-slash path in my forked `_layouts/home.html`:
 
 ```liquid
 <!-- _layouts/home.html -->
@@ -79,7 +81,9 @@ I modified `_layouts/home.html` to ensure all image paths start with `/`, but **
 <img src="{{ src }}" ...>
 ```
 
-This forces the path to be `/assets/img/...`. The theme's internal logic then detects this absolute path and automatically prepends `/scitechblog`, resulting in the correct `/scitechblog/assets/img/...`.
+This normalizes the input to `/assets/img/...`, after which the layout's path handling prepends `/scitechblog` once, giving the correct `/scitechblog/assets/img/...`.
+
+Note this is a workaround for my particular fork's layout/plugin combination, not a general Jekyll rule. The canonical approach on a subpath site is still to feed a clean root-relative path to `relative_url` (`{{ src | relative_url }}`) and let it add `baseurl` — exactly once.
 
 ## Comparison: Original vs. Fork
 
@@ -94,7 +98,7 @@ I created this blog by forking [jekyll-theme-chirpy](https://github.com/cotes202
 
 If you encounter "double baseurl" errors in Jekyll:
 1.  Check if you are manually adding `baseurl` in Markdown.
-2.  Check if you are using `relative_url` filter on a path that already has `baseurl`.
-3.  Try using simple relative paths (`assets/...`) and let Jekyll handle the rest.
+2.  Remember `relative_url` is correct — it prepends `baseurl` for you. The bug is applying it (or any baseurl logic) to a path that *already* includes `baseurl`.
+3.  Feed a single clean root-relative path to `relative_url` and let it add `baseurl` exactly once.
 
-Now, my CI/CD pipeline passes with **0 errors**!
+Now, my CI/CD pipeline passes with **0 errors** (at the time of this fix)!
