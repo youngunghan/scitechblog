@@ -35,16 +35,16 @@ The authors distinguish between two types of contamination:
 ## Experiments & Findings
 
 ### 1. Impact on Performance
-The experiments show that **Ground-truth Contamination** has a much larger impact on performance than simple Text Contamination.
+For generation-style tasks, **Ground-truth Contamination** tends to have a larger impact on performance than simple Text Contamination. SST-2 is a notable exception: there, Text Contamination yields the higher score. The authors attribute this to the nature of text classification, which depends mainly on the model's comprehension of the input text, so seeing the labeled answer in pre-training helps less than seeing the input itself.
 
 | Dataset | Metric | Original | Text Contam. | GT Contam. |
 | :--- | :---: | :---: | :---: | :---: |
 | **SST-2** | Acc (%) | 48.34 | **54.89** | 51.02 |
 | **SQuAD** | F1 | 9.07 | 9.78 | **11.45** |
 | **CNN/DM** | ROUGE-1 | 24.76 | 26.84 | **28.80** |
-| **MMLU** | Acc (%) | 22.9 | 23.3 | **23.9** |
+| **MMLU** | Acc (%) | 22.87 | 23.03 | **23.13** |
 
-_Table 1: Performance comparison. Ground-truth contamination significantly boosts performance in structured tasks like SQuAD and CNN/DM, sometimes even surpassing larger models._
+_Table 1: Performance comparison (numbers from the paper; see Tables 2 and 3). Ground-truth contamination boosts performance most clearly in generation tasks such as SQuAD and CNN/DM, whereas for the SST-2 classification task text contamination has the larger effect._
 
 ### 2. The U-Shaped Effect of Repeated Contamination
 One of the most interesting findings is the **U-shaped performance trend** when the contamination is repeated multiple times in the pre-training corpus.

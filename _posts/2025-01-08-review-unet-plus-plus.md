@@ -4,14 +4,14 @@ date: 2025-01-08 00:00:00 +0900
 categories: [Paper Review, Medical AI]
 tags: [Segmentation, U-Net, Deep Learning, Architecture]
 canonical_url: https://blog.outta.ai/127
-description: "A review of UNet++ (IEEE TMI 2019), a powerful evolution of the U-Net architecture for medical image segmentation."
+description: "A review of UNet++ (IEEE TMI 2020, online 2019), a powerful evolution of the U-Net architecture for medical image segmentation."
 image:
   path: assets/img/posts/paper-reviews/unetpp-arch.png
   alt: UNet++ Architecture
 math: true
 ---
 
-> **Note**: This is a review of the paper **"UNet++: Redesigning Skip Connections to Exploit Multiscale Features in Image Segmentation"** (IEEE TMI 2019).
+> **Note**: This is a review of the paper **"UNet++: Redesigning Skip Connections to Exploit Multiscale Features in Image Segmentation"** (IEEE TMI 2020 (online 2019)). The original nested-architecture version, **"UNet++: A Nested U-Net Architecture for Medical Image Segmentation"**, appeared at DLMIA 2018.
 >
 > For a **Korean version** of this review, please visit the **[OUTTA AI Tech Blog](https://blog.outta.ai/127)**.
 {: .prompt-info }
@@ -55,11 +55,11 @@ The authors evaluated UNet++ on multiple medical segmentation tasks (lung nodule
 
 | Method | Lung Nodule (IoU) | Colon Polyp (IoU) | Liver (IoU) | Cell Nuclei (IoU) |
 | :--- | :---: | :---: | :---: | :---: |
-| **U-Net** | 72.5 | 28.6 | 92.4 | 88.7 |
-| **Wide U-Net** | 73.3 | 29.5 | 92.5 | 89.2 |
-| **UNet++ (w/ DS)** | **75.5** | **30.4** | **92.8** | **90.6** |
+| **U-Net** | 71.47 | 30.08 | 76.62 | 90.77 |
+| **Wide U-Net** | 73.38 | 30.14 | 76.58 | 90.92 |
+| **UNet++ (w/ DS)** | **77.21** | **32.12** | **82.90** | **92.52** |
 
-_Table 1: Segmentation performance comparison (IoU). UNet++ consistently outperforms U-Net and Wide U-Net across various datasets._
+_Table 1: Segmentation performance comparison (IoU). UNet++ consistently outperforms U-Net and Wide U-Net across various datasets (numbers from the DLMIA 2018 paper, Table 3)._
 
 ![UNet++ Qualitative Results](/assets/img/posts/paper-reviews/unetpp-qualitative.png)
 _Figure 2: Qualitative comparison. UNet++ produces segmentation masks that are closer to the Ground Truth compared to U-Net and Wide U-Net, especially for fine details._

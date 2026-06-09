@@ -19,7 +19,7 @@ math: true
 ## Why I Read This Paper
 With the explosive growth of Generative AI, especially text-to-image models like Stable Diffusion, the need to inject "my own data" into these models has become significant. It's not just about generating *a* dog anymore; it's about generating **"my dog, Poppi."** This is the essence of true personalization in AI.
 
-DreamBooth is a monumental paper that solved this problem with just 3-5 images. It laid the foundation for many subsequent studies, including LoRA. Personally, I found the idea of **"Class-specific Prior Preservation Loss"** to be incredibly elegant. The methodology of teaching the model the features of a specific instance without forgetting the general concept of the class (preventing Language Drift) was impressive, which led me to read this paper in detail.
+DreamBooth is a monumental paper that solved this problem with just 3-5 images. It influenced many subsequent personalization studies, and lightweight approaches like LoRA were later combined with it. Personally, I found the idea of **"Class-specific Prior Preservation Loss"** to be incredibly elegant. The methodology of teaching the model the features of a specific instance without forgetting the general concept of the class (preventing Language Drift) was impressive, which led me to read this paper in detail.
 
 ---
 
@@ -63,11 +63,11 @@ The authors compared DreamBooth with **Textual Inversion**, another popular pers
 
 | Metric | DreamBooth (Imagen) | DreamBooth (SD) | Textual Inversion (SD) | Real Images |
 | :--- | :---: | :---: | :---: | :---: |
-| **DINO (Subject Fidelity)** | **0.774** | 0.668 | 0.569 | 0.774 |
-| **CLIP-I (Subject Fidelity)** | **0.815** | 0.767 | 0.726 | 0.880 |
-| **CLIP-T (Prompt Fidelity)** | **0.306** | 0.298 | 0.265 | N/A |
+| **DINO (Subject Fidelity)** | **0.696** | 0.668 | 0.569 | 0.774 |
+| **CLIP-I (Subject Fidelity)** | **0.812** | 0.803 | 0.780 | 0.885 |
+| **CLIP-T (Prompt Fidelity)** | **0.306** | 0.305 | 0.255 | N/A |
 
-_Table 1: Quantitative comparison of subject and prompt fidelity. DreamBooth significantly outperforms Textual Inversion in preserving subject identity (DINO, CLIP-I) and prompt adherence (CLIP-T)._
+_Table 1: Quantitative comparison of subject and prompt fidelity. DreamBooth significantly outperforms Textual Inversion in preserving subject identity (DINO, CLIP-I) and prompt adherence (CLIP-T). Note that "Real Images" is not a method but a non-method upper bound; bold marks the best generative method._
 
 ![DreamBooth Results](/assets/img/posts/paper-reviews/dreambooth-results.png)
 _Figure 3: Qualitative comparison. DreamBooth generates images that are more faithful to the subject's identity and the text prompt compared to Textual Inversion._
@@ -82,4 +82,4 @@ _Figure 3: Qualitative comparison. DreamBooth generates images that are more fai
 ## Conclusion & Insight
 DreamBooth is an excellent study that achieved powerful performance with a simple idea (Prior Preservation Loss). In particular, the approach of using **"Rare Tokens"** to inject new concepts without invading the existing vocabulary space of the model has inspired many researchers since.
 
-From an application perspective, it has high commercial value as it allows users to create their own avatars or profile pictures with just a few photos. Although the need for training time and storage capacity remains a challenge—leading to a preference for more lightweight methods like HyperNetworks or LoRA recently—it is undeniable that DreamBooth was at the starting point of this entire trend.
+From an application perspective, it has high commercial value as it allows users to create their own avatars or profile pictures with just a few photos. Although the need for training time and storage capacity remains a challenge—leading to a preference for more lightweight methods like HyperNetworks or LoRA recently—it is undeniable that DreamBooth was one of the landmark papers that accelerated subject-driven personalization.
