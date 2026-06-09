@@ -1,84 +1,70 @@
-<!-- markdownlint-disable-next-line -->
-<div align="center">
+# CSMAIR — scitechblog
 
-  <!-- markdownlint-disable-next-line -->
-  # Chirpy Jekyll Theme
+> Computer Science × Medical AI × Railroad Science
 
-  A minimal, responsive, and feature-rich Jekyll theme for technical writing.
+[Jekyll](https://jekyllrb.com/) + [Chirpy 테마](https://github.com/cotes2020/jekyll-theme-chirpy) 기반의 기술 블로그입니다. 알고리즘 문제 풀이(LeetCode·백준), 논문 리뷰, 개발/트러블슈팅 노트를 다룹니다.
 
-  [![CI](https://img.shields.io/github/actions/workflow/status/cotes2020/jekyll-theme-chirpy/ci.yml?logo=github)][ci]&nbsp;
-  [![Codacy Badge](https://img.shields.io/codacy/grade/4e556876a3c54d5e8f2d2857c4f43894?logo=codacy)][codacy]&nbsp;
-  [![GitHub license](https://img.shields.io/github/license/cotes2020/jekyll-theme-chirpy?color=goldenrod)][license]&nbsp;
-  [![Gem Version](https://img.shields.io/gem/v/jekyll-theme-chirpy?&logo=RubyGems&logoColor=ghostwhite&label=gem&color=orange)][gem]&nbsp;
-  [![Open in Dev Containers](https://img.shields.io/badge/Dev_Containers-Open-deepskyblue?logo=linuxcontainers)][open-container]
+- **라이브 사이트**: <https://youngunghan.github.io/scitechblog>
+- **저자**: Youngung Han ([@youngunghan](https://github.com/youngunghan))
 
-  [**Live Demo** →][demo]
+---
 
-  [![Devices Mockup](https://chirpy-img.netlify.app/commons/devices-mockup.png)][demo]
+## 빠른 시작
 
-</div>
+사전 요구: Ruby + Bundler, Node.js + npm.
 
-## Features
+```bash
+# 1) 의존성 설치
+bundle install
+npm install
 
-- Dark Theme
-- Localized UI language
-- Pinned Posts on Home Page
-- Hierarchical Categories
-- Trending Tags
-- Table of Contents
-- Last Modified Date
-- Syntax Highlighting
-- Mathematical Expressions
-- Mermaid Diagrams & Flowcharts
-- Dark Mode Images
-- Embed Media
-- Comment Systems
-- Built-in Search
-- Atom Feeds
-- PWA
-- Web Analytics
-- SEO & Performance Optimization
+# 2) 프런트엔드 에셋 빌드 (JS 번들 + CSS 최적화)
+npm run build
 
-## Documentation
+# 3) 로컬 서버 실행 (http://127.0.0.1:4000/scitechblog)
+bash tools/run.sh
+```
 
-To learn how to use, develop, and upgrade the project, please refer to the [Wiki][wiki].
+> 이 레포는 Chirpy **스타터**가 아니라 **테마 소스 전체**를 기반으로 하므로, 서버 실행 전에 `npm run build`로 `assets/js/dist/`의 JS 번들을 한 번 생성해야 합니다. 자세한 내용은 [개발 시작 가이드](docs/guide/02-getting-started.md)를 참고하세요.
 
-## Contributing
+새 글 작성은 [글 작성 규칙](docs/guide/03-writing-posts.md)을 따르세요.
 
-Contributions (_pull requests_, _issues_, and _discussions_) are what make the open-source community such an amazing place
-to learn, inspire, and create. Any contributions you make are greatly appreciated.
-For details, see the "[Contributing Guidelines][contribute-guide]".
+---
 
-## Credits
+## 디렉터리 한눈에 보기
 
-### Contributors
+| 경로 | 역할 |
+| --- | --- |
+| [_posts/](_posts/) | 블로그 글(Markdown). 파일명 `YYYY-MM-DD-제목.md` |
+| [_tabs/](_tabs/) | 상단 내비게이션 페이지(about, archives, categories, tags, challenge) |
+| [_data/](_data/) | 사이트 데이터(authors, contact, share, media, locales) |
+| [_layouts/](_layouts/) · [_includes/](_includes/) | 페이지 레이아웃 / 재사용 HTML 조각 (Chirpy 기본) |
+| [_sass/](_sass/) | SCSS 스타일 소스 |
+| [_javascript/](_javascript/) | 프런트엔드 JS 소스 (Rollup으로 번들) |
+| [_plugins/](_plugins/) | 커스텀 Jekyll 플러그인 (git 기반 수정일 표시) |
+| [assets/](assets/) | 정적 에셋 및 빌드 산출물(`js/dist/`, 이미지 등) |
+| [tools/](tools/) | 실행/빌드/배포 셸 스크립트 |
+| `*.py` (루트) | 글 생성·정리·감사용 Python 유틸리티 스크립트 |
+| [_config.yml](_config.yml) | Jekyll 사이트 전역 설정 |
 
-Thanks to [all the contributors][contributors] involved in the development of the project!
+---
 
-[![all-contributors](https://contrib.rocks/image?repo=cotes2020/jekyll-theme-chirpy&columns=16)][contributors]
-<sub> — Made with [contrib.rocks](https://contrib.rocks)</sub>
+## 문서
 
-### Third-Party Assets
+상세 문서는 [`docs/guide/`](docs/guide/)에 있습니다.
 
-This project is built on the [Jekyll][jekyllrb] ecosystem and some [great libraries][lib], and is developed using [VS Code][vscode] as well as tools provided by [JetBrains][jetbrains] under a non-commercial open-source software license.
+| 문서 | 내용 |
+| --- | --- |
+| [01. 아키텍처](docs/guide/01-architecture.md) | 프로젝트 정체성, 기술 스택, 디렉터리 구조, 빌드 흐름 |
+| [02. 개발 시작](docs/guide/02-getting-started.md) | 환경 준비, 빌드/실행/테스트/배포, CI/CD |
+| [03. 글 작성 규칙](docs/guide/03-writing-posts.md) | 파일명, front matter, 카테고리/태그, 이미지, 수식/다이어그램 |
+| [04. 테마 커스터마이징](docs/guide/04-theme-customization.md) | `_javascript` · `_sass` · `_layouts` · `_plugins` 등 커스텀 지점 |
+| [05. Python 스크립트](docs/guide/05-python-scripts.md) | 루트 유틸리티 스크립트 레퍼런스 및 주의사항 |
 
-The avatar and favicon for the project's website are from [ClipartMAX][clipartmax].
+---
 
-## License
+## 크레딧 · 라이선스
 
-This project is published under [MIT License][license].
+이 블로그는 Cotes Chung의 [Chirpy Jekyll Theme](https://github.com/cotes2020/jekyll-theme-chirpy)를 기반으로 합니다. 테마 자체의 사용·개발·업그레이드 방법은 [Chirpy Wiki](https://github.com/cotes2020/jekyll-theme-chirpy/wiki)를 참고하세요.
 
-[gem]: https://rubygems.org/gems/jekyll-theme-chirpy
-[ci]: https://github.com/cotes2020/jekyll-theme-chirpy/actions/workflows/ci.yml?query=event%3Apush+branch%3Amaster
-[codacy]: https://app.codacy.com/gh/cotes2020/jekyll-theme-chirpy/dashboard?utm_source=gh&utm_medium=referral&utm_content=&utm_campaign=Badge_grade
-[license]: https://github.com/cotes2020/jekyll-theme-chirpy/blob/master/LICENSE
-[open-container]: https://vscode.dev/redirect?url=vscode://ms-vscode-remote.remote-containers/cloneInVolume?url=https://github.com/cotes2020/jekyll-theme-chirpy
-[jekyllrb]: https://jekyllrb.com/
-[clipartmax]: https://www.clipartmax.com/middle/m2i8b1m2K9Z5m2K9_ant-clipart-childrens-ant-cute/
-[demo]: https://cotes2020.github.io/chirpy-demo/
-[wiki]: https://github.com/cotes2020/jekyll-theme-chirpy/wiki
-[contribute-guide]: https://github.com/cotes2020/jekyll-theme-chirpy/blob/master/docs/CONTRIBUTING.md
-[contributors]: https://github.com/cotes2020/jekyll-theme-chirpy/graphs/contributors
-[lib]: https://github.com/cotes2020/chirpy-static-assets
-[vscode]: https://code.visualstudio.com/
-[jetbrains]: https://www.jetbrains.com/?from=jekyll-theme-chirpy
+본 프로젝트는 [MIT License](LICENSE)로 배포됩니다.

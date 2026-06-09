@@ -22,6 +22,12 @@ My focus lies at the intersection of theoretical foundations and high-impact app
 - **Objective:** To develop and deploy robust machine learning models that enhance diagnostic accuracy and efficiency in healthcare systems.
 - **Focus Areas:** Medical Imaging Analysis, Predictive Modeling, Clinical Data Mining.
 
+### Industrial AI
+- **Objective:** To bring vision and multimodal models into real-world industrial environments for safety monitoring, inspection, and quality control.
+- **Focus Areas:**
+  - **Visual Intelligence:** Anomaly & Defect Detection, Real-time Multi-channel Inference, Vision-Language Models (VLM) for Safety-Critical Systems.
+  - Predictive Maintenance, Fault Diagnosis, Time-Series Analysis, Industrial Inspection & Monitoring.
+
 ### Railroad Science
 - **Objective:** To apply data-driven approaches to railway systems and transportation networks for improved safety and efficiency.
 - **Focus Areas:**
@@ -78,3 +84,13 @@ I actively engage in organizations to broaden my expertise, collaborate on chall
   - Developing mathematical intuition and logical reasoning by exploring and discussing complex problems across diverse mathematical fields.
 - **[SCSC (SNU Computer Study Club)](https://scsc.oopy.io/)**
   - Engaging in in-depth studies and discussions on advanced topics within computer science.
+
+---
+
+## Selected Publications
+
+- **LOSA-NET: A LOCALIZED AND SCALE-ADAPTIVE NETWORK FOR BOUNDARY-SENSITIVE PREDICTION OF PERINEURAL INVASION IN 3D MRI** - *IEEE ISBI 2026 (Oral)*
+- **MMA-FORMER: MULTI-WINDOW MIXTURE-OF-HEAD ATTENTION TRANSFORMER FOR ADAPTIVE PNI PREDICTION IN 3D MRI** - *IEEE ISBI 2026 (Oral)*
+- **NeoNet: An End-to-End 3D MRI-Based Deep Learning Framework for Non-Invasive Prediction of Perineural Invasion via Generation-Driven Classification** - *Workshop on Health Intelligence (W3PHIAI), AAAI 2026 (Oral)*
+
+> 📚 Full publication list on my [**Google Scholar**](https://scholar.google.com/citations?hl=ko&user=KUTvLfQAAAAJ).
