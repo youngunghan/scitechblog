@@ -116,6 +116,15 @@ internal image /scitechblog/scitechblog/assets/img/posts/algo/leetcode.png does 
 
 > Chirpy의 `.prompt-info` / `.prompt-tip` / `.prompt-warning` 블록은 "이건 검증된 보충 사실"임을 시각적으로 알리기에 좋습니다. 경험적 관찰과 공식 사실을 구분해 표시할 때 활용하세요.
 
+## 환경 스탬프와 출처 링크
+
+버그는 **정확한 버전 맥락**에 달려 있습니다. 좋은 디버깅 글은 두 가지를 더 남깁니다.
+
+- **환경 스탬프**: 버그가 재현된 도구/라이브러리 **버전·OS·런타임**을 한 줄 적습니다(예: mermaid 글의 `mermaid version 11.12.2`는 에러 메시지에 찍힌 실제 값). 같은 증상도 버전이 다르면 원인이 달라질 수 있으니 "**이 환경에서 재현됨**"을 명시합니다.
+- **출처 링크**: 관련 **upstream 이슈·PR·커밋**이나 최소 재현 repo가 있으면 링크합니다. [Distill](https://distill.pub/2018/editorial-update/)(글마다 repo)·Kaggle 우승자·[Julia Evans](https://jvns.ca/blog/2022/12/08/a-debugging-manifesto/) 등 좋은 디버깅 글은 거의 항상 출처 아티팩트를 링크합니다. (공개 이슈가 없는 자체 블로그성 문제면 생략 가능.)
+
+> 깊은 Root Cause는 **5 Whys**(증상에서 "왜"를 반복해 표면 너머로 파고들기)가 정석입니다([Google SRE — Postmortem Culture](https://sre.google/sre-book/postmortem-culture/)). 위의 Symptom↔Root Cause **1:1 정합** 규칙이 그 깊이를 강제합니다. 한 걸음 더 나아가, `**Lesson:**`에 "어떻게 **재발을 예방**하나"를 담으면 SRE 포스트모템의 action-item에 가까워집니다.
+
 ## front matter 예시
 
 일반 규칙은 [03. 글 작성 규칙 — Front matter 스키마](../guide/03-writing-posts.md#front-matter-스키마)를 따릅니다. 트러블슈팅 글에서 주의할 점만:
@@ -240,6 +249,8 @@ def enable_math_in_files():
 - [ ] **Symptom ↔ Root Cause 정합성**: Symptom에 보인 모든 에러 줄이 Root Cause에서 설명되는가? (visitor-counter 사례 재발 방지)
 - [ ] **재현성**: 붙여 넣은 에러 메시지·명령이 실제로 발생/실행되는 것인가? 지어낸 출력은 없는가?
 - [ ] **사실 검증**: 버전·포트·예약어 등 단정한 사실을 공식 문서로 확인했는가? 추측은 "empirical observation"으로 명시했는가?
+- [ ] **환경 스탬프**: 버그가 재현된 도구/라이브러리 버전·런타임을 적었는가(버그는 버전 맥락에 의존).
+- [ ] **출처 링크(있으면)**: 관련 upstream 이슈/PR/커밋 또는 최소 재현 repo를 링크했는가.
 - [ ] **front matter**: `categories`에서 `Troubleshooting`이 2번째인가? 수식/다이어그램이 있으면 `math: true`/`mermaid: true`를 켰는가?
 - [ ] **이미지 경로**: front matter `image.path`는 슬래시 없이, 본문 인라인 이미지는 `/assets/...`로 시작하는가? 파일이 `assets/img/posts/troubleshooting/`에 실제로 있는가?
 - [ ] **Mermaid 렌더링**: 다이어그램이 GitHub Pages에서 깨지지 않는가? (PDF 전용 회피책인 `<한글>`·`_AND_`가 블로그 본문에 불필요하게 남지 않았는지)
@@ -254,7 +265,7 @@ bash tools/test.sh
 #   bundle exec htmlproofer _site --disable-external ...
 ```
 
-> CI에서도 같은 검사를 돕니다(`.github/workflows/ci.yml` → `tools/test.sh`, `pages-deploy.yml` → `htmlproofer _site --disable-external`). 로컬에서 통과시키면 배포 단계 실패를 미리 막을 수 있습니다. 빌드·배포 흐름 전반은 [02. 개발 시작 — CI/CD와 배포](../guide/02-getting-started.md#cicd와-배포) 참고.
+> 배포 워크플로 `pages-deploy.yml`("Build and Deploy")가 빌드 직후 같은 `htmlproofer _site --disable-external …` 검사를 돌립니다(로컬 `tools/test.sh`와 동일한 검사). 로컬에서 먼저 통과시키면 배포 단계 실패를 미리 막을 수 있습니다. 빌드·배포 흐름 전반은 [02. 개발 시작 — CI/CD와 배포](../guide/02-getting-started.md#cicd와-배포) 참고.
 
 ## 요약
 
