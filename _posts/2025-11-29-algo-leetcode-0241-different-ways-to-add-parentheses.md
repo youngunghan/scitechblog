@@ -27,7 +27,7 @@ Output: [0, 2]
 
 ---
 
-## My First Approach (Failed)
+## Initial Thought (Failed)
 
 I initially tried to generate all possible parenthesis combinations and evaluate each one.
 

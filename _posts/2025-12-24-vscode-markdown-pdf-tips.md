@@ -15,6 +15,9 @@ mermaid: true
 
 I spent 2 hours debugging a Mermaid diagram that worked perfectly in VS Code's preview but crashed during PDF export. The error message was just "Syntax error in text" with no line number. After multiple trial-and-error sessions, I compiled this list of gotchas that I wish I knew earlier.
 
+> Most of this is an **empirical observation** from my VS Code Markdown-PDF (Chromium/Puppeteer) export pipeline, not documented Mermaid behavior: the renderer parses `<...>` as HTML, so a label like `<meta>` is read as an HTML tag and breaks the export. The only flowchart pitfalls Mermaid's docs warn about directly are the lowercase `end` keyword and edges starting with `o`/`x`.
+{: .prompt-info }
+
 ---
 
 ## The Three Common Traps

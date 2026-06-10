@@ -368,6 +368,7 @@ The classical approach was fast enough for this scale on CPU (single-process vs 
 import numpy as np
 from multiprocessing import Pool
 
+# create_skull_mask() is the full Step 1-5 pipeline above, saved as skull_mask_generator.py
 from skull_mask_generator import create_skull_mask
 
 

@@ -46,7 +46,7 @@ math: true  # <--- This was missing!
 ---
 ```
 
-Since my migrated posts didn't have this line, the theme assumed they were plain text posts and didn't load the math rendering engine.
+Since my migrated posts didn't have this line, the theme assumed they were plain text posts and didn't load the math rendering engine. With no MathJax present to scan the page, the `$...$` delimiters were passed straight through to the HTML and shown verbatim — exactly the raw text I saw.
 
 ## The Solution
 

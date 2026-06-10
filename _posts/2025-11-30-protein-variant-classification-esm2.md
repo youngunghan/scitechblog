@@ -223,6 +223,11 @@ This imbalance is on Task B's GOF/LOF label space (distinct from the pathogenic/
 I used `CrossEntropyLoss` with class weights inversely proportional to the class frequencies.
 
 ```python
+import torch
+import torch.nn as nn
+
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
 # LOF (0): 90%, GOF (1): 10%
 class_weights = torch.tensor([0.1, 0.9]).to(device)
 criterion = nn.CrossEntropyLoss(weight=class_weights)

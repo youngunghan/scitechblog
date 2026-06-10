@@ -162,14 +162,14 @@ sequenceDiagram
 Mermaid doesn't support Communication Diagrams natively. Use `flowchart LR`:
 
 ```markdown
-​```mermaid
+```mermaid
 flowchart LR
     A[Object A]
     B[Object B]
     
     A -->|"1: request"| B
     B -.->|"1.1: response"| A
-​```
+```
 ```
 
 **Conventions**:
@@ -180,11 +180,11 @@ flowchart LR
 ### Sequence Diagram Native
 
 ```markdown
-​```mermaid
+```mermaid
 sequenceDiagram
     A->>+B: request
     B-->>-A: response
-​```
+```
 ```
 
 **Conventions**:

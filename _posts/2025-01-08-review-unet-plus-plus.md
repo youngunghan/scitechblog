@@ -65,7 +65,7 @@ The authors evaluated UNet++ on multiple medical segmentation tasks (lung nodule
 | **Wide U-Net** | 73.38 | 30.14 | 76.58 | 90.92 |
 | **UNet++ (w/ DS)** | **77.21** | **32.12** | **82.90** | **92.52** |
 
-_Table 1: Segmentation performance comparison (IoU). UNet++ consistently outperforms U-Net and Wide U-Net across various datasets (numbers from the DLMIA 2018 paper, Table 3)._
+_Table 1: Segmentation performance comparison (IoU). UNet++ consistently outperforms U-Net and Wide U-Net. These four-dataset numbers come from the **original DLMIA 2018 conference version** (Table 3); the IEEE TMI 2020 redesign reviewed here expands the experiments, so treat this as the predecessor's comparison for the same architecture._
 
 ![UNet++ Qualitative Results](/assets/img/posts/paper-reviews/unetpp-qualitative.png)
 _Figure 2: Qualitative comparison. UNet++ produces segmentation masks that are closer to the Ground Truth compared to U-Net and Wide U-Net, especially for fine details (from Fig. 3 of the paper)._

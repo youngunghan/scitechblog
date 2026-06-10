@@ -18,6 +18,8 @@ mermaid: true
 
 Given a string `s`, find the length of the longest substring without repeating characters.
 
+- **Constraint**: $0 \le |s| \le 5 \times 10^4$.
+
 ```
 Input: s = "abcabcbb"
 Output: 3
