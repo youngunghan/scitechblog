@@ -37,21 +37,26 @@
 | 섹션 | 내용 | 비고 |
 | --- | --- | --- |
 | `## Why I Read This Paper` | 이 논문을 왜 읽었는지, 무엇이 인상적이었는지 1인칭으로 | 리뷰의 시그니처 도입부. 4편 모두 이 섹션으로 시작 |
-| `## Abstract` / `## Introduction` | 문제 정의·배경. 둘 다 두거나 하나만 (DreamBooth는 둘 다, UNet++/KAD/Contamination은 Introduction만) | 원논문 흐름에 맞춰 선택 |
+| `## Abstract` / `## Introduction` | 문제 정의·배경 + **논문의 핵심 기여(contributions)를 명시**. 둘 다 두거나 하나만 (DreamBooth는 둘 다, UNet++/KAD/Contamination은 Introduction만) | 원논문 흐름에 맞춰 선택. Keshav의 "Category·Contributions"를 앞에서 짚으면 좋음 |
 | `## Method` / `## Methods` | 핵심 아이디어. 하위 기법은 `### `로 분리 (예: UNet++의 `### 1. Nested Dense Skip Connections`) | 그림은 본문 인라인 이미지로 |
 | `## Experiments` / `## Results` | 정량 결과 표 + 지표 설명 | **표 검증이 가장 중요한 곳** (아래 참고) |
-| `## Conclusion & Insight` | 요약 + 내 인사이트/한계/후속 연구 | 단순 요약이 아닌 "내 생각"을 담음 |
+| `## Conclusion & Insight` | 짧은 요약 + **명시적 강점·한계·열린 질문(critique)** + 후속 연구 | **리뷰는 요약이 아니라 commentary** — 한계를 한 구절로 흘리지 말 것 (아래 참고) |
+
+> **요약 ≠ 비평.** "리뷰의 가장 중요한 요소는 단순 요약이 아니라 commentary"입니다([UNC Writing Center](https://writingcenter.unc.edu/tips-and-tools/book-reviews/)). 학회 리뷰 양식도 Summary와 **Strengths/Weaknesses·Limitations를 별도 항목으로 분리**하고([NeurIPS](https://neurips.cc/Conferences/2025/ReviewerGuidelines)·[ICLR](https://iclr.cc/Conferences/2025/ReviewerGuide)), Keshav의 3-pass도 마지막에 "강점·약점, 숨은 가정, 빠진 인용"을 짚으라고 합니다. `Conclusion & Insight`에서 **강점과 한계를 각각 또렷이** 적으세요(필요하면 `### Strengths` / `### Limitations`로 분리). 한계를 한 문장으로 흘리면 리뷰가 약해집니다.
+{: .prompt-tip }
 
 ### prompt-info 블록 관례
 
-`## Why I Read This Paper` **바로 위**에, 원문 논문명과 OUTTA 캐노니컬 링크를 안내하는 `.prompt-info` 블록쿼트를 둡니다. 4편 모두 동일한 패턴을 따릅니다:
+`## Why I Read This Paper` **바로 위**에, **논문 원문(arXiv/DOI) 링크**와 OUTTA 캐노니컬 링크를 안내하는 `.prompt-info` 블록쿼트를 둡니다. 단일 논문 리뷰의 1차 출처는 OUTTA 번역이 아니라 **논문**이고, 독자가 표 수치를 원문과 대조할 수 있어야 하므로 **arXiv/DOI 링크는 필수**입니다:
 
 ```markdown
-> **Note**: This is a review of the paper **"<논문 정식 제목>"** (<학회/저널> <연도>).
+> **Note**: This is a review of **"<논문 정식 제목>"** (<학회/저널> <연도>, [arXiv:XXXX.XXXXX](https://arxiv.org/abs/XXXX.XXXXX)).
 >
 > For a **Korean version** of this review, please visit the **[OUTTA AI Tech Blog](https://blog.outta.ai/<id>)**.
 {: .prompt-info }
 ```
+
+> arXiv 논문은 자동으로 DOI(`https://doi.org/10.48550/arXiv.<id>`)도 부여됩니다([arXiv 공식](https://info.arxiv.org/help/doi.html)). 학회/저널 정식판 DOI가 있으면 함께 적습니다.
 
 섹션 사이의 큰 전환에는 본문에 `---`(수평선)을 넣어 시각적으로 끊어줍니다(예: prompt-info 다음, Conclusion 앞).
 
@@ -78,12 +83,15 @@ math: true
 | --- | --- |
 | `title` | `"[Paper Review] <논문 제목>"` 형식. 대괄호 때문에 따옴표 필수 |
 | `categories` | `[Paper Review, <분야>]`. 분야는 `Generative AI` / `Medical AI` / `NLP` 등 |
-| `canonical_url` | OUTTA 한국어 원문 URL. 중복 콘텐츠 SEO 처리를 위해 거의 항상 넣음 |
+| `canonical_url` | OUTTA 한국어 원문 URL(출처 표시). **SEO 주의는 아래 참고** |
 | `image.path` | `assets/img/posts/paper-reviews/<slug>.png` (맨 앞 `/` 없음) |
 | `math: true` | 수식이 하나라도 있으면 추가(LR `$10^{-5}$`, loss `$L^1$` 등). 본문은 영어 |
 | `mermaid: true` | 다이어그램을 직접 그릴 때만. 리뷰는 보통 논문 그림 이미지를 쓰므로 생략 가능 (위 UNet++ 예시는 논문 그림만 쓰므로 `mermaid: true`를 일부러 넣지 않았습니다) |
 
 > 본문 인라인 이미지는 front matter와 반대로 맨 앞에 `/`를 붙입니다: `![alt](/assets/img/posts/paper-reviews/...png)`. 자세한 배경은 [03 문서의 이미지 경로 규칙](../guide/03-writing-posts.md#이미지-경로-규칙) 참고.
+
+> **`canonical_url` SEO 주의:** 영어 글은 한국어 OUTTA 원문의 *번역*이라 일반적 "중복 콘텐츠"가 아닙니다. 교차도메인 canonical을 **다른 언어** 원문으로 지정하면, 구글이 영어 글을 원문의 사본으로 간주해 **색인에서 누락**시킬 수 있습니다([Google: 교차포스트엔 rel=canonical 비권장](https://developers.google.com/search/docs/crawling-indexing/canonicalization-troubleshooting)). 영어 글 자체를 검색에 노출하고 싶다면 **self-referencing canonical**(자기 URL)이 더 안전하고(John Mueller "great practice"), OUTTA 출처는 위 prompt-info 안내로 충분합니다. OUTTA를 진짜 1차 버전으로 두고 영어 글 색인을 포기할 때만 교차도메인 canonical이 의미가 있습니다.
+{: .prompt-warning }
 
 ## 표 작성 규칙 (가장 중요)
 
@@ -95,6 +103,8 @@ math: true
 2. **게시 전 arXiv/DOI 원문과 1:1 대조한다.** PDF 표를 옆에 띄우고 셀 단위로 비교합니다. canonical OUTTA 글이 아니라 **원논문**이 기준입니다.
 3. **열을 복사-붙여넣기하다 같은 값이 중복되지 않았는지 확인한다.** 표의 한 열을 복제해 다음 열을 채울 때, 값을 갈아끼우는 걸 빠뜨리면 두 열이 통째로 같아지는 사고가 납니다.
 4. **데이터셋/지표 라벨도 원문과 일치시킨다.** 행 라벨(데이터셋·병변 이름)과 열 헤더(지표명: `DINO`, `CLIP-I`, `AUC`, `IoU`, `F1`, `ROUGE-1` 등)를 원문 표기 그대로 씁니다. `Acc (%)`처럼 단위까지 맞춥니다.
+5. **불확실성도 함께 옮긴다.** 점추정값뿐 아니라 원문이 제시한 **표준편차·error bar·신뢰구간·시행 횟수**(`0.696 ± 0.01`, `mean ± std`)까지 옮깁니다. 점수만 적으면 reviewer가 "불완전"으로 봅니다([NeurIPS 재현성 체크리스트](https://neurips.cc/public/guides/PaperChecklist) — error bar/통계 유의성 항목).
+6. **어느 행이 핵심 주장/SOTA인지 표시한다.** 본문이 강조하는 결과 행(주 비교·SOTA)을 굵게/캡션으로 짚어, 독자가 무엇이 논문의 main claim인지 알게 합니다.
 
 > **실제로 있었던 중복 오류 (교훈):** 몇몇 리뷰 표(그 중 **DreamBooth**의 DINO/CLIP-I 열, **KAD**의 AUC 열)에서 열을 복붙하다 값을 갈아끼우는 걸 빠뜨려, 인접한 두 열이 통째로 같은 값으로 들어간 적이 있습니다. 표를 옮긴 직후 **모든 열을 원문 PDF와 1:1로 대조**하고, 인접 열이 우연히 통째로 일치하지 않는지 눈으로 한 번 더 확인하세요.
 {: .prompt-warning }
@@ -128,9 +138,9 @@ image:
 math: true
 ---
 
-> **Note**: This is a review of the paper **"<Full Paper Title>"** (<Venue> <Year>).
+> **Note**: This is a review of **"<Full Paper Title>"** (<Venue> <Year>, [arXiv:XXXX.XXXXX](https://arxiv.org/abs/XXXX.XXXXX)).
 >
-> For a **Korean version** of this review, please visit the **[OUTTA AI Tech Blog](https://blog.outta.ai/<id>)**.
+> For a **Korean version** of this review, see the **[OUTTA AI Tech Blog](https://blog.outta.ai/<id>)**.
 {: .prompt-info }
 
 ## Why I Read This Paper
@@ -161,17 +171,20 @@ _Table 1: <caption> (numbers from the paper, Table N)._
 ---
 
 ## Conclusion & Insight
-<Summary + your own insight, limitations, and future directions.>
+<Brief summary, then your explicit take: strengths, limitations / critique (open questions),
+ and future directions. A review is commentary, not just a summary.>
+<!-- For a paper with non-trivial caveats, split into "### Strengths" / "### Limitations". -->
 ```
 
 ## 게시 전 검증 체크리스트
 
 1. **언어**: 본문이 영어인가(`_posts`는 영어 정책). 한국어가 남아 있지 않은가.
 2. **헤더**: 모든 본문 헤더가 `## `(H2) 이상인가. 단일 `#` 없음.
-3. **prompt-info**: `Why I Read This Paper` 위에 원문/OUTTA 안내 블록이 있는가. `{: .prompt-info }` 닫힘 표기 포함.
-4. **front matter**: `categories: [Paper Review, <분야>]`, `canonical_url`, `image.path`(앞 `/` 없음) 확인. 수식 있으면 `math: true`.
-5. **표 (최우선)**: 위 [표 검증 체크](#표-작성-규칙-가장-중요)를 모두 통과했는가. 특히 **인접 열 중복** 점검.
-6. **이미지**: 본문 인라인 이미지는 `/assets/...`로 시작하는가. 파일이 `assets/img/posts/paper-reviews/`에 실제로 존재하는가.
-7. **수식**: `$...$` / `$$...$$`가 깨지지 않고 렌더링되는가(`math: true` 필요).
-8. **로컬 미리보기**: `bash tools/run.sh`로 표·이미지·수식 렌더링 확인.
-9. **링크 검사**: (선택) `bash tools/test.sh`로 `canonical_url`·이미지·내부 링크 점검 후 커밋.
+3. **prompt-info**: `Why I Read This Paper` 위에 안내 블록이 있는가 — **논문 arXiv/DOI 링크 + OUTTA 링크** 모두, `{: .prompt-info }` 닫힘 표기 포함.
+4. **비평/한계**: `Conclusion & Insight`에 강점뿐 아니라 **명시적 한계·비평**이 있는가(요약만으로 끝나지 않음).
+5. **front matter**: `categories: [Paper Review, <분야>]`, `canonical_url`(SEO 주의), `image.path`(앞 `/` 없음). 수식 있으면 `math: true`.
+6. **표 (최우선)**: 위 [표 검증 체크](#표-작성-규칙-가장-중요)를 모두 통과했는가 — **인접 열 중복**, **불확실성(±std/CI) 포함**, **SOTA 행 표시**.
+7. **이미지**: 본문 인라인 이미지는 `/assets/...`로 시작하는가. 파일이 `assets/img/posts/paper-reviews/`에 실제로 존재하는가.
+8. **수식**: `$...$` / `$$...$$`가 깨지지 않고 렌더링되는가(`math: true` 필요).
+9. **로컬 미리보기**: `bash tools/run.sh`로 표·이미지·수식 렌더링 확인.
+10. **링크 검사**: (선택) `bash tools/test.sh`로 `canonical_url`·이미지·내부 링크 점검 후 커밋.
