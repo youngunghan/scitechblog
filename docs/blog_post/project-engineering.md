@@ -18,7 +18,8 @@
 | 1 | `## Introduction` | 문제·목표·맥락을 2~4문장으로 | 무엇을, 왜, 어떤 제약(데이터 5장 등) 아래 했는지 |
 | 2~N | Challenge / Problem별 섹션 | 설계 결정 → 코드 → 표/지표 → 교훈 | 글 본체. 아래 두 패턴 중 택1 |
 | N+1 | `## Results` | 최종 수치·산출물·스크린샷 | 본문에서 언급한 지표를 한자리에 모음 |
-| 끝 | `## Conclusion` | 핵심 교훈 3개 내외 + 한 줄 마무리 | 선택적으로 `## Resources`(외부 링크) |
+| N+2 | `## What Didn't Work / Limitations` *(권장)* | 실패한 시도·한계·안 테스트한 것 | fast.ai·Huyen·NeurIPS가 강조. skull-mask "Development Journey"가 좋은 예 |
+| 끝 | `## Conclusion` (+ `## Resources`) | 핵심 교훈 3개 내외 + 한 줄. **`## Resources`에 코드/프로젝트 repo 링크 권장** | 외부 링크·repo |
 
 **Challenge/Problem 섹션 두 패턴** — 글 성격에 맞춰 일관되게 하나만 씁니다:
 
@@ -116,6 +117,16 @@ $$
 - 단위 환산(ms ↔ /sec ↔ min, MB ↔ GB, build+deploy 합이 "총 N분"과 맞는지 — CI/CD 글: build 2~3분 + deploy ~30초 → "under 4 minutes").
 - 데이터셋 규모(예: `107 patients`, `5 labeled images`, `(5, 768, 624)`)를 Introduction/Data 섹션과 코드·표에서 동일하게.
 
+## 재현성: 코드 링크 · 환경 · 시드
+
+존경받는 엔지니어링/ML 글의 거의 **보편적 관행**은 재현 수단을 함께 제공하는 것입니다.
+
+- **코드/프로젝트 repo 링크** *(최우선)*: 결과를 낸 코드·노트북·repo를 본문이나 `## Resources`에 링크합니다. [Distill](https://distill.pub/2018/editorial-update/)은 글마다 repo를 두고, Sebastian Raschka([rasbt/LLMs-from-scratch](https://github.com/rasbt/LLMs-from-scratch), 96k★)·Chip Huyen·Kaggle 우승자 모두 코드를 함께 링크합니다.
+- **실험형 글의 환경 정보** *(모델/실험류에 한함)*: 하드웨어(GPU 종류·개수), 프레임워크 + **버전**(예: PyTorch 2.1, CUDA 12.3), 데이터셋 규모, 그리고 결과가 시드에 민감하면 **random seed**를 적습니다. [NeurIPS 체크리스트](https://neurips.cc/public/guides/PaperChecklist)(Q8 compute resources)·[Papers With Code 코드 완전성 체크리스트](https://github.com/paperswithcode/releasing-research-code)·[PyTorch 재현성 노트](https://docs.pytorch.org/docs/stable/notes/randomness.html)가 이를 요구합니다.
+- **시스템/explainer류**(CI/CD, 설명 위주)에는 시드·하드웨어가 불필요합니다 — 이 규칙은 **실험 지표를 보고하는 글에만** 적용하세요.
+
+> 완전한 재현은 PyTorch 공식 노트 기준으로도 릴리스·플랫폼·CPU/GPU에 따라 보장되지 않습니다. 목표는 "**이 환경에서 이 수치가 나왔다**"를 명시하는 것입니다.
+
 ## front matter 예시
 
 `categories`는 `[대분류, 소분류]` 2단계. 프로젝트/엔지니어링 글의 대분류는 보통 `AI` 또는 `DevOps`입니다(소분류 예: `Bioinformatics`, `Medical Imaging`, `CI/CD`). 모델/실험 글은 거의 항상 `math: true`, 아키텍처·파이프라인 다이어그램이 있으면 `mermaid: true`.
@@ -186,6 +197,12 @@ Explain the design and show the deciding metric/table.
 
 Make sure every number here matches what you stated earlier
 (ms ↔ images/sec ↔ total time, best-row ↔ conclusion).
+<!-- Experiment posts: also state hardware/GPU, framework + version, dataset size, and seed if a result depends on it. -->
+
+## What Didn't Work / Limitations
+
+- <An approach you tried that failed, and why.>
+- <A limitation of the final result; what you did not test.>
 
 ## Conclusion
 
@@ -194,6 +211,11 @@ Make sure every number here matches what you stated earlier
 3. Key insight three.
 
 One closing sentence.
+
+## Resources
+
+- **Code**: [project repository](https://github.com/<you>/<repo>)
+- <Paper / dataset / docs links, if any>
 ````
 
 ## 게시 후 검증 체크리스트
@@ -209,5 +231,8 @@ One closing sentence.
 - [ ] **수식 표기 일관성**: 한 지표가 정의식·표·본문에서 같은 표기/약어/자릿수인가.
 - [ ] **지표 상호 일관성**: intro 요약 ↔ 표 ↔ Results ↔ Conclusion의 수치가 서로 일치(소수 자릿수 포함); 단위 환산(ms↔/sec↔min) 검산 통과.
 - [ ] **best 표기 일관성**: 표에서 굵게 한 "best" 행이 본문 결론과 같은가.
+- [ ] **코드/프로젝트 링크**: 결과를 낸 repo·코드·노트북을 본문이나 `## Resources`에 링크했는가.
+- [ ] **재현성(실험형 한정)**: 하드웨어/GPU·프레임워크 버전·데이터셋 규모(결과가 시드에 민감하면 seed)를 적었는가.
+- [ ] **한계/실패**: 안 된 시도·한계를 정직하게 적었는가(요약만으로 끝나지 않음).
 - [ ] **다이어그램 렌더**: mermaid 블록이 실제로 렌더되는가(문법 오류 시 [troubleshooting-mermaid-diagram-syntax](../../_posts/2025-12-24-troubleshooting-mermaid-diagram-syntax.md) 참고).
 - [ ] **빌드/링크**: `tools/run.sh` 미리보기 정상, `tools/test.sh`(html-proofer) 링크 깨짐 없음.
