@@ -14,6 +14,9 @@ image:
 
 After migrating to the Jekyll Chirpy theme, one of the first requested features was a **Visitor Counter**. While it seems like a simple addition, integrating it seamlessly into the theme while maintaining stability and passing CI/CD checks required several iterations of troubleshooting. This post documents that journey.
 
+> **Environment:** Jekyll 4.3 · jekyll-theme-chirpy 7.4 · html-proofer 5.0 · Ruby 3.3 (this blog's pinned GitHub Pages build). Busuanzi itself is an external, unversioned hosted script.
+{: .prompt-info }
+
 ## Problem 1: The Instability of Image-based Badges
 
 ### Symptom

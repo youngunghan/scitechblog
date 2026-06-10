@@ -19,6 +19,9 @@ internal image /scitechblog/scitechblog/assets/img/posts/algo/leetcode.png does 
 
 Notice the **double baseurl** (`/scitechblog/scitechblog/`). This post documents the troubleshooting process, the root cause, and the solution.
 
+> **Environment:** Jekyll 4.3 · jekyll-theme-chirpy 7.4 · html-proofer 5.0 · Ruby 3.3 (this blog's pinned GitHub Pages build). The exact path behavior is tied to the theme/`baseurl` handling in these versions.
+{: .prompt-info }
+
 ## The Problem
 
 My blog is hosted on GitHub Pages with a project url: `https://youngunghan.github.io/scitechblog`.
