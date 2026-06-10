@@ -18,7 +18,7 @@
 | 1 | `## Introduction` | 문제·목표·맥락을 2~4문장으로 | 무엇을, 왜, 어떤 제약(데이터 5장 등) 아래 했는지 |
 | 2~N | Challenge / Problem별 섹션 | 설계 결정 → 코드 → 표/지표 → 교훈 | 글 본체. 아래 두 패턴 중 택1 |
 | N+1 | `## Results` | 최종 수치·산출물·스크린샷 | 본문에서 언급한 지표를 한자리에 모음 |
-| N+2 | `## What Didn't Work / Limitations` *(권장)* | 실패한 시도·한계·안 테스트한 것 | fast.ai·Huyen·NeurIPS가 강조. skull-mask "Development Journey"가 좋은 예 |
+| N+2 | `## What Didn't Work / Limitations` *(권장)* | 실패한 시도·한계·안 테스트한 것 | NeurIPS는 Limitations 섹션을 명시 요구; fast.ai·Huyen 글은 실패·한계를 본문에 드러냄. skull-mask "Development Journey"가 좋은 예 |
 | 끝 | `## Conclusion` (+ `## Resources`) | 핵심 교훈 3개 내외 + 한 줄. **`## Resources`에 코드/프로젝트 repo 링크 권장** | 외부 링크·repo |
 
 **Challenge/Problem 섹션 두 패턴** — 글 성격에 맞춰 일관되게 하나만 씁니다:
@@ -119,7 +119,7 @@ $$
 
 존경받는 엔지니어링/ML 글의 거의 **보편적 관행**은 재현 수단을 함께 제공하는 것입니다.
 
-- **코드/프로젝트 repo 링크** *(공개 시 최우선)*: 결과를 낸 코드·노트북·repo를 본문이나 `## Resources`에 링크합니다. [Distill](https://distill.pub/2018/editorial-update/)은 글마다 repo를 두고, Sebastian Raschka([rasbt/LLMs-from-scratch](https://github.com/rasbt/LLMs-from-scratch), 96k★)·Chip Huyen·Kaggle 우승자 모두 코드를 함께 링크합니다. 단, **공개 repo가 없으면(비공개 과제·사내 코드)** 무리해서 링크하지 말고 — 없는 링크를 지어내지 말 것 — 대신 본문에 **스택·버전·핵심 스니펫**으로 재현 단서를 충분히 남깁니다(이 블로그의 ESM2·skull-mask 글이 이 방식).
+- **코드/프로젝트 repo 링크** *(공개 시 최우선)*: 결과를 낸 코드·노트북·repo를 본문이나 `## Resources`에 링크합니다. [Distill](https://distill.pub/2018/editorial-update/)은 글마다 repo를 두고, Sebastian Raschka([rasbt/LLMs-from-scratch](https://github.com/rasbt/LLMs-from-scratch), 96k+★ · 2026-06 기준)·Chip Huyen·**많은 상위 Kaggle writeup**이 코드를 함께 링크합니다. 단, **공개 repo가 없으면(비공개 과제·사내 코드)** 무리해서 링크하지 말고 — 없는 링크를 지어내지 말 것 — 대신 본문에 **스택·버전·핵심 스니펫**으로 재현 단서를 충분히 남깁니다(이 블로그의 ESM2·skull-mask 글이 이 방식).
 - **실험형 글의 환경 정보** *(모델/실험류에 한함)*: 하드웨어(GPU 종류·개수), 프레임워크 + **버전**(예: PyTorch 2.1, CUDA 12.3), 데이터셋 규모, 그리고 결과가 시드에 민감하면 **random seed**를 적습니다. 출처별 강조점이 다릅니다 — **컴퓨트·하드웨어**는 [NeurIPS 체크리스트](https://neurips.cc/public/guides/PaperChecklist)(Q8 compute resources), **의존성·학습·평가·결과 재현 커맨드**는 [Papers With Code 코드 완전성 체크리스트](https://github.com/paperswithcode/releasing-research-code), **시드와 비결정성(완전 재현 불가) 한계**는 [PyTorch 재현성 노트](https://docs.pytorch.org/docs/stable/notes/randomness.html)가 다룹니다.
 - **시스템/explainer류**(CI/CD, 설명 위주)에는 시드·하드웨어가 불필요합니다 — 이 규칙은 **실험 지표를 보고하는 글에만** 적용하세요.
 
@@ -127,7 +127,7 @@ $$
 
 ## front matter 예시
 
-`categories`는 `[대분류, 소분류]` 2단계. 프로젝트/엔지니어링 글의 대분류는 보통 `AI` 또는 `DevOps`입니다(소분류 예: `Bioinformatics`, `Medical Imaging`, `CI/CD`). 모델/실험 글은 거의 항상 `math: true`, 아키텍처·파이프라인 다이어그램이 있으면 `mermaid: true`.
+`categories`는 `[대분류, 소분류]` 2단계. 프로젝트/엔지니어링 글의 대분류는 보통 `AI` 또는 `DevOps`입니다(소분류 예: `Bioinformatics`, `Medical Imaging`, `CI/CD`). **수식이 있으면 `math: true`**(모델/실험 글은 수식이 들어갈 가능성이 높으니 필요 여부를 확인), 아키텍처·파이프라인 다이어그램이 있으면 `mermaid: true`.
 
 | 글 | categories | math | mermaid |
 | --- | --- | --- | --- |
@@ -150,8 +150,8 @@ author: seoultech
 image:
   path: assets/img/posts/<topic>/cover.png
   alt: <Descriptive alt text>
-math: true       # add only if the post has equations
-mermaid: true    # add only if the post has diagrams
+# math: true     # uncomment only if the post has equations
+# mermaid: true  # uncomment only if the post has diagrams
 ---
 
 ## Introduction
@@ -230,7 +230,7 @@ One closing sentence.
 - [ ] **지표 상호 일관성**: intro 요약 ↔ 표 ↔ Results ↔ Conclusion의 수치가 서로 일치(소수 자릿수 포함); 단위 환산(ms↔/sec↔min) 검산 통과.
 - [ ] **best 표기 일관성**: 표에서 굵게 한 "best" 행이 본문 결론과 같은가.
 - [ ] **코드/프로젝트 링크**: 공개 repo가 있으면 본문·`## Resources`에 링크했는가(비공개 과제면 스택·버전·핵심 스니펫으로 재현 단서를 남겼는가).
-- [ ] **재현성(실험형 한정)**: 하드웨어/GPU·프레임워크 버전·데이터셋 규모(결과가 시드에 민감하면 seed)를 적었는가.
+- [ ] **재현성(실험형 한정)**: 하드웨어/GPU·프레임워크 버전·데이터셋 규모(시드 민감하면 seed)에 더해, [PwC 체크리스트](https://github.com/paperswithcode/releasing-research-code) 기준 **의존성(requirements/env)·학습/평가 재현 커맨드·결과 표를 재현하는 커맨드**(공개 가능하면 commit/tag)를 적었는가.
 - [ ] **한계/실패**: 안 된 시도·한계를 정직하게 적었는가(요약만으로 끝나지 않음).
 - [ ] **다이어그램 렌더**: mermaid 블록이 실제로 렌더되는가(문법 오류 시 [troubleshooting-mermaid-diagram-syntax](../../_posts/2025-12-24-troubleshooting-mermaid-diagram-syntax.md) 참고).
 - [ ] **빌드/링크**: `tools/run.sh` 미리보기 정상, `tools/test.sh`(html-proofer) 링크 깨짐 없음.
