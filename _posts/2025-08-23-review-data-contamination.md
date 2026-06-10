@@ -10,7 +10,7 @@ image:
   alt: Contamination Factor Analysis
 ---
 
-> **Note**: This is a review of the paper **"Investigating Data Contamination for Pre-training Language Models"** (Arxiv 2024).
+> **Note**: This is a review of the paper **"Investigating Data Contamination for Pre-training Language Models"** ([arXiv:2401.06059](https://arxiv.org/abs/2401.06059), 2024).
 >
 > For a **Korean version** of this review, please visit the **[OUTTA AI Tech Blog](https://blog.outta.ai/339)**.
 {: .prompt-info }
