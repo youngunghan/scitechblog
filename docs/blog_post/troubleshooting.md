@@ -98,14 +98,14 @@ internal image /scitechblog/scitechblog/assets/img/posts/algo/leetcode.png does 
 
 트러블슈팅 글은 사실 주장이 많습니다. **추측을 단정처럼 쓰지 마세요.** 검증된 사실과 경험적 관찰을 명확히 구분합니다.
 
-- **검증된 사실**은 단정해도 좋지만 가능하면 출처를 답니다. 예: Mermaid 플로차트에서 공식 예약어는 소문자 `end` 하나뿐입니다(Mermaid 공식 문서 flowchart "Keywords" 항목 기준). 따라서 `AND`/`OR`가 깨지는 현상을 "예약어라서"라고 단정하면 **틀린 설명**입니다.
+- **검증된 사실**은 단정해도 좋지만 가능하면 출처를 답니다. 예: Mermaid 공식 flowchart 문서가 명시적으로 경고하는 파서 함정은 소문자 `end`(플로차트를 깨뜨림)와 `o`/`x`로 시작하는 edge 구문 정도이고, **`AND`/`OR`는 예약어로 문서화돼 있지 않습니다**(Mermaid 공식 flowchart 문서 기준). 따라서 `AND`/`OR`가 깨지는 현상을 "예약어라서"라고 단정하면 **틀린 설명**입니다(원인은 문서화되지 않은 동작 — 아래처럼 경험적 관찰로 표시).
 - **경험적 관찰**(공식 문서에 없는 동작)은 그렇게 명시합니다. mermaid 글의 표현을 그대로 본보기로 삼으세요:
 
 > This isn't a documented Mermaid feature, so treat the following as an empirical observation rather than a rule.
 
 ```markdown
-> Note: the only officially reserved keyword in Mermaid flowcharts is the lowercase `end`.
-> `AND` and `OR` are *not* documented reserved operators; this is just a workaround.
+> Note: Mermaid's documented flowchart gotchas are the lowercase `end` keyword and edges starting with `o`/`x`.
+> `AND` and `OR` are *not* documented reserved operators; the breakage here is undocumented, so this is just a workaround.
 {: .prompt-info }
 ```
 
@@ -129,8 +129,9 @@ internal image /scitechblog/scitechblog/assets/img/posts/algo/leetcode.png does 
 
 일반 규칙은 [03. 글 작성 규칙 — Front matter 스키마](../guide/03-writing-posts.md#front-matter-스키마)를 따릅니다. 트러블슈팅 글에서 주의할 점만:
 
-- `categories`는 **`Troubleshooting`을 항상 보조(2번째) 분류**로 둡니다. 대분류는 주제 도메인입니다.
-  - 실제 사용 예: `[Blogging, Troubleshooting]`, `[Development, Troubleshooting]`, `[Development, Jekyll]`, `[DevOps, CI/CD]`
+- `categories`는 **대분류=주제 도메인, 소분류=`Troubleshooting`**으로 둡니다(예: `[Blogging, Troubleshooting]`, `[Development, Troubleshooting]`).
+  - **신규 글은 소분류를 `Troubleshooting`으로 통일**하고, `jekyll`·`ci-cd` 같은 세부 기술은 **태그**로 뺍니다.
+  - *Legacy 예외*: 기존 글 중 `[Development, Jekyll]`(visitor-counter)·`[DevOps, CI/CD]`(cicd)처럼 다른 소분류를 쓴 것이 있으나, **신규 글에는 따르지 마세요**.
 - 수식이 있으면 `math: true`, Mermaid 다이어그램이 있으면 `mermaid: true`를 켭니다(둘 다 없으면 넣지 않습니다).
 - 대표 이미지는 `assets/img/posts/troubleshooting/`에 모으는 관례입니다. front matter `image.path`는 **맨 앞 슬래시 없이** 씁니다.
 
@@ -150,7 +151,7 @@ mermaid: true    # 다이어그램 있을 때만
 ---
 ```
 
-> 본문 인라인 이미지는 front matter와 반대로 **맨 앞에 `/`**를 붙입니다: `![alt](/assets/img/posts/troubleshooting/foo.png)`. 배경은 [03 문서 이미지 경로 규칙](../guide/03-writing-posts.md#이미지-경로-규칙) 참고.
+> 본문 인라인 이미지는 front matter와 반대로 **맨 앞에 `/`**를 붙입니다: `![alt](/assets/img/posts/troubleshooting/<filename>.png)`(여기 `<filename>`은 placeholder). 배경은 [03 문서 이미지 경로 규칙](../guide/03-writing-posts.md#이미지-경로-규칙) 참고.
 
 ## 영어 복붙 템플릿
 
@@ -167,8 +168,8 @@ image:
   path: assets/img/posts/troubleshooting/thumbnail.png
   alt: Troubleshooting Log
 author: seoultech
-math: true
-mermaid: true
+math: true       # add only if the post has equations
+mermaid: true    # add only if the post has diagrams
 ---
 
 ## Introduction
@@ -229,6 +230,8 @@ shown above must be accounted for here.>
 Python 자동화 스크립트를 본문에 넣는 경우의 house-style 예(블록 종료 마커 유지):
 
 ```python
+import glob
+
 def enable_math_in_files():
     for file_path in glob.glob("_posts/*.md"):
         content = open(file_path).read()
