@@ -11,6 +11,8 @@ image:
 
 > **Note**: This is a review of the paper **"Investigating Data Contamination for Pre-training Language Models"** ([arXiv:2401.06059](https://arxiv.org/abs/2401.06059), 2024).
 >
+> **Code**: No official code repository found at the time of writing.
+>
 > For a **Korean version** of this review, please visit the **[OUTTA AI Tech Blog](https://blog.outta.ai/339)**.
 {: .prompt-info }
 
@@ -25,6 +27,11 @@ What was particularly interesting was that they measured the impact by mixing co
 The exceptional performance of Large Language Models (LLMs) is often attributed to model scale and data size. However, a critical question remains: **Are these models actually learning, or are they just memorizing the test data?**
 
 This paper investigates **Data Contamination**, where evaluation data leaks into the pre-training corpus. Unlike previous studies that analyze contamination post-hoc, this research takes a **"pre-training level analysis"** approach, training GPT-2 models from scratch with controlled amounts of contamination to measure its direct impact.
+
+## Context / Related Work
+Most prior contamination work is **post-hoc**: it estimates leakage in already-trained models via n-gram overlap (as reported for GPT-3, PaLM, and LLaMA-2). This paper takes the opposite direction — **training GPT-2 from scratch** with controlled contamination — which lets it measure the *causal* effect instead of guessing, and then shows those overlap-based detectors are unreliable.
+
+---
 
 ## Data Contamination Types
 The authors distinguish between two types of contamination:
@@ -49,7 +56,7 @@ _Table 1: Performance comparison (numbers from the paper; see Tables 2 and 3). G
 One of the most interesting findings is the **U-shaped performance trend** when the contamination is repeated multiple times in the pre-training corpus.
 
 ![Contamination Factor Analysis](/assets/img/posts/paper-reviews/contamination-factor.png)
-_Figure 1: The effect of repeated contamination. Performance initially improves as the contamination factor increases (0-10 repetitions), but then starts to decline and even drops below the baseline with excessive repetition (20+) (from the paper)._
+_Figure 1: The effect of repeated contamination. Performance initially improves as the contamination factor increases (0-10 repetitions), but then starts to decline and even drops below the baseline with excessive repetition (20+) (from Fig. 1 of the paper)._
 
 This suggests that while some exposure to test data helps, **over-fitting** to the specific examples eventually hurts the model's generalizability or introduces noise.
 

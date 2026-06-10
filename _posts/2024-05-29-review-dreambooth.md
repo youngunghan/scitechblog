@@ -12,6 +12,8 @@ math: true
 
 > **Note**: This is a review of the paper **"DreamBooth: Fine Tuning Text-to-Image Diffusion Models for Subject-Driven Generation"** (CVPR 2023, [arXiv:2208.12242](https://arxiv.org/abs/2208.12242)).
 >
+> **Code**: [official project page](https://dreambooth.github.io/).
+>
 > For a **Korean version** of this review, please visit the **[OUTTA AI Tech Blog](https://blog.outta.ai/73)**.
 {: .prompt-info }
 
@@ -35,11 +37,16 @@ The goal of DreamBooth is to expand the language-vision dictionary of a pre-trai
 
 Large text-to-image models learn a strong semantic prior from large collections of image-caption pairs. For instance, they learn to associate the word "dog" with various instances of dogs. However, they cannot accurately reconstruct the appearance of a *specific* dog given a few reference images; they usually only create variations of the generic class.
 
+## Context / Related Work
+DreamBooth's closest predecessor is **Textual Inversion**, which personalizes by optimizing a *single new token embedding* while keeping the model frozen. DreamBooth instead **fine-tunes the whole model** with a class-specific prior-preservation loss, trading higher cost for stronger subject fidelity. It sits at the start of the subject-driven personalization line that later, lighter methods (LoRA, HyperNetworks) built on.
+
+---
+
 ## Method
 The core idea is to represent a given subject with a rare token identifier and fine-tune a pre-trained, diffusion-based text-to-image framework.
 
 ![DreamBooth Method](/assets/img/posts/paper-reviews/dreambooth-method.png)
-_Figure 2: The DreamBooth fine-tuning process. The model is fine-tuned with a class-specific prior preservation loss to learn the subject instance without forgetting the general class prior (from the paper)._
+_Figure 2: The DreamBooth fine-tuning process. The model is fine-tuned with a class-specific prior preservation loss to learn the subject instance without forgetting the general class prior (from Fig. 3 of the paper)._
 
 ### Class-specific Prior Preservation Loss
 A key challenge in fine-tuning on a small set of images is **overfitting** and **language drift** (where the model forgets the general class appearance). To mitigate this, the authors propose an **autogenous class-specific prior preservation loss**.
@@ -69,7 +76,7 @@ The authors compared DreamBooth with **Textual Inversion**, another popular pers
 _Table 1: Quantitative comparison of subject and prompt fidelity. DreamBooth significantly outperforms Textual Inversion in preserving subject identity (DINO, CLIP-I) and prompt adherence (CLIP-T). Note that "Real Images" is not a method but a non-method upper bound; bold marks the best generative method (numbers from the paper, Table 1)._
 
 ![DreamBooth Results](/assets/img/posts/paper-reviews/dreambooth-results.png)
-_Figure 3: Qualitative comparison. DreamBooth generates images that are more faithful to the subject's identity and the text prompt compared to Textual Inversion (from the paper)._
+_Figure 3: Qualitative comparison. DreamBooth generates images that are more faithful to the subject's identity and the text prompt compared to Textual Inversion (from Fig. 4 of the paper)._
 
 ### Evaluation Metrics
 1.  **CLIP-I (Subject Fidelity)**: The average pairwise cosine similarity between CLIP embeddings of generated and real images. This measures how well the subject's details are preserved.
