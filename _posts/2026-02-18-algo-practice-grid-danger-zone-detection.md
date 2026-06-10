@@ -38,7 +38,7 @@ Output:
 
 ---
 
-## Initial Thought (Failed)
+## Approach
 
 Since we are counting the number of surrounding danger zones for each cell, wouldn't summing it the other way around — **"the number of 8-directional cells each danger zone contributes to"** — give the same result?
 

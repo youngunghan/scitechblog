@@ -77,7 +77,7 @@ LeetCode도 동일하게 영어 제목 + leetcode.com 원문 링크입니다.
 `categories`/`tags`/`image` 등 나머지 front matter는 [../guide/03-writing-posts.md](../guide/03-writing-posts.md#front-matter-스키마)를 따릅니다. 알고리즘 글의 관례만 짚으면:
 
 - `categories`: LeetCode는 `['Algorithm', 'LeetCode']`, BOJ는 `['Algorithm', 'Baekjoon']`.
-- `tags`: 난이도(`Easy`/`Medium`/`Hard`)와 기법(`Sliding Window`, `Binary Search`, `Number Theory` 등)을 함께.
+- `tags`: 기법(`Sliding Window`, `Binary Search`, `Number Theory` 등)을 넣고, 난이도는 출처에 맞게 — **LeetCode**는 `Easy`/`Medium`/`Hard`, **BOJ**는 solved.ac 티어(`Bronze`~`Diamond`) 또는 생략.
 - `image.path`: 공용 대표 이미지 재사용 — LeetCode `assets/img/posts/algo/leetcode_new.png`, BOJ `assets/img/posts/algo/baekjoon_new.png` (맨 앞 `/` 없음).
 
 ---
@@ -164,7 +164,7 @@ flowchart TD
    - 중첩 루프 → $O(N^2)$인지, 안쪽이 조기 종료/조화급수면 더 작은지.
    - 에라토스테네스류 체는 $O(N \log \log N)$ ([BOJ 23832]).
    - 정렬 후 이분 탐색은 $O((N+M)\log N)$ ([BOJ 1920]).
-   - 제약을 대입한 추정 연산량이 시간 제한 안에 들어오는지. **주의 — "$\sim 10^8$/초"는 C/C++ 기준입니다.** 이 블로그는 Python 코드라 **CPython은 10~100배 느려 $\sim 10^6$–$10^7$/초**로 잡습니다. 시간 제한은 **채점 환경마다 다릅니다** — BOJ는 문제별로 Python 시간 제한을 더 넉넉히 주는 경우가 있지만(언어별 보정이 일률적이진 않음), LeetCode는 언어와 무관하게 같은 제한이라 Python이 TLE 날 수 있습니다. Python 풀이의 시간 추정은 이 점을 반영합니다.
+   - 제약을 대입한 추정 연산량이 시간 제한 안에 들어오는지. **주의 — "$\sim 10^8$/초"는 C/C++ 기준입니다.** 이 블로그는 Python 코드라 **CPython은 10~100배 느려 $\sim 10^6$–$10^7$/초**로 잡습니다. 시간 제한은 **채점 환경마다 다릅니다** — BOJ는 문제별로 Python 시간 제한을 더 넉넉히 주는 경우가 있지만(언어별 보정이 일률적이진 않음), LeetCode는 BOJ 같은 명시적 언어별 보정이 잘 보이지 않아, Python TLE 여부는 제출 결과로 확인하는 편입니다. Python 풀이의 시간 추정은 이 점을 반영합니다.
 
 | 점검 항목 | 무엇을 확인 | 실패 사례 |
 | --- | --- | --- |
@@ -223,15 +223,11 @@ Explanation: <why>
 
 <The single observation that unlocks the efficient solution.>
 
-<!-- OPTIONAL section — delete this line and the closing comment line to enable.
-     Use when the problem has multiple approaches worth comparing.
-
+<!-- OPTIONAL — enable by deleting this line and the closing comment line below. Use when the problem has multiple approaches worth comparing.
 ## Alternative Approaches
 
 <Compare approaches, e.g. O(N^2) -> O(N log N) -> O(N). For clearly distinct
  approaches use separate "## Approach 1" / "## Approach 2" sections (LeetCode style).>
-
----
 -->
 
 ---
@@ -250,14 +246,10 @@ flowchart TD
 1. <Step 1>
 2. <Step 2>
 
-<!-- OPTIONAL section — delete this line and the closing comment line to enable.
-     Use for greedy / constructive algorithms.
-
+<!-- OPTIONAL — enable by deleting this line and the closing comment line below. Use for greedy / constructive algorithms.
 ## Why It Works (Correctness)
 
 <Argue optimality via an exchange argument or a loop invariant.>
-
----
 -->
 
 ---
@@ -289,13 +281,10 @@ class Solution:
 - **Space Complexity**: $O(N)$
     - <reason>
 
-<!-- OPTIONAL section — delete this line and the closing comment line to enable.
-
+<!-- OPTIONAL — enable by deleting this line and the closing comment line below.
 ## Edge Cases / Pitfalls
 
 - <Empty input, duplicates, integer overflow, min/max N, off-by-one.>
-
----
 -->
 
 ---
