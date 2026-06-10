@@ -36,6 +36,8 @@ We switched to **Busuanzi (不蒜子)**, a lightweight script-based visitor coun
 > **Caveat:** Busuanzi is an external third-party script, so it carries the usual privacy and availability trade-offs. Every page load calls out to a service you don't control, which can go down, slow your page, or be blocked in some networks, and visitor data passes through that third party. If those concerns matter to you, consider self-hosting the counter or using a privacy-friendly analytics option instead.
 {: .prompt-warning }
 
+**Lesson:** An image-badge counter is only as reliable as the service hosting it — a script-based (or self-hosted) counter avoids broken-image/DNS failures, at the cost of one external script call.
+
 ## Problem 2: CI/CD Build Failures
 
 ### Symptom
@@ -69,6 +71,8 @@ We explicitly specified the HTTPS protocol to ensure it's treated as a valid ext
 <script src="https://busuanzi.ibruce.info/..."></script>
 ```
 
+**Lesson:** Don't link to IDs that a script injects at runtime (they're absent in the static HTML htmlproofer scans), and give htmlproofer explicit `https://` URLs — under `--disable-external` it doesn't skip protocol-relative (`//`) links.
+
 ## Problem 3: Centering Elements in Asymmetric Containers
 
 ### Symptom
@@ -98,6 +102,8 @@ We moved the visitor counter **outside** of the `.sidebar-bottom` container and 
 </div>
 ```
 
+**Lesson:** A theme container can have intentional asymmetric padding — to center a full-width element, move it out of that container and apply your own flex centering.
+
 ## Problem 4: UX/UI Refinement
 
 ### Symptom
@@ -118,6 +124,8 @@ We modernized the design using **Glassmorphism** and clear labeling:
   <span id="busuanzi_value_site_pv" class="fw-bold" style="color: #2d9da8;"></span>
 </div>
 ```
+
+**Lesson:** Show one clear metric (Total Views) with a legible label and icon rather than several competing counters — less clutter, clearer signal.
 
 ## Conclusion
 

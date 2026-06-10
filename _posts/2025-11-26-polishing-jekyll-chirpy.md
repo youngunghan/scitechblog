@@ -29,7 +29,8 @@ At the time of deployment, the server time (UTC) or the configured timezone (`As
 
 ### Solution
 I corrected the date to ensure it was in the past relative to the build time.
-*Tip: Always double-check your `date` field and the `timezone` setting in `_config.yml`.*
+
+**Lesson:** Jekyll hides future-dated posts by default — keep `date` in the past relative to build time (mind UTC vs your `timezone` in `_config.yml`), or set `future: true`.
 
 ## Problem 2: Overlapping Badges in "About" Page
 
@@ -81,6 +82,8 @@ I switched to raw HTML to control the layout precisely:
 
 *Note: Chaining `&nbsp;` works as a quick fix, but CSS/flexbox (e.g. a flex container with `gap`) or Shields.io's own spacing options are generally preferable for consistent, responsive layout.*
 
+**Lesson:** Markdown can't control image layout — for a badge row use a flex container with CSS `gap`; chaining `&nbsp;` is only a quick fix.
+
 ## Problem 3: The Broken Menu Links (Regression)
 
 ### Symptom
@@ -102,6 +105,12 @@ Re-applied the path fix to the JSON configuration:
 "url": "/scitechblog/categories/"
 ```
 
+**Lesson:** On a project-subpath GitHub Pages site, resource URLs must include the repo prefix (`/scitechblog/...`); guard config files like this against being reverted during unrelated rollbacks.
+
 ## Conclusion
 
-Building a polished tech blog is an iterative process. "It works on my machine" is rarely the end of the story. These small fixes—ensuring content visibility, refining layout, and managing regressions—are what separate a template from a professional-looking site.
+Building a polished tech blog is an iterative process — "it works on my machine" is rarely the end of the story. Key takeaways:
+
+1. **Content visibility**: future-dated posts silently vanish — check `date` and `timezone` (or set `future: true`).
+2. **Layout**: use CSS/flexbox (not Markdown) for multi-image rows like badges.
+3. **Regressions**: subpath sites need the repo prefix in resource URLs — protect those fixes from unrelated rollbacks.

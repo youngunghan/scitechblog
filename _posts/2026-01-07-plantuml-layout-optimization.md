@@ -2,7 +2,7 @@
 title: "[Troubleshooting] PlantUML Diagram Layout Optimization: From Grid to Vertical Stack"
 description: "Optimizing PlantUML diagram layout from a crossing-prone grid to a clean vertical stack."
 date: 2026-01-07 14:00:00 +0900
-categories: [Development, Documentation]
+categories: [Development, Troubleshooting]
 tags: [plantuml, documentation, layout, troubleshooting, visualization, grid-layout]
 author: seoultech
 image:
@@ -32,6 +32,8 @@ Mermaid relies on an automatic layout engine with limited control over text wrap
 
 I migrated to **PlantUML**, which offers granular control over rendering styles. Instead of relying on a Markdown plugin, I adopted a workflow of rendering to PNG externally and embedding it into the document, ensuring consistent results.
 
+**Lesson:** When a tool's automatic layout can't express the interaction clearly, switch to one with explicit rendering control (here, PlantUML rendered to PNG) instead of fighting the auto-layout.
+
 ## Problem 2: Extreme Diagram Width
 
 ### Symptom
@@ -55,6 +57,8 @@ skinparam maxMessageSize 150
 ```
 
 This single setting properly wrapped the text, significantly improving the aspect ratio of the diagram.
+
+**Lesson:** PlantUML does not wrap message text by default — set `skinparam maxMessageSize` so long messages don't blow the diagram up horizontally.
 
 ## Problem 3: The "Crossing" Nightmare in Grid Layout
 
@@ -109,6 +113,8 @@ tester --> search
 ```
 
 ![Figure 3: Vertical Stack Layout Success](/assets/img/posts/plantuml-layout-optimization/blog_fig_03_vertical_success.png)
+
+**Lesson:** Match the layout to the topology — a 1:N (orchestrator) interaction crosses in a grid, so use a vertical stack (`left to right direction` + hidden links) that scales without crossings.
 
 ## Conclusion
 

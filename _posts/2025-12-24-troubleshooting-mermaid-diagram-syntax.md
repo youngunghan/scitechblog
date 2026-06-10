@@ -76,6 +76,8 @@ q=cond1 / cond2   <!-- OR -->
 
 The most portable fix, though, is to rephrase the whole edge label so the operator words never appear (e.g. `q: cond1 + cond2` or `q: all conditions`).
 
+**Lesson:** Bare `AND`/`OR` inside an edge label can trip Mermaid's parser — rephrase the label or wrap the words (`_AND_`, or symbols `+`/`/`) so the operator words never appear raw.
+
 ## Problem 2: Angle Brackets Interpreted as HTML Tags
 
 ### Symptom
@@ -143,6 +145,8 @@ rows=<변경없음>
 
 This works because the renderer only treats English-only content between `<` and `>` as a potential tag, but escaping is the more portable fix.
 
+**Lesson:** An HTML-based renderer reads `<english>` in a label as a tag — escape the brackets as `&lt;`/`&gt;` (the portable fix); adding a Korean character or number is only a quick hack.
+
 ## Problem 3: The Infamous `<meta>` Tag
 
 ### Symptom
@@ -185,6 +189,8 @@ As a secondary quick hack, you can rename the token so the literal string `meta`
 <!-- Quick hack -->
 rows=<메타값유지>
 ```
+
+**Lesson:** For a real HTML tag name (`<meta>`, `<div>`, `<span>`), the non-English trick fails — the parser keys on the leading tag name, so always escape (`&lt;meta&gt;`).
 
 ## Summary: Mermaid + HTML Parsing Gotchas
 
