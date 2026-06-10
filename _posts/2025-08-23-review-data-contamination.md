@@ -3,7 +3,6 @@ title: "[Paper Review] Investigating Data Contamination for Pre-training Languag
 date: 2025-08-23 00:00:00 +0900
 categories: [Paper Review, NLP]
 tags: [LLM, Data Contamination, Evaluation, Pre-training]
-canonical_url: https://blog.outta.ai/339
 description: "Review of a critical study on data contamination in LLMs, questioning whether performance gains are due to memorization of test data."
 image:
   path: assets/img/posts/paper-reviews/contamination-factor.png
@@ -50,7 +49,7 @@ _Table 1: Performance comparison (numbers from the paper; see Tables 2 and 3). G
 One of the most interesting findings is the **U-shaped performance trend** when the contamination is repeated multiple times in the pre-training corpus.
 
 ![Contamination Factor Analysis](/assets/img/posts/paper-reviews/contamination-factor.png)
-_Figure 1: The effect of repeated contamination. Performance initially improves as the contamination factor increases (0-10 repetitions), but then starts to decline and even drops below the baseline with excessive repetition (20+)._
+_Figure 1: The effect of repeated contamination. Performance initially improves as the contamination factor increases (0-10 repetitions), but then starts to decline and even drops below the baseline with excessive repetition (20+) (from the paper)._
 
 This suggests that while some exposure to test data helps, **over-fitting** to the specific examples eventually hurts the model's generalizability or introduces noise.
 
@@ -58,13 +57,23 @@ This suggests that while some exposure to test data helps, **over-fitting** to t
 The authors also evaluate existing contamination detection methods (like n-gram overlap used in PaLM and LLaMA-2).
 
 ![Contamination Detection Analysis](/assets/img/posts/paper-reviews/contamination-detection.png)
-_Figure 2: Analysis of LLaMA-2's contamination detection method. The "Dirty" category (high overlap) does not necessarily correspond to higher performance, indicating that current detection methods are unreliable._
+_Figure 2: Analysis of LLaMA-2's contamination detection method. The "Dirty" category (high overlap) does not necessarily correspond to higher performance, indicating that current detection methods are unreliable (from the paper)._
 
 They find that these methods often fail to distinguish between harmful contamination and harmless data overlap, leading to both false positives and false negatives.
 
 ---
 
 ## Conclusion & Insight
-This paper revealed the inconvenient truth that **"Data contamination is more serious than thought, and current detection methods are incomplete."** In particular, the fact that **Ground-truth Contamination** can be the main culprit of performance inflation suggests that we need to scrutinize training data more carefully whenever a new model comes out.
+The contribution is methodological: by training GPT-2 **from scratch** with controlled contamination, the paper shows *causally* — not by post-hoc guessing — that **ground-truth contamination** inflates scores most on generation tasks, and that current n-gram detection is unreliable.
 
-If you are tired of the score games on LLM leaderboards, it is worth reflecting on the lessons this paper gives. **"True generalization ability"** is not obtained by simply memorizing the test set.
+### Strengths
+- Controlled from-scratch training isolates the *causal* effect of contamination, which post-hoc studies on already-trained models cannot.
+- The Text vs. Ground-truth distinction is a useful, often-overlooked axis; the U-shaped repetition effect is a concrete, actionable finding.
+
+### Limitations
+- Experiments are at **GPT-2 scale**; whether the same magnitudes hold for today's much larger LLMs is untested and may not extrapolate.
+- Conclusions are tied to a specific benchmark set (SST-2/SQuAD/CNN-DM/MMLU), and several absolute scores are low (MMLU ≈ random), so some effects are measured near the noise floor.
+- It critiques existing detectors but does not deliver a robust replacement detection method.
+
+### Open Questions / My Take
+The headline lesson — leaderboard scores can be inflated by memorization, and overlap-based detectors miss it — is important. The open question is the **scale gap**: do these effects grow, shrink, or change shape at 100B+ parameters?

@@ -3,7 +3,6 @@ title: "[Paper Review] DreamBooth: Fine Tuning Text-to-Image Diffusion Models fo
 date: 2024-05-29 00:00:00 +0900
 categories: [Paper Review, Generative AI]
 tags: [Diffusion, Computer Vision, Personalization, Google Research]
-canonical_url: https://blog.outta.ai/73
 description: "A deep dive into DreamBooth (CVPR 2023), a method for personalizing text-to-image diffusion models with just a few subject images."
 image:
   path: assets/img/posts/paper-reviews/dreambooth-teaser.png
@@ -29,7 +28,7 @@ Large text-to-image models have achieved remarkable success in synthesizing dive
 In this paper, the authors present a new approach for **"personalization"** of text-to-image diffusion models. Given just a few images (typically 3-5) of a subject, the method fine-tunes a pre-trained text-to-image model to bind a unique identifier with that specific subject. This allows the synthesis of photorealistic images of the subject in diverse scenes, poses, and lighting conditions.
 
 ![DreamBooth Teaser](/assets/img/posts/paper-reviews/dreambooth-teaser.png)
-_Figure 1: DreamBooth can synthesize the subject (e.g., a specific dog) in various novel contexts while preserving its key identity features._
+_Figure 1: DreamBooth can synthesize the subject (e.g., a specific dog) in various novel contexts while preserving its key identity features (from the paper)._
 
 ## Introduction
 The goal of DreamBooth is to expand the language-vision dictionary of a pre-trained model such that it binds new words with specific subjects the user wants to generate. Once the new dictionary is embedded, the model can use these words to synthesize novel photorealistic images of the subject, contextualized in different scenes, while preserving their key identifying features. The effect is akin to a **"magic photo booth"**.
@@ -40,7 +39,7 @@ Large text-to-image models learn a strong semantic prior from large collections 
 The core idea is to represent a given subject with a rare token identifier and fine-tune a pre-trained, diffusion-based text-to-image framework.
 
 ![DreamBooth Method](/assets/img/posts/paper-reviews/dreambooth-method.png)
-_Figure 2: The DreamBooth fine-tuning process. The model is fine-tuned with a class-specific prior preservation loss to learn the subject instance without forgetting the general class prior._
+_Figure 2: The DreamBooth fine-tuning process. The model is fine-tuned with a class-specific prior preservation loss to learn the subject instance without forgetting the general class prior (from the paper)._
 
 ### Class-specific Prior Preservation Loss
 A key challenge in fine-tuning on a small set of images is **overfitting** and **language drift** (where the model forgets the general class appearance). To mitigate this, the authors propose an **autogenous class-specific prior preservation loss**.
@@ -67,10 +66,10 @@ The authors compared DreamBooth with **Textual Inversion**, another popular pers
 | **CLIP-I (Subject Fidelity)** | **0.812** | 0.803 | 0.780 | 0.885 |
 | **CLIP-T (Prompt Fidelity)** | **0.306** | 0.305 | 0.255 | N/A |
 
-_Table 1: Quantitative comparison of subject and prompt fidelity. DreamBooth significantly outperforms Textual Inversion in preserving subject identity (DINO, CLIP-I) and prompt adherence (CLIP-T). Note that "Real Images" is not a method but a non-method upper bound; bold marks the best generative method._
+_Table 1: Quantitative comparison of subject and prompt fidelity. DreamBooth significantly outperforms Textual Inversion in preserving subject identity (DINO, CLIP-I) and prompt adherence (CLIP-T). Note that "Real Images" is not a method but a non-method upper bound; bold marks the best generative method (numbers from the paper, Table 1)._
 
 ![DreamBooth Results](/assets/img/posts/paper-reviews/dreambooth-results.png)
-_Figure 3: Qualitative comparison. DreamBooth generates images that are more faithful to the subject's identity and the text prompt compared to Textual Inversion._
+_Figure 3: Qualitative comparison. DreamBooth generates images that are more faithful to the subject's identity and the text prompt compared to Textual Inversion (from the paper)._
 
 ### Evaluation Metrics
 1.  **CLIP-I (Subject Fidelity)**: The average pairwise cosine similarity between CLIP embeddings of generated and real images. This measures how well the subject's details are preserved.
@@ -80,6 +79,16 @@ _Figure 3: Qualitative comparison. DreamBooth generates images that are more fai
 ---
 
 ## Conclusion & Insight
-DreamBooth is an excellent study that achieved powerful performance with a simple idea (Prior Preservation Loss). In particular, the approach of using **"Rare Tokens"** to inject new concepts without invading the existing vocabulary space of the model has inspired many researchers since.
+DreamBooth's contribution is a simple, elegant idea — a rare-token identifier plus a **class-specific prior-preservation loss** — that personalizes a text-to-image model from just 3–5 images without destroying its class prior.
 
-From an application perspective, it has high commercial value as it allows users to create their own avatars or profile pictures with just a few photos. Although the need for training time and storage capacity remains a challenge—leading to a preference for more lightweight methods like HyperNetworks or LoRA recently—it is undeniable that DreamBooth was one of the landmark papers that accelerated subject-driven personalization.
+### Strengths
+- High subject fidelity from very few images (Table 1: DINO/CLIP-I well above Textual Inversion) while keeping strong prompt adherence (CLIP-T).
+- Prior preservation directly targets the two failure modes of few-shot fine-tuning — overfitting and language drift — so the gains are robust rather than memorized.
+
+### Limitations
+- Fine-tuning stores a **full model copy per subject** and needs per-concept training time — heavy compared with the lightweight methods (LoRA, HyperNetworks) the field later preferred.
+- Evaluation uses 30 subjects and embedding-similarity proxies (DINO/CLIP-I/CLIP-T); these do not fully capture identity leakage, editability, or multi-subject composition.
+- Quality depends on the base model (Imagen vs. Stable Diffusion differ in Table 1), and a rare-token identifier can still entangle with the class.
+
+### Open Questions / My Take
+DreamBooth was a landmark that accelerated subject-driven personalization, but its weight and compute cost are exactly why adapters like LoRA took over. The open question is how far few-image personalization can go **without per-subject fine-tuning at all** (encoder-based, tuning-free methods).
