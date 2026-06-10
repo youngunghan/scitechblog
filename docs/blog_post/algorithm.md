@@ -15,7 +15,7 @@ LeetCode·백준(BOJ) 문제 풀이 글의 **내용 구조와 스타일**을 다
 | `## Problem` | 필수 | 문제 요약 + 원문 링크(`>` 인용) + 샘플 입출력 |
 | `## Initial Thought (Failed)` | **유형별** | 단순 접근이 **왜 실패하는지**(시간 초과 등). *최적화형*에선 사실상 필수, *구현·애드혹형*에선 생략 |
 | `## Key Insight` | 필수 | 풀이를 가능케 한 핵심 관찰(한두 문장) |
-| `## Approach 2 (Better)` | **선택** | `brute → 개선 → 최적`처럼 중간 접근이 있을 때 각 접근의 복잡도를 비교 (LeetCode 풀이 글의 강한 관행) |
+| `## Alternative Approaches` | **선택** | 여러 풀이(`brute → 개선 → 최적`)를 비교. 접근이 뚜렷이 나뉘면 LeetCode식 `## Approach 1` / `## Approach 2`로 **분리** (각 접근 복잡도 비교 — 풀이 글의 강한 관행) |
 | `## Step-by-Step Analysis` | 권장 | 작은 예제로 동작 추적 (` ```mermaid ``` ` 다이어그램) |
 | `## Why It Works (Correctness)` | **선택** | 그리디·비자명 알고리즘의 **정당성/불변식 논증** (cp-algorithms·USACO는 Proof를 별도 축으로 둠) |
 | `## Solution` | 필수 | 실제 코드 (` ```python ``` ` 블록) |
@@ -25,7 +25,7 @@ LeetCode·백준(BOJ) 문제 풀이 글의 **내용 구조와 스타일**을 다
 
 ### 문제 유형별 권장 조합
 
-- **최적화형**(DP·수학·자료구조 — 느린 풀이 → 최적): `Problem → Initial Thought (Failed) → Key Insight → (Approach 2) → Step-by-Step → Solution → Complexity`. *기존 7단계가 여기에 해당합니다.*
+- **최적화형**(DP·수학·자료구조 — 느린 풀이 → 최적): `Problem → Initial Thought (Failed) → Key Insight → (Alternative Approaches) → Step-by-Step → Solution → Complexity`. *기존 7단계가 여기에 해당합니다.*
 - **구현·시뮬레이션·애드혹**([BOJ 1018](../../_posts/2025-09-17-algo-boj-1018-체스판-다시-칠하기.md), [격자판 위험구역](../../_posts/2026-02-18-algo-practice-grid-danger-zone-detection.md) — 완전탐색이 곧 정답): `Initial Thought (Failed)`를 **생략**하고 `## Approach`(또는 `## Idea`)로 엽니다. 억지 "실패" 프레임을 만들지 않습니다.
 - **구성적·그리디**(정당성이 핵심): `## Why It Works (Correctness)`를 넣어 교환 논증/불변식을 답니다.
 
@@ -36,7 +36,7 @@ LeetCode·백준(BOJ) 문제 풀이 글의 **내용 구조와 스타일**을 다
 - **Problem**: 문제를 1~2문단으로 요약하고, 맨 위에 `>` 인용으로 원문 링크를 둡니다(원문 전문을 복붙하지 않습니다). 제약($N \le 50{,}000$ 등)을 명시하면 다음 섹션에서 연산량 계산이 자연스럽습니다. 샘플 입출력은 펜스 코드블록(언어 미지정)에 그대로 붙여 넣습니다.
 - **Initial Thought (Failed)** *(최적화형)*: 단순 완전 탐색을 먼저 제시하고, 제약을 대입해 **구체적 연산량**($25 \times 10^8$ 등)을 계산한 뒤 "Time Limit Exceeded"로 귀결시킵니다. 독자가 왜 더 나은 풀이가 필요한지 납득하게 만드는 단계입니다. **구현·애드혹형**(완전탐색이 정답)에서는 이 섹션을 생략하고 `## Approach`로 엽니다.
 - **Key Insight**: 본론의 전환점. 핵심 아이디어 한 가지만 짚습니다. 정의가 필요하면 `>` 인용으로 간단히 설명합니다.
-- **Approach 2 (Better)** *(선택)*: 최적해 전에 의미 있는 중간 풀이가 있으면 별도 섹션으로 보여주고 복잡도를 비교합니다(예: `O(N^2) → O(N log N) → O(N)`). LeetCode 풀이 글에서 흔히 쓰는 다중 접근 패턴입니다.
+- **Alternative Approaches** *(선택)*: 의미 있는 여러 풀이가 있으면 비교합니다(예: `O(N^2) → O(N log N) → O(N)`). 접근이 뚜렷이 나뉘면 LeetCode 에디토리얼처럼 `## Approach 1` / `## Approach 2`로 **각각 섹션**을 두고, 가벼우면 한 섹션에 묶어도 됩니다.
 - **Step-by-Step Analysis**: 작은 입력 하나를 골라 상태 변화를 추적합니다. mermaid `flowchart TD`로 단계 흐름을 그리면 좋습니다(아래 [다이어그램](#다이어그램과-수식) 참고).
 - **Why It Works (Correctness)** *(선택)*: 그리디·구성적 풀이는 "왜 이게 최적인가"를 교환 논증·불변식으로 답니다. `Key Insight`(한두 문장)로는 부족한 문제에 둡니다.
 - **Solution**: 바로 다음 절의 코드 스타일을 따릅니다.
@@ -164,7 +164,7 @@ flowchart TD
    - 중첩 루프 → $O(N^2)$인지, 안쪽이 조기 종료/조화급수면 더 작은지.
    - 에라토스테네스류 체는 $O(N \log \log N)$ ([BOJ 23832]).
    - 정렬 후 이분 탐색은 $O((N+M)\log N)$ ([BOJ 1920]).
-   - 제약을 대입한 추정 연산량이 시간 제한 안에 들어오는지. **주의 — "$\sim 10^8$/초"는 C/C++ 기준입니다.** 이 블로그는 Python 코드라, **CPython은 10~100배 느려 $\sim 10^6$–$10^7$/초**로 잡고, 채점기도 Python에 보통 2~5배 더 너그럽습니다(예: 같은 문제 C++ 2s ↔ Python 4s). Python 풀이의 시간 추정은 이 점을 반영합니다.
+   - 제약을 대입한 추정 연산량이 시간 제한 안에 들어오는지. **주의 — "$\sim 10^8$/초"는 C/C++ 기준입니다.** 이 블로그는 Python 코드라 **CPython은 10~100배 느려 $\sim 10^6$–$10^7$/초**로 잡습니다. 시간 제한은 **채점 환경마다 다릅니다** — BOJ는 문제별로 Python 시간 제한을 더 넉넉히 주는 경우가 있지만(언어별 보정이 일률적이진 않음), LeetCode는 언어와 무관하게 같은 제한이라 Python이 TLE 날 수 있습니다. Python 풀이의 시간 추정은 이 점을 반영합니다.
 
 | 점검 항목 | 무엇을 확인 | 실패 사례 |
 | --- | --- | --- |
@@ -177,7 +177,7 @@ flowchart TD
 
 ## 영어 복붙 템플릿
 
-새 글은 아래 골격을 [_posts/](../../_posts/)에 복사해 채웁니다. 본문은 **영어**로 작성합니다. 아래는 *최적화형* 기본 골격이며, `## Approach 2 (Better)` · `## Why It Works (Correctness)` · `## Edge Cases / Pitfalls`는 **문제에 맞춰 추가하는 선택 섹션**입니다(주석으로 표시). (front matter 상세는 [../guide/03-writing-posts.md](../guide/03-writing-posts.md#front-matter-스키마) 참고.)
+새 글은 아래 골격을 [_posts/](../../_posts/)에 복사해 채웁니다. 본문은 **영어**로 작성합니다. 아래는 *최적화형* 기본 골격이며, `## Alternative Approaches` · `## Why It Works (Correctness)` · `## Edge Cases / Pitfalls`는 **문제에 맞춰 켜는 선택 섹션**입니다 — 각각 제자리에 **주석 처리된 섹션 블록**으로 들어 있으니, 여는/닫는 주석 줄만 지우면 바로 살아납니다. (front matter 상세는 [../guide/03-writing-posts.md](../guide/03-writing-posts.md#front-matter-스키마) 참고.)
 
 ````markdown
 ---
@@ -223,8 +223,16 @@ Explanation: <why>
 
 <The single observation that unlocks the efficient solution.>
 
-<!-- Optional: ## Approach 2 (Better) — show an intermediate solution and
-     compare complexities, e.g. O(N^2) -> O(N log N) -> O(N). -->
+<!-- OPTIONAL section — delete this line and the closing comment line to enable.
+     Use when the problem has multiple approaches worth comparing.
+
+## Alternative Approaches
+
+<Compare approaches, e.g. O(N^2) -> O(N log N) -> O(N). For clearly distinct
+ approaches use separate "## Approach 1" / "## Approach 2" sections (LeetCode style).>
+
+---
+-->
 
 ---
 
@@ -242,14 +250,24 @@ flowchart TD
 1. <Step 1>
 2. <Step 2>
 
-<!-- Optional: ## Why It Works (Correctness) — for greedy/constructive
-     algorithms, argue optimality via an exchange/invariant argument. -->
+<!-- OPTIONAL section — delete this line and the closing comment line to enable.
+     Use for greedy / constructive algorithms.
+
+## Why It Works (Correctness)
+
+<Argue optimality via an exchange argument or a loop invariant.>
+
+---
+-->
 
 ---
 
 ## Solution
 
 ```python
+from typing import List
+
+
 class Solution:
     def methodName(self, nums: List[int]) -> int:
         # ... your solution ...
@@ -271,8 +289,14 @@ class Solution:
 - **Space Complexity**: $O(N)$
     - <reason>
 
-<!-- Optional: ## Edge Cases / Pitfalls — empty input, duplicates,
-     integer overflow, min/max N, off-by-one. -->
+<!-- OPTIONAL section — delete this line and the closing comment line to enable.
+
+## Edge Cases / Pitfalls
+
+- <Empty input, duplicates, integer overflow, min/max N, off-by-one.>
+
+---
+-->
 
 ---
 
