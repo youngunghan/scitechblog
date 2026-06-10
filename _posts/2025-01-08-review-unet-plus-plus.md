@@ -30,7 +30,7 @@ U-Net has been the dominant architecture for medical image segmentation. However
 **UNet++** addresses these issues by introducing **Nested Dense Skip Connections**. It effectively integrates U-Nets of varying depths into a single unified architecture, allowing the model to capture multiscale features more effectively.
 
 ![UNet++ Architecture](/assets/img/posts/paper-reviews/unetpp-arch.png)
-_Figure 1: The UNet++ architecture. It consists of an encoder and decoder connected by a series of nested, dense skip pathways (green and blue lines). Deep supervision (red lines) allows for model pruning (from the paper)._
+_Figure 1: The UNet++ architecture. It consists of an encoder and decoder connected by a series of nested, dense skip pathways (green and blue lines). Deep supervision (red lines) allows for model pruning (from Fig. 1 of the paper)._
 
 ## Methods
 

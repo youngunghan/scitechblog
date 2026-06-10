@@ -27,7 +27,7 @@
 > .prompt-info 블록 (논문 arXiv/DOI + OUTTA 원문 안내)
 ## Why I Read This Paper
 ## Abstract            (또는 ## Introduction)
-## Context / Related Work   (선택 — 기존 연구 대비 위치)
+## Context / Related Work   (강한 권장 — 기존 연구 대비 위치)
 ## Method(s)           (하위 항목은 ### 로)
 ## Experiments / Results   (수치 표 포함)
 ## Conclusion & Insight
@@ -40,7 +40,7 @@
 | --- | --- | --- |
 | `## Why I Read This Paper` | 이 논문을 왜 읽었는지, 무엇이 인상적이었는지 1인칭으로 | 리뷰의 시그니처 도입부. 4편 모두 이 섹션으로 시작 |
 | `## Abstract` / `## Introduction` | 문제 정의·배경 + **논문의 핵심 기여(contributions)를 명시**. 둘 다 두거나 하나만 (DreamBooth는 둘 다, UNet++/KAD/Contamination은 Introduction만) | 원논문 흐름에 맞춰 선택. Keshav의 "Category·Contributions"를 앞에서 짚으면 좋음 |
-| `## Context / Related Work` *(선택)* | 이 논문이 **기존 연구 대비 무엇이 다른지** 위치 짓기 | Keshav "Context"·NeurIPS originality. Introduction에 녹여도 되지만 명시 슬롯이 더 명확 |
+| `## Context / Related Work` *(강한 권장)* | 이 논문이 **기존 연구 대비 무엇이 다른지** 위치 짓기 | Keshav 3-pass의 Context/Contribution은 핵심. 아주 짧은 리뷰만 Introduction에 녹임 |
 | `## Method` / `## Methods` | 핵심 아이디어. 하위 기법은 `### `로 분리 (예: UNet++의 `### 1. Nested Dense Skip Connections`) | 그림은 본문 인라인 이미지로 — **출처 표시 필수**(아래 그림 규칙) |
 | `## Experiments` / `## Results` | 정량 결과 표 + 지표 설명 | **표 검증이 가장 중요한 곳** (아래 참고) |
 | `## Conclusion & Insight` | 짧은 요약 + **명시적 강점·한계·열린 질문(critique)** + 후속 연구 | **리뷰는 요약이 아니라 commentary** — 한계를 한 구절로 흘리지 말 것 (아래 참고) |
@@ -141,7 +141,7 @@ description: "A review of <Paper> (<Venue> <Year>), <one-line summary>."
 image:
   path: assets/img/posts/paper-reviews/<slug>.png
   alt: <Alt text>
-math: true
+math: true   # remove if the review has no equations
 ---
 
 > **Note**: This is a review of **"<Full Paper Title>"** (<Venue> <Year>, [arXiv:XXXX.XXXXX](https://arxiv.org/abs/XXXX.XXXXX)).
@@ -160,13 +160,10 @@ math: true
 ![<Alt>](/assets/img/posts/paper-reviews/<slug>-overview.png)
 _Figure 1: <caption> (from the paper)._
 
-<!-- OPTIONAL — delete this line and the closing comment line below to position the paper vs prior work.
 ## Context / Related Work
-
-<How this paper differs from / builds on prior work (Keshav "Context").>
+<How this paper differs from / builds on prior work — its positioning (Keshav "Context"). Strongly recommended; fold into Introduction only for very short reviews.>
 
 ---
--->
 
 ## Method
 ### 1. <Core idea>
@@ -205,7 +202,8 @@ _Table 1: <caption> (numbers from the paper, Table N)._
 4. **비평/한계**: `Conclusion & Insight`에 강점뿐 아니라 **명시적 한계·비평**이 있는가(요약만으로 끝나지 않음).
 5. **front matter**: `categories: [Paper Review, <분야>]`, `image.path`(앞 `/` 없음), 수식 있으면 `math: true`. `canonical_url`은 **기본 생략**(self-canonical) — OUTTA를 1차로 둘 때만(SEO 주의).
 6. **표 (최우선)**: 위 [표 검증 체크](#표-작성-규칙-가장-중요)를 모두 통과했는가 — **인접 열 중복**, **불확실성(±std/CI) 포함**, **SOTA 행 표시**.
-7. **이미지/그림**: 인라인 이미지가 `/assets/...`로 시작하고 파일이 `assets/img/posts/paper-reviews/`에 실제로 존재하는가. **논문 figure는 캡션에 출처를 명시**했는가.
-8. **수식**: `$...$` / `$$...$$`가 깨지지 않고 렌더링되는가(`math: true` 필요).
-9. **로컬 미리보기**: `bash tools/run.sh`로 표·이미지·수식 렌더링 확인.
-10. **링크 검사**: (선택) `bash tools/test.sh`로 arXiv/이미지/내부 링크(있으면 `canonical_url`)를 점검 후 커밋.
+7. **재현성 링크**: 논문에 **공식 코드/데이터셋/프로젝트 페이지**가 있으면 본문이나 prompt-info에 링크했는가([NeurIPS 체크리스트](https://neurips.cc/public/guides/PaperChecklist)의 code/data 항목).
+8. **이미지/그림**: 인라인 이미지가 `/assets/...`로 시작하고 파일이 `assets/img/posts/paper-reviews/`에 실제로 존재하는가. **논문 figure는 캡션에 출처(가능하면 `from Fig. N of the paper`)를 명시**했는가.
+9. **수식**: `$...$` / `$$...$$`가 깨지지 않고 렌더링되는가(`math: true` 필요).
+10. **로컬 미리보기**: `bash tools/run.sh`로 표·이미지·수식 렌더링 확인.
+11. **링크 검사**: (선택) `bash tools/test.sh`로 arXiv/이미지/내부 링크(있으면 `canonical_url`)를 점검 후 커밋.

@@ -28,7 +28,7 @@ Large text-to-image models have achieved remarkable success in synthesizing dive
 In this paper, the authors present a new approach for **"personalization"** of text-to-image diffusion models. Given just a few images (typically 3-5) of a subject, the method fine-tunes a pre-trained text-to-image model to bind a unique identifier with that specific subject. This allows the synthesis of photorealistic images of the subject in diverse scenes, poses, and lighting conditions.
 
 ![DreamBooth Teaser](/assets/img/posts/paper-reviews/dreambooth-teaser.png)
-_Figure 1: DreamBooth can synthesize the subject (e.g., a specific dog) in various novel contexts while preserving its key identity features (from the paper)._
+_Figure 1: DreamBooth can synthesize the subject (e.g., a specific dog) in various novel contexts while preserving its key identity features (from Fig. 1 of the paper)._
 
 ## Introduction
 The goal of DreamBooth is to expand the language-vision dictionary of a pre-trained model such that it binds new words with specific subjects the user wants to generate. Once the new dictionary is embedded, the model can use these words to synthesize novel photorealistic images of the subject, contextualized in different scenes, while preserving their key identifying features. The effect is akin to a **"magic photo booth"**.
