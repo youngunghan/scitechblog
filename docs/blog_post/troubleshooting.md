@@ -99,7 +99,7 @@ internal image /scitechblog/scitechblog/assets/img/posts/algo/leetcode.png does 
 
 트러블슈팅 글은 사실 주장이 많습니다. **추측을 단정처럼 쓰지 마세요.** 검증된 사실과 경험적 관찰을 명확히 구분합니다.
 
-- **검증된 사실**은 단정해도 좋지만 가능하면 출처를 답니다. 예: Mermaid 공식 flowchart 문서가 명시적으로 경고하는 파서 함정은 소문자 `end`(플로차트를 깨뜨림)와 `o`/`x`로 시작하는 edge 구문 정도이고, **`AND`/`OR`는 예약어로 문서화돼 있지 않습니다**(Mermaid 공식 flowchart 문서 기준). 따라서 `AND`/`OR`가 깨지는 현상을 "예약어라서"라고 단정하면 **틀린 설명**입니다(원인은 문서화되지 않은 동작 — 아래처럼 경험적 관찰로 표시).
+- **검증된 사실**은 단정해도 좋지만 가능하면 출처를 답니다. 예: Mermaid 공식 flowchart 문서가 **Warning으로 직접 강조**하는 것은 소문자 `end`(플로차트를 깨뜨림)와 `o`/`x`로 시작하는 edge 구문이고, **`AND`/`OR`는 예약어로 문서화돼 있지 않습니다**(Mermaid 공식 flowchart 문서 기준). 따라서 `AND`/`OR`가 깨지는 현상을 "예약어라서"라고 단정하면 **틀린 설명**입니다(원인은 문서화되지 않은 동작 — 아래처럼 경험적 관찰로 표시).
 - **경험적 관찰**(공식 문서에 없는 동작)은 그렇게 명시합니다. mermaid 글의 표현을 그대로 본보기로 삼으세요:
 
 > This isn't a documented Mermaid feature, so treat the following as an empirical observation rather than a rule.
@@ -112,7 +112,7 @@ internal image /scitechblog/scitechblog/assets/img/posts/algo/leetcode.png does 
 
 - **버전·포트·명령** 같은 사실은 직접 확인합니다. 추측 금지.
   - 도구 버전은 실제 실행 환경에서 확인해 적습니다(예: mermaid 글의 `mermaid version 11.12.2`는 에러 메시지에 찍힌 실제 값).
-  - Docker Compose 호출은 v2 플러그인 `docker compose`가 표준이고 최상위 `version:` 키는 obsolete입니다(Docker 공식 문서 확인). cicd 글이 이를 `.prompt-tip`으로 정확히 짚었습니다.
+  - Docker Docs의 Compose Specification/Compose v2 기준에서 최상위 `version:` element는 obsolete이고, 현대 CLI 예시는 `docker compose` 형태를 씁니다(Docker 공식 문서 확인). cicd 글이 이를 `.prompt-tip`으로 정확히 짚었습니다.
   - 포트 매핑(`"8000:8080"`)이나 EC2 보안 그룹 포트(22/SSH, 8000/app) 같은 값은 실제 설정 파일과 일치시킵니다.
 
 > Chirpy의 `.prompt-info` / `.prompt-tip` / `.prompt-warning` 블록은 "이건 검증된 보충 사실"임을 시각적으로 알리기에 좋습니다. 경험적 관찰과 공식 사실을 구분해 표시할 때 활용하세요.
@@ -122,7 +122,7 @@ internal image /scitechblog/scitechblog/assets/img/posts/algo/leetcode.png does 
 버그는 **정확한 버전 맥락**에 달려 있습니다. 좋은 디버깅 글은 두 가지를 더 남깁니다.
 
 - **환경 스탬프**: 버그가 재현된 도구/라이브러리 **버전·OS·런타임**을 한 줄 적습니다(예: mermaid 글의 `mermaid version 11.12.2`는 에러 메시지에 찍힌 실제 값). 같은 증상도 버전이 다르면 원인이 달라질 수 있으니 "**이 환경에서 재현됨**"을 명시합니다.
-- **출처 링크**: 관련 **upstream 이슈·PR·커밋**이나 최소 재현 repo가 있으면 링크합니다. [Distill](https://distill.pub/2018/editorial-update/)(글마다 repo)·Kaggle 우승자·[Julia Evans](https://jvns.ca/blog/2022/12/08/a-debugging-manifesto/) 등 좋은 디버깅 글은 거의 항상 출처 아티팩트를 링크합니다. (공개 이슈가 없는 자체 블로그성 문제면 생략 가능.)
+- **출처 링크**: 가능하면 관련 **upstream 이슈·PR·커밋**이나 최소 재현 repo를 링크합니다. [Distill](https://distill.pub/2018/editorial-update/)은 글마다 repo/이슈로 출판하고, [Julia Evans](https://jvns.ca/blog/2022/12/08/a-debugging-manifesto/)는 디버깅 사고방식의 본보기입니다. (공개 이슈가 없는 자체 블로그성 문제면 생략 가능.)
 
 > 깊은 Root Cause를 파려면 **5 Whys** 같은 RCA 기법을 쓸 수 있습니다(증상에서 "왜"를 반복해 표면 너머로). [Google SRE](https://sre.google/sre-book/postmortem-culture/) 관점에서 핵심은 **충분히 깊은 root cause**와 거기서 이어지는 **예방 follow-up action**(blameless)이며 — 5 Whys 자체를 그 장이 직접 거론하진 않습니다 — 위의 Symptom↔Root Cause **1:1 정합** 규칙이 그 깊이를 강제합니다. `**Lesson:**`에 "어떻게 **재발을 예방**하나"를 담으면 그 action item에 가까워집니다.
 
