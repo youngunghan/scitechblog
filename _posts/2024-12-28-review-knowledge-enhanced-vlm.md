@@ -10,7 +10,7 @@ image:
   alt: KAD Overview
 ---
 
-> **Note**: This is a review of the paper **"Knowledge-enhanced Visual-Language Pre-training on Chest Radiology Images"** (Nature Communications 2023).
+> **Note**: This is a review of the paper **"Knowledge-enhanced Visual-Language Pre-training on Chest Radiology Images"** (Nature Communications 2023, [arXiv:2302.14042](https://arxiv.org/abs/2302.14042)).
 >
 > For a **Korean version** of this review, please visit the **[OUTTA AI Tech Blog](https://blog.outta.ai/103)**.
 {: .prompt-info }

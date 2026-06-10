@@ -11,7 +11,7 @@ image:
 math: true
 ---
 
-> **Note**: This is a review of the paper **"DreamBooth: Fine Tuning Text-to-Image Diffusion Models for Subject-Driven Generation"** (CVPR 2023).
+> **Note**: This is a review of the paper **"DreamBooth: Fine Tuning Text-to-Image Diffusion Models for Subject-Driven Generation"** (CVPR 2023, [arXiv:2208.12242](https://arxiv.org/abs/2208.12242)).
 >
 > For a **Korean version** of this review, please visit the **[OUTTA AI Tech Blog](https://blog.outta.ai/73)**.
 {: .prompt-info }

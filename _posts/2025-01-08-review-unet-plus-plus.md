@@ -11,7 +11,7 @@ image:
 math: true
 ---
 
-> **Note**: This is a review of the paper **"UNet++: Redesigning Skip Connections to Exploit Multiscale Features in Image Segmentation"** (IEEE TMI 2020 (online 2019)). The original nested-architecture version, **"UNet++: A Nested U-Net Architecture for Medical Image Segmentation"**, appeared at DLMIA 2018.
+> **Note**: This is a review of the paper **"UNet++: Redesigning Skip Connections to Exploit Multiscale Features in Image Segmentation"** (IEEE TMI 2020 (online 2019), [arXiv:1912.05074](https://arxiv.org/abs/1912.05074)). The original nested-architecture version, **"UNet++: A Nested U-Net Architecture for Medical Image Segmentation"**, appeared at DLMIA 2018.
 >
 > For a **Korean version** of this review, please visit the **[OUTTA AI Tech Blog](https://blog.outta.ai/127)**.
 {: .prompt-info }
