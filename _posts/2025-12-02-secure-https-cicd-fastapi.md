@@ -156,7 +156,7 @@ I added `ACCESS_TOKEN_SECRET` and `REFRESH_TOKEN_SECRET` to GitHub Secrets and u
 
 ## Verification
 
-To verify everything was working, I wrote a Python script to register a user via the public HTTPS API.
+To verify everything was working, I wrote a Python script to register a user via the public HTTPS API (sketch below — the request's JSON payload and headers are elided as `...`):
 
 ```python
 # verify_deployment.py
@@ -176,6 +176,15 @@ Status Code: 201
    - HTTPS connection: Verified
    - RDS Database Write: Verified
 ```
+
+## Limitations / Caveats
+
+This was a seminar assignment, so a few shortcuts are not production-grade:
+
+- **The rate-limit "fix" was situational.** Switching to a new DuckDNS domain only sidestepped Let's Encrypt's per-identifier limit to meet a deadline; the real fix is to validate against the **staging** environment and stop the failing retry loop.
+- **Moving image tags.** `nginx:stable-alpine` and `certbot/certbot` are mutable tags — pin a specific version or digest and update on a security cadence.
+- **Not zero-downtime.** Deployment runs `docker compose up -d`, so there is a brief gap while containers recreate; a blue-green or rolling strategy would remove it.
+- **Secrets & DB.** Secrets live in `.env` on the host and in GitHub Secrets; RDS credentials and JWT secrets should be rotated and least-privileged for real use.
 
 ## Conclusion
 
