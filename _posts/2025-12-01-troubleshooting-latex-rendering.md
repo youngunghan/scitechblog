@@ -19,6 +19,9 @@ Instead of a beautifully rendered formula, I saw:
 
 This post documents why this happened and how I automated the fix across all my posts (13 of which were missing the flag) using a Python script.
 
+> **Environment:** Jekyll 4.3 · jekyll-theme-chirpy 7.4 · Ruby 3.3 (this blog's pinned GitHub Pages build). MathJax is loaded by the Chirpy theme, gated on the post's `math: true` flag.
+{: .prompt-info }
+
 ## The Problem
 
 I use LaTeX syntax (wrapped in `$`) for mathematical expressions in my Markdown files. 

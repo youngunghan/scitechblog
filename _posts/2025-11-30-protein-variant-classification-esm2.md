@@ -248,6 +248,19 @@ A caveat on backends: [PyTorch recommends `nccl`](https://docs.pytorch.org/docs/
 torchrun --nproc_per_node=1 train_script.py --backend gloo
 ```
 
+## What Didn't Work / Limitations
+
+This was a small-scale study, so the results are a proof of concept rather than a validated clinical tool:
+
+- **Tiny evaluation set.** Task A's predictor comparison uses 107 patients with only a few pathogenic variants each, so the AUROC/F1/Top-K gaps between predictors A–C carry wide uncertainty — no confidence intervals or significance tests are reported.
+- **Frozen backbone.** ESM2 is used purely as a feature extractor (backbone frozen, only the head trained), which caps how much variant-specific signal the model can capture; fine-tuning or LoRA was not compared.
+- **Static class weighting only.** The 9:1 GOF/LOF imbalance is handled with fixed inverse-frequency weights; resampling, focal loss, and threshold calibration were not benchmarked against it.
+- **Pooling not ablated.** CLS-token pooling is used; as noted above, mean-pooling may give a more stable representation, but the two were not compared head-to-head.
+- **No external validation.** Generalization to other cohorts and a leakage-safe held-out split (so variants from the same patient don't span train/test) are not established here.
+
 ## Conclusion
 
 This project reinforced the importance of domain-specific feature engineering (Difference Vector) and robust engineering practices (DDP, Weighted Loss) when working with biological data. By combining pre-trained PLMs with thoughtful architecture, we can build powerful tools for genomic analysis.
+
+> **Setup (for reproducibility).** Model: `facebook/esm2_t33_650M_UR50D` (HuggingFace `transformers`, backbone frozen). Hardware: 4× NVIDIA A100, PyTorch `DistributedDataParallel` (`nccl`) launched with `torchrun`. Data: 107 patients (Task A); ~9:1 LOF/GOF split (Task B). Exact library versions and the random seed belong with the code release.
+{: .prompt-info }
