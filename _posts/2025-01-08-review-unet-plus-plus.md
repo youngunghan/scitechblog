@@ -3,7 +3,6 @@ title: "[Paper Review] UNet++: Redesigning Skip Connections to Exploit Multiscal
 date: 2025-01-08 00:00:00 +0900
 categories: [Paper Review, Medical AI]
 tags: [Segmentation, U-Net, Deep Learning, Architecture]
-canonical_url: https://blog.outta.ai/127
 description: "A review of UNet++ (IEEE TMI 2020, online 2019), a powerful evolution of the U-Net architecture for medical image segmentation."
 image:
   path: assets/img/posts/paper-reviews/unetpp-arch.png
@@ -31,7 +30,7 @@ U-Net has been the dominant architecture for medical image segmentation. However
 **UNet++** addresses these issues by introducing **Nested Dense Skip Connections**. It effectively integrates U-Nets of varying depths into a single unified architecture, allowing the model to capture multiscale features more effectively.
 
 ![UNet++ Architecture](/assets/img/posts/paper-reviews/unetpp-arch.png)
-_Figure 1: The UNet++ architecture. It consists of an encoder and decoder connected by a series of nested, dense skip pathways (green and blue lines). Deep supervision (red lines) allows for model pruning._
+_Figure 1: The UNet++ architecture. It consists of an encoder and decoder connected by a series of nested, dense skip pathways (green and blue lines). Deep supervision (red lines) allows for model pruning (from the paper)._
 
 ## Methods
 
@@ -62,11 +61,21 @@ The authors evaluated UNet++ on multiple medical segmentation tasks (lung nodule
 _Table 1: Segmentation performance comparison (IoU). UNet++ consistently outperforms U-Net and Wide U-Net across various datasets (numbers from the DLMIA 2018 paper, Table 3)._
 
 ![UNet++ Qualitative Results](/assets/img/posts/paper-reviews/unetpp-qualitative.png)
-_Figure 2: Qualitative comparison. UNet++ produces segmentation masks that are closer to the Ground Truth compared to U-Net and Wide U-Net, especially for fine details._
+_Figure 2: Qualitative comparison. UNet++ produces segmentation masks that are closer to the Ground Truth compared to U-Net and Wide U-Net, especially for fine details (from the paper)._
 
 ---
 
 ## Conclusion & Insight
-UNet++ is a powerful evolution of U-Net. It stands out not just for its performance, but for its clear design intent to reduce the **Semantic Gap of Skip Connections**.
+UNet++'s clearest contribution is reducing the **semantic gap of skip connections** with nested dense pathways, while deep supervision adds training stability and inference-time pruning.
 
-Also, the fact that **Deep Supervision** increases training stability and allows for inference speed control is a great example of how important **"Flexibility"** is in model architecture design. It is well worth applying not only to medical imaging but to various segmentation tasks.
+### Strengths
+- Nested dense skip pathways measurably reduce the encoder–decoder semantic gap and consistently improve IoU over U-Net and Wide U-Net (Table 1).
+- Deep supervision is dual-purpose: a regularizer during training and a knob to trade **accuracy vs. speed** via pruning at inference — handy for clinical deployment.
+
+### Limitations
+- More parameters, memory, and compute than plain U-Net; the IoU gains are large on some datasets (Liver, ~+6) but modest on others (Cell Nuclei, ~+1.8).
+- The numbers are on a few 2D medical datasets at a fixed backbone; generalization to 3D volumes and other modalities is not established here.
+- Deep supervision adds loss-weighting choices ($L^1$–$L^4$) to tune, and pruning trades accuracy for speed without a principled stopping rule.
+
+### Open Questions / My Take
+The most transferable idea is "**one architecture you can prune to the right depth**." I'd want to see whether the gains hold with modern backbones and on volumetric (3D) data, where U-Net variants are most used.
