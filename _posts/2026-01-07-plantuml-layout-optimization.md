@@ -5,7 +5,6 @@ date: 2026-01-07 14:00:00 +0900
 categories: [Development, Documentation]
 tags: [plantuml, documentation, layout, troubleshooting, visualization, grid-layout]
 author: seoultech
-mermaid: true
 image:
   path: assets/img/posts/plantuml-layout-optimization/blog_fig_03_vertical_success.png
   alt: Vertical Stack Layout Success
