@@ -27,7 +27,7 @@ Recent vision-language models (e.g., CLIP) have shown great success in general d
 This paper introduces **Knowledge-enhanced Auto Diagnosis (KAD)**, a novel framework that integrates structured medical knowledge into vision-language pre-training. KAD leverages the **Unified Medical Language System (UMLS)** to guide the learning of visual representations, enabling the model to better understand complex medical concepts and relationships.
 
 ![KAD Overview](/assets/img/posts/paper-reviews/kad-overview.png)
-_Figure 1: Overview of the KAD framework. It consists of a knowledge encoder trained on a medical knowledge graph and a vision-language pre-training stage that aligns chest X-rays with extracted clinical entities (from the paper)._
+_Figure 1: Overview of the KAD framework. It consists of a knowledge encoder trained on a medical knowledge graph and a vision-language pre-training stage that aligns chest X-rays with extracted clinical entities (from Fig. 1 of the paper)._
 
 ## Methods
 
