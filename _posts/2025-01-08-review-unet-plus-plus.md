@@ -12,6 +12,8 @@ math: true
 
 > **Note**: This is a review of the paper **"UNet++: Redesigning Skip Connections to Exploit Multiscale Features in Image Segmentation"** (IEEE TMI 2020 (online 2019), [arXiv:1912.05074](https://arxiv.org/abs/1912.05074)). The original nested-architecture version, **"UNet++: A Nested U-Net Architecture for Medical Image Segmentation"**, appeared at DLMIA 2018.
 >
+> **Code**: [official implementation](https://github.com/MrGiovanni/UNetPlusPlus).
+>
 > For a **Korean version** of this review, please visit the **[OUTTA AI Tech Blog](https://blog.outta.ai/127)**.
 {: .prompt-info }
 
@@ -31,6 +33,11 @@ U-Net has been the dominant architecture for medical image segmentation. However
 
 ![UNet++ Architecture](/assets/img/posts/paper-reviews/unetpp-arch.png)
 _Figure 1: The UNet++ architecture. It consists of an encoder and decoder connected by a series of nested, dense skip pathways (green and blue lines). Deep supervision (red lines) allows for model pruning (from Fig. 1 of the paper)._
+
+## Context / Related Work
+UNet++ extends **U-Net** (plain same-resolution skip connections) and its wider variant **Wide U-Net** (more filters). Its nested dense pathways borrow the dense-connectivity idea from **DenseNet**, and its auxiliary losses come from **deeply-supervised networks**. The contribution is combining these to bridge the encoder–decoder semantic gap within one prunable architecture.
+
+---
 
 ## Methods
 
@@ -61,7 +68,7 @@ The authors evaluated UNet++ on multiple medical segmentation tasks (lung nodule
 _Table 1: Segmentation performance comparison (IoU). UNet++ consistently outperforms U-Net and Wide U-Net across various datasets (numbers from the DLMIA 2018 paper, Table 3)._
 
 ![UNet++ Qualitative Results](/assets/img/posts/paper-reviews/unetpp-qualitative.png)
-_Figure 2: Qualitative comparison. UNet++ produces segmentation masks that are closer to the Ground Truth compared to U-Net and Wide U-Net, especially for fine details (from the paper)._
+_Figure 2: Qualitative comparison. UNet++ produces segmentation masks that are closer to the Ground Truth compared to U-Net and Wide U-Net, especially for fine details (from Fig. 3 of the paper)._
 
 ---
 
