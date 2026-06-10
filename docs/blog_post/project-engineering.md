@@ -46,7 +46,7 @@ flowchart LR
 - 실제 산출물 스크린샷(Swagger UI, 추론 결과 오버레이 등) — CI/CD 글의 `swagger_ui_final_*.png`
 - mermaid로 표현하기 어려운 모델 구조도 — ESM2 글의 `architecture.png`, `baseline_architecture.png`
 
-> **이미지 경로 규칙(요약, 상세는 [03 문서](../guide/03-writing-posts.md#이미지-경로-규칙))**: front matter `image.path`는 **맨 앞 `/` 없이**(`assets/img/posts/skull-mask/cover.png`), **본문 인라인 이미지는 맨 앞 `/`를 붙여서**(`![alt](/assets/img/posts/skull-mask/architecture.png)`) 씁니다. 토픽 폴더(`<topic>`)는 글 슬러그와 맞춥니다.
+> **이미지 경로 규칙(요약, 상세는 [03 문서](../guide/03-writing-posts.md#이미지-경로-규칙))**: front matter `image.path`는 **맨 앞 `/` 없이**(`assets/img/posts/<topic>/cover.png`), **본문 인라인 이미지는 맨 앞 `/`를 붙여서**(`![alt](/assets/img/posts/<topic>/<filename>.png)`) 씁니다(여기 `<topic>`·`<filename>`은 placeholder). 토픽 폴더(`<topic>`)는 글 슬러그와 맞춥니다.
 
 ## 코드 스니펫: 자체완결되게
 
@@ -57,8 +57,6 @@ flowchart LR
 좋은 예 — 이 블록만 떼어도 돈다:
 
 ```python
-from sklearn.metrics import precision_recall_curve, roc_auc_score
-import numpy as np
 import pandas as pd
 
 def compute_top_k_recall(df: pd.DataFrame, score_col: str, k: int) -> float:
@@ -122,7 +120,7 @@ $$
 존경받는 엔지니어링/ML 글의 거의 **보편적 관행**은 재현 수단을 함께 제공하는 것입니다.
 
 - **코드/프로젝트 repo 링크** *(공개 시 최우선)*: 결과를 낸 코드·노트북·repo를 본문이나 `## Resources`에 링크합니다. [Distill](https://distill.pub/2018/editorial-update/)은 글마다 repo를 두고, Sebastian Raschka([rasbt/LLMs-from-scratch](https://github.com/rasbt/LLMs-from-scratch), 96k★)·Chip Huyen·Kaggle 우승자 모두 코드를 함께 링크합니다. 단, **공개 repo가 없으면(비공개 과제·사내 코드)** 무리해서 링크하지 말고 — 없는 링크를 지어내지 말 것 — 대신 본문에 **스택·버전·핵심 스니펫**으로 재현 단서를 충분히 남깁니다(이 블로그의 ESM2·skull-mask 글이 이 방식).
-- **실험형 글의 환경 정보** *(모델/실험류에 한함)*: 하드웨어(GPU 종류·개수), 프레임워크 + **버전**(예: PyTorch 2.1, CUDA 12.3), 데이터셋 규모, 그리고 결과가 시드에 민감하면 **random seed**를 적습니다. [NeurIPS 체크리스트](https://neurips.cc/public/guides/PaperChecklist)(Q8 compute resources)·[Papers With Code 코드 완전성 체크리스트](https://github.com/paperswithcode/releasing-research-code)·[PyTorch 재현성 노트](https://docs.pytorch.org/docs/stable/notes/randomness.html)가 이를 요구합니다.
+- **실험형 글의 환경 정보** *(모델/실험류에 한함)*: 하드웨어(GPU 종류·개수), 프레임워크 + **버전**(예: PyTorch 2.1, CUDA 12.3), 데이터셋 규모, 그리고 결과가 시드에 민감하면 **random seed**를 적습니다. 출처별 강조점이 다릅니다 — **컴퓨트·하드웨어**는 [NeurIPS 체크리스트](https://neurips.cc/public/guides/PaperChecklist)(Q8 compute resources), **의존성·학습·평가·결과 재현 커맨드**는 [Papers With Code 코드 완전성 체크리스트](https://github.com/paperswithcode/releasing-research-code), **시드와 비결정성(완전 재현 불가) 한계**는 [PyTorch 재현성 노트](https://docs.pytorch.org/docs/stable/notes/randomness.html)가 다룹니다.
 - **시스템/explainer류**(CI/CD, 설명 위주)에는 시드·하드웨어가 불필요합니다 — 이 규칙은 **실험 지표를 보고하는 글에만** 적용하세요.
 
 > 완전한 재현은 PyTorch 공식 노트 기준으로도 릴리스·플랫폼·CPU/GPU에 따라 보장되지 않습니다. 목표는 "**이 환경에서 이 수치가 나왔다**"를 명시하는 것입니다.
@@ -152,8 +150,8 @@ author: seoultech
 image:
   path: assets/img/posts/<topic>/cover.png
   alt: <Descriptive alt text>
-math: true
-mermaid: true
+math: true       # add only if the post has equations
+mermaid: true    # add only if the post has diagrams
 ---
 
 ## Introduction
