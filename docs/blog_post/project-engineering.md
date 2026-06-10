@@ -18,7 +18,7 @@
 | 1 | `## Introduction` | 문제·목표·맥락을 2~4문장으로 | 무엇을, 왜, 어떤 제약(데이터 5장 등) 아래 했는지 |
 | 2~N | Challenge / Problem별 섹션 | 설계 결정 → 코드 → 표/지표 → 교훈 | 글 본체. 아래 두 패턴 중 택1 |
 | N+1 | `## Results` | 최종 수치·산출물·스크린샷 | 본문에서 언급한 지표를 한자리에 모음 |
-| N+2 | `## What Didn't Work / Limitations` *(권장)* | 실패한 시도·한계·안 테스트한 것 | NeurIPS는 Limitations 섹션을 명시 요구; fast.ai·Huyen 글은 실패·한계를 본문에 드러냄. skull-mask "Development Journey"가 좋은 예 |
+| N+2 | `## What Didn't Work / Limitations` *(권장)* | 실패한 시도·한계·안 테스트한 것 | NeurIPS는 Limitations 섹션을 명시 요구; Huyen식 ML 시스템 글은 setup/data/modeling/serving의 trade-off를 드러내기 좋음. skull-mask "Development Journey"가 좋은 예 |
 | 끝 | `## Conclusion` (+ `## Resources`) | 핵심 교훈 3개 내외 + 한 줄. **`## Resources`에 코드/프로젝트 repo 링크 권장** | 외부 링크·repo |
 
 **Challenge/Problem 섹션 두 패턴** — 글 성격에 맞춰 일관되게 하나만 씁니다:
@@ -80,7 +80,7 @@ def compute_top_k_recall(df: pd.DataFrame, score_col: str, k: int) -> float:
 
 ## 수식 표기: 일관되게
 
-front matter에 `math: true`를 넣고 인라인 `$...$`, 블록 `$$...$$`를 씁니다. **하나의 지표는 글 전체에서 같은 표기**를 유지합니다.
+**수식을 쓰는 글은** front matter에 `math: true`를 넣고 인라인 `$...$`, 블록 `$$...$$`를 씁니다. **하나의 지표는 글 전체에서 같은 표기**를 유지합니다.
 
 > **교훈(skull-mask 글 사례)**: 같은 IoU를 정의식($\frac{|P \cap G|}{|P \cup G|}$)·표·결과 문장에서 표기와 자리수가 어긋나지 않게 합니다. 예를 들어 표는 `0.9794`인데 초안 단계에서 intro에 `0.9795`로 적힌 적이 있는 식의 **소수 자릿수 불일치**는 흔히 생기는 대표적 위험입니다(현재 글은 모두 `0.9794`로 통일되어 있습니다; 아래 [지표 상호 일관성](#지표수치-상호-일관성) 참고). 약어도 글마다 한 번 풀어 줍니다 — `IoU (Intersection over Union)`, `Dice`처럼 첫 등장 시 정의.
 
@@ -119,7 +119,7 @@ $$
 
 존경받는 엔지니어링/ML 글의 거의 **보편적 관행**은 재현 수단을 함께 제공하는 것입니다.
 
-- **코드/프로젝트 repo 링크** *(공개 시 최우선)*: 결과를 낸 코드·노트북·repo를 본문이나 `## Resources`에 링크합니다. [Distill](https://distill.pub/2018/editorial-update/)은 글마다 repo를 두고, Sebastian Raschka([rasbt/LLMs-from-scratch](https://github.com/rasbt/LLMs-from-scratch), 96k+★ · 2026-06 기준)·Chip Huyen·**많은 상위 Kaggle writeup**이 코드를 함께 링크합니다. 단, **공개 repo가 없으면(비공개 과제·사내 코드)** 무리해서 링크하지 말고 — 없는 링크를 지어내지 말 것 — 대신 본문에 **스택·버전·핵심 스니펫**으로 재현 단서를 충분히 남깁니다(이 블로그의 ESM2·skull-mask 글이 이 방식).
+- **코드/프로젝트 repo 링크** *(공개 시 최우선)*: 결과를 낸 코드·노트북·repo를 본문이나 `## Resources`에 링크합니다. [Distill](https://distill.pub/2018/editorial-update/)은 글마다 repo/이슈로 출판하고, [Papers With Code](https://github.com/paperswithcode/releasing-research-code)·Sebastian Raschka([rasbt/LLMs-from-scratch](https://github.com/rasbt/LLMs-from-scratch), 96k+★ · 2026-06 기준)가 코드 동반을 표준으로 보여줍니다. 단, **공개 repo가 없으면(비공개 과제·사내 코드)** 무리해서 링크하지 말고 — 없는 링크를 지어내지 말 것 — 대신 본문에 **스택·버전·핵심 스니펫**으로 재현 단서를 충분히 남깁니다(이 블로그의 ESM2·skull-mask 글이 이 방식).
 - **실험형 글의 환경 정보** *(모델/실험류에 한함)*: 하드웨어(GPU 종류·개수), 프레임워크 + **버전**(예: PyTorch 2.1, CUDA 12.3), 데이터셋 규모, 그리고 결과가 시드에 민감하면 **random seed**를 적습니다. 출처별 강조점이 다릅니다 — **컴퓨트·하드웨어**는 [NeurIPS 체크리스트](https://neurips.cc/public/guides/PaperChecklist)(Q8 compute resources), **의존성·학습·평가·결과 재현 커맨드**는 [Papers With Code 코드 완전성 체크리스트](https://github.com/paperswithcode/releasing-research-code), **시드와 비결정성(완전 재현 불가) 한계**는 [PyTorch 재현성 노트](https://docs.pytorch.org/docs/stable/notes/randomness.html)가 다룹니다.
 - **시스템/explainer류**(CI/CD, 설명 위주)에는 시드·하드웨어가 불필요합니다 — 이 규칙은 **실험 지표를 보고하는 글에만** 적용하세요.
 
