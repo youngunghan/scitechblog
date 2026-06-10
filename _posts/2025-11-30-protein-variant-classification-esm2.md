@@ -262,5 +262,5 @@ This was a small-scale study, so the results are a proof of concept rather than 
 
 This project reinforced the importance of domain-specific feature engineering (Difference Vector) and robust engineering practices (DDP, Weighted Loss) when working with biological data. By combining pre-trained PLMs with thoughtful architecture, we can build powerful tools for genomic analysis.
 
-> **Setup (for reproducibility).** Model: `facebook/esm2_t33_650M_UR50D` (HuggingFace `transformers`, backbone frozen). Hardware: 4× NVIDIA A100, PyTorch `DistributedDataParallel` (`nccl`) launched with `torchrun`. Data: 107 patients (Task A); ~9:1 LOF/GOF split (Task B). Exact library versions and the random seed belong with the code release.
+> **Setup (for reproducibility).** Model: `facebook/esm2_t33_650M_UR50D` (HuggingFace `transformers`, backbone frozen). Hardware: 4× NVIDIA A100, PyTorch `DistributedDataParallel` (`nccl`) launched with `torchrun`. Data: 107 patients (Task A); ~9:1 LOF/GOF split (Task B). This was a private coursework project, so the code isn't public — the stack above and the in-post snippets are the reproduction cues.
 {: .prompt-info }
