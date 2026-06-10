@@ -13,7 +13,7 @@ LeetCode·백준(BOJ) 문제 풀이 글의 **내용 구조와 스타일**을 다
 | 섹션 (H2) | 필수? | 목적 |
 | --- | --- | --- |
 | `## Problem` | 필수 | 문제 요약 + 원문 링크(`>` 인용) + 샘플 입출력 |
-| `## Initial Thought (Failed)` | **유형별** | 단순 접근이 **왜 실패하는지**(시간 초과 등). *최적화형*에선 사실상 필수, *구현·애드혹형*에선 생략 |
+| `## Initial Thought (Failed)` | **유형별** | 단순 접근이 **왜 실패하는지**(시간 초과 등). *최적화형*에선 강하게 권장, *구현·애드혹형*에선 생략 |
 | `## Key Insight` | 필수 | 풀이를 가능케 한 핵심 관찰(한두 문장) |
 | `## Alternative Approaches` | **선택** | 여러 풀이(`brute → 개선 → 최적`)를 비교. 접근이 뚜렷이 나뉘면 LeetCode식 `## Approach 1` / `## Approach 2`로 **분리** (각 접근 복잡도 비교 — 풀이 글의 강한 관행) |
 | `## Step-by-Step Analysis` | 권장 | 작은 예제로 동작 추적 (` ```mermaid ``` ` 다이어그램) |
@@ -86,9 +86,9 @@ LeetCode도 동일하게 영어 제목 + leetcode.com 원문 링크입니다.
 
 - **모든 주석은 영어**로 작성합니다.
 - LeetCode는 `class Solution:` 시그니처를 그대로 쓰고, BOJ는 `import sys` + `input = sys.stdin.readline` 패턴으로 빠른 입력을 사용합니다.
-- 이 블로그는 블록 종료 지점에 `# end for` / `# end if` / `# end def`(필요 시 `# end while`) **하우스 마커**를 답니다.
+- 이 블로그는 블록 종료 지점에 `# end for` / `# end if` / `# end def`(필요 시 `# end while`) **하우스 마커**를 씁니다 — **기존 글은 유지, 새 글은 선택**(표준 아님; 아래 주의).
 
-> **하우스 마커에 대한 솔직한 주의**: `# end for` 같은 블록 종료 주석은 **표준이 아닙니다**. [PEP 8](https://peps.python.org/pep-0008/)·[Google Python Style Guide](https://google.github.io/styleguide/pyguide.html) 어디에도 없고, 대표 알고리즘 repo(TheAlgorithms/Python, doocs/leetcode 등)도 쓰지 않으며 들여쓰기로 블록을 구분합니다. 또 `black`/`ruff`가 이 마커를 관리하지 않아 **리팩터·재들여쓰기 후 stale돼 오해를 줄 수 있습니다**. 이 블로그의 의도적 스타일로 유지하되, 새로 합류하는 글에는 강제하지 않아도 됩니다. 마커를 둘 때는 닫는 블록의 **헤더와 같은 들여쓰기**에 맞춥니다.
+> **하우스 마커에 대한 솔직한 주의**: `# end for` 같은 블록 종료 주석은 **표준이 아닙니다**. [PEP 8](https://peps.python.org/pep-0008/)·[Google Python Style Guide](https://google.github.io/styleguide/pyguide.html) 어디에도 없고, 대표 알고리즘 repo(TheAlgorithms/Python, doocs/leetcode 등)도 쓰지 않으며 들여쓰기로 블록을 구분합니다. 또 `black`/`ruff`가 이 마커를 관리하지 않아 **리팩터·재들여쓰기 후 stale돼 오해를 줄 수 있습니다**. 정책은 명확합니다 — **기존 글은 그대로 유지하고, 새 글에는 강제하지 않습니다(선택)**. 마커를 둘 때는 닫는 블록의 **헤더와 같은 들여쓰기**에 맞춥니다.
 
 [BOJ 23832](../../_posts/2024-10-10-algo-boj-23832-서로소-그래프.md)의 실제 코드입니다(마커 위치에 주목).
 
@@ -155,6 +155,8 @@ flowchart TD
    # BOJ: stdin으로 샘플 입력 주입 후 출력 비교
    echo "5" | python solution.py    # expect: 9
    ```
+
+   위는 **BOJ**(stdin 입력)용입니다. **LeetCode**는 `class Solution`만으론 바로 실행되지 않으니, 플랫폼에 제출하거나 메서드를 샘플로 호출하는 작은 harness로 확인합니다 — 예: `print(Solution().lengthOfLongestSubstring("abca"))  # expect: 3`.
 
 2. **여러 케이스를 검증한다.** 다중 출력(예: [BOJ 1920]의 `1 1 0 0 1`)은 줄 수·순서까지 맞는지 확인합니다. 경계값(최소·최대 $N$), 빈 입력·중복·오버플로 같은 엣지도 한 번 넣어 봅니다(주의점이 있으면 본문 `## Edge Cases / Pitfalls`에 적습니다).
 
@@ -224,6 +226,8 @@ Explanation: <why>
 <The single observation that unlocks the efficient solution.>
 
 <!-- OPTIONAL — enable by deleting this line and the closing comment line below. Use when the problem has multiple approaches worth comparing.
+---
+
 ## Alternative Approaches
 
 <Compare approaches, e.g. O(N^2) -> O(N log N) -> O(N). For clearly distinct
@@ -247,6 +251,8 @@ flowchart TD
 2. <Step 2>
 
 <!-- OPTIONAL — enable by deleting this line and the closing comment line below. Use for greedy / constructive algorithms.
+---
+
 ## Why It Works (Correctness)
 
 <Argue optimality via an exchange argument or a loop invariant.>
@@ -282,6 +288,8 @@ class Solution:
     - <reason>
 
 <!-- OPTIONAL — enable by deleting this line and the closing comment line below.
+---
+
 ## Edge Cases / Pitfalls
 
 - <Empty input, duplicates, integer overflow, min/max N, off-by-one.>
