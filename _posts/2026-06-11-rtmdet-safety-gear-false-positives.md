@@ -6,7 +6,7 @@ tags: [object-detection, rtmdet, mmdetection, false-positives, dataset-bias, har
 description: "A safety-gear detector scored 0.91 mAP yet fired 'helmet-off' on helmeted workers. Here is the diagnosis, and how empty-GT negatives cut external false positives by 66% with no measured loss on the AIHub in-clip validation mAP."
 author: seoultech
 image:
-  path: assets/img/posts/rtmdet-false-positives/epoch_ablation.png
+  path: /assets/img/posts/rtmdet-false-positives/epoch_ablation.png
   alt: Detection mAP and false-positive count across training epochs
 math: true
 mermaid: true
