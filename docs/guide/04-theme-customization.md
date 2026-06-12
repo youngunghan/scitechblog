@@ -118,6 +118,7 @@
 | `collections.tabs` | 탭 컬렉션을 `order`로 정렬해 출력 |
 | `jekyll-archives` | 카테고리/태그 아카이브 자동 생성 |
 | `compress_html` | 프로덕션 HTML 압축(개발 환경 제외) |
-| `analytics` / `comments.provider` | 슬롯만 있고 현재 미설정(빈 값) |
+| `comments.provider` | `utterances` 활성(`youngunghan/scitechblog`, `pathname`) |
+| `analytics` | 슬롯만 있고 현재 미설정(측정 ID 필요) |
 
-> 댓글·웹 애널리틱스는 자리만 있고 비어 있습니다. 활성화하려면 해당 provider(예: `giscus`, `google`)를 채우면 됩니다.
+> 댓글은 GitHub Issues 기반 `utterances`로 활성화되어 있습니다. 웹 애널리틱스는 Google Analytics의 `G-...` 측정 ID나 GoatCounter/Umami 같은 provider별 site ID가 필요하므로, 실제 ID를 발급받은 뒤 `_config.yml`의 해당 provider를 채웁니다.
