@@ -97,12 +97,12 @@
 | 탭 | 레이아웃 | order | 비고 |
 | --- | --- | --- | --- |
 | `about.md` | page(기본) | 1 | 개인 소개(커스텀 내용) |
-| `challenge.md` | page(기본) | 2 | **커스텀 페이지**: AI Challenge(인라인 CSS + 접이식 목록) |
-| `archives.md` | archives | 3 | 글 아카이브(자동) |
-| `categories.md` | categories | 1 | 카테고리(자동) |
-| `tags.md` | tags | 2 | 태그(자동) |
+| `challenge.md` | page(기본) | 2 | **커스텀 페이지**: AI Challenge(마크다운 로드맵) |
+| `categories.md` | categories | 3 | 카테고리(자동) |
+| `tags.md` | tags | 4 | 태그(자동) |
+| `archives.md` | archives | 5 | 글 아카이브(자동) |
 
-`challenge.md`는 Scott Young의 MIT Challenge에서 착안한 학습 트래킹 페이지로, `<style>`과 `<details>` 마크업으로 직접 꾸민 유일한 커스텀 탭입니다.
+`challenge.md`는 Scott Young의 MIT Challenge에서 착안한 학습 트래킹 페이지로, Chirpy 기본 문서 톤에 맞춘 마크다운 표와 섹션 구조를 사용합니다.
 
 ## 주요 사이트 설정 ([_config.yml](../../_config.yml))
 
