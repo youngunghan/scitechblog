@@ -19,8 +19,9 @@ scitechblog에 올리는 블로그 글을 **유형별로 어떤 구조/스타일
 
 1. [논문 리뷰](paper-review.md) — `[Paper Review]` 글. 읽은 동기 → 방법 → 결과 표 → 인사이트 구조와 수치 대조
 2. [알고리즘 풀이](algorithm.md) — LeetCode/BOJ 글. 문제 → 접근 → 풀이 코드 → 복잡도 구조와 손 추적 검증
-3. [트러블슈팅](troubleshooting.md) — `[Troubleshooting]` 글. 증상 → 원인 분석 → 해결 → 결론 구조
-4. [프로젝트·엔지니어링](project-engineering.md) — 프로젝트 회고/구축기. Challenge별 서술과 아키텍처 다이어그램
+3. [SQL 풀이](sql.md) — SolveSQL 글. 문제 조건 → 결과 스키마 → 쿼리 패턴 → SQL 절별 검증
+4. [트러블슈팅](troubleshooting.md) — `[Troubleshooting]` 글. 증상 → 원인 분석 → 해결 → 결론 구조
+5. [프로젝트·엔지니어링](project-engineering.md) — 프로젝트 회고/구축기. Challenge별 서술과 아키텍처 다이어그램
 
 ## 공통 하우스 스타일
 
@@ -46,6 +47,7 @@ scitechblog에 올리는 블로그 글을 **유형별로 어떤 구조/스타일
 
 - [ ] **논문 표 수치 1:1 대조** — 리뷰 글의 모든 표 수치는 arXiv/원문 PDF의 해당 표와 한 칸씩 직접 대조합니다. 어느 표에서 가져왔는지 캡션에 명시합니다(예: UNet++ 글 Table 1 캡션의 `numbers from the DLMIA 2018 paper, Table 3`). 출처가 다른 두 표(DLMIA 2018 vs IEEE TMI 2020)를 섞지 않습니다.
 - [ ] **알고리즘 손 추적 일치** — 본문의 샘플 입력(예: `s = "abca"`)을 **손으로 추적한 결과**와 코드의 실제 출력이 일치하는지 확인합니다. 가능하면 코드를 직접 실행해 출력을 맞춰봅니다. Mermaid 흐름도/Step-by-Step 설명과 코드 동작이 어긋나면 안 됩니다.
+- [ ] **SQL 결과 스키마·필터 위치 검증** — 출력 컬럼·별칭·정렬이 문제 요구와 일치하는지 확인하고, 행 단위 필터는 `WHERE`, 집계 필터는 `HAVING`, window function 결과 필터는 CTE/바깥 쿼리에서 처리했는지 확인합니다.
 - [ ] **복잡도 표기 검증** — Time/Space Complexity가 실제 코드와 맞는지 재확인합니다(예: sliding window는 각 문자가 최대 2회 방문 → `$O(N)$`, set 공간 `$O(\min(N, \Sigma))$`). Big-O 안의 로그 밑/상수는 생략하되 표기는 일관되게.
 - [ ] **초안/혼잣말 제거** — `wait`, `Oops`, `Correction:`, `Let me reconsider`, `Actually,` 같은 사고 흔적·자기수정 문구를 본문에서 전부 제거합니다. 최종 글은 결론만 깔끔히 남깁니다.
 - [ ] **기술 주장 교차검증** — API/플래그/동작에 대한 주장은 공식 문서로 확인합니다(예: Chirpy `math: true` 트리거, PyTorch DDP `gloo` 백엔드, `torchrun --nproc_per_node`). 기억에 의존하지 말고 1차 출처를 확인합니다.
