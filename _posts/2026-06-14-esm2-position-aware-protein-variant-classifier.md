@@ -5,6 +5,9 @@ date: 2026-06-14 00:00:00 +0900
 categories: [AI, Bioinformatics]
 tags: [esm2, protein-language-model, bioinformatics, pytorch, model-evaluation]
 author: seoultech
+image:
+  path: assets/img/posts/protein-classifier/cover_v3.png
+  alt: Protein Structure with Highlighted Mutation Analysis
 math: true
 mermaid: true
 ---
