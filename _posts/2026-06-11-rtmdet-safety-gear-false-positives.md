@@ -6,7 +6,7 @@ tags: [object-detection, rtmdet, mmdetection, false-positives, dataset-bias, har
 description: "A safety-gear detector scored 0.91 mAP yet fired 'helmet-off' on helmeted workers. Here is the diagnosis, and how empty-GT negatives cut external false positives by 66% with no measured loss on the AIHub in-clip validation mAP."
 author: seoultech
 image:
-  path: /assets/img/posts/rtmdet-false-positives/epoch_ablation.png
+  path: assets/img/posts/rtmdet-false-positives/epoch_ablation.png
   alt: Detection mAP and false-positive count across training epochs
 math: true
 mermaid: true
@@ -16,7 +16,7 @@ mermaid: true
 
 I trained an [RTMDet](https://arxiv.org/abs/2212.07784) object detector to flag two safety violations on construction sites — **no helmet** and **unhooked safety harness** — using AIHub's "high-altitude work site" video dataset (dataset 507). On AIHub's official validation split — frame-held-out, but *not* clip-disjoint (more on that later) — it scored **0.908 mAP** and **0.995 AP@50**. By the usual reading, the problem was solved.
 
-It was not. The same model fired `helmet-off` on workers who were clearly **wearing white helmets**, with 0.79–0.89 confidence. A 0.91-mAP detector was confidently wrong on the easiest possible case.
+It was not. The same model fired `helmet_off` on workers who were clearly **wearing white helmets**, with 0.79–0.89 confidence. A 0.91-mAP detector was confidently wrong on the easiest possible case.
 
 This post is about the gap between that number and reality: how I diagnosed the failure (and ruled out the obvious explanation), why it traces back to a single data-extraction decision, and how adding **empty-GT negatives** cut external false positives by **66%** with no measured loss on the (in-clip) validation mAP. The headline lesson is the one this blog keeps relearning — **a high mAP can hide the failure mode that actually matters.**
 
@@ -34,7 +34,7 @@ The dataset labels every violation at two box granularities — a small **part**
 | 3 | `helmet_off_person` | no helmet | worker (large) |
 | 4 | `hook_off_person` | harness unhooked | worker (large) |
 
-I extracted the ~63k frames containing these classes (~10% of the dataset), fine-tuned RTMDet-m for 12 epochs (~10 h), and evaluated on the 6,984-frame official validation split (frame-held-out, not clip-disjoint):
+I extracted the ~63k frames containing these classes (~10% of the dataset; 56,150 train + 6,984 validation), fine-tuned RTMDet-m for 12 epochs (~10 h), and evaluated on the 6,984-frame official validation split (frame-held-out, not clip-disjoint):
 
 | Metric | Value |
 |--------|:-----:|
@@ -84,24 +84,25 @@ flowchart TB
     A["AIHub 507: 619,718 labeled frames"] --> B["Extract only frames<br/>containing a violation class"]
     B --> C["Training set: every frame<br/>has at least one violation"]
     C --> D["Model learns the shortcut:<br/>worker visible to emit a violation box"]
-    D --> E["A fully-compliant worker<br/>never appears in training"]
+    D --> E["A zero-violation frame<br/>never appears in training"]
     E --> F["At inference, a compliant worker<br/>still gets a violation box = false positive"]
 ```
 
-The model **never saw a fully-compliant worker** — one present in the frame with zero violations. Every example told it "where there is a worker, there is a violation." So at inference it leans the same way — often firing on a compliant worker, and defaulting to `helmet_off` (the easier-to-localize cue) when it does. This is a textbook negative-space gap: the high validation mAP is real, but the validation set carries the *same* violation-only bias, so it cannot measure the compliant-worker false-positive rate at all.
+The model **never saw a zero-violation frame** — a worker present with no violation labeled. Since every training image contained at least one violation, the model never learned that a visible worker can warrant *no* box. So at inference it leans the same way — often firing on a compliant worker, and defaulting to `helmet_off` (the easier-to-localize cue) when it does. This is a textbook negative-space gap: the high validation mAP is real, but the validation set carries the *same* violation-only bias, so it cannot measure the compliant-worker false-positive rate at all.
 
 **Lesson:** A dataset filtered to "only frames with the target" teaches presence, not discrimination. If the model will ever see the negative case in production, the negative case has to be in training.
 
 ## Challenge 5: The Fix — Empty-GT Negatives
 
-The prescription follows directly from the diagnosis: show the model compliant workers with **no boxes to predict**. In object detection these are *empty-GT negatives* — images whose ground truth is an empty annotation list. The model gets penalized for every box it emits on them. The only catch is that detection frameworks discard annotation-less images by default; you have to keep them explicitly.
+The prescription follows directly from the diagnosis: show the model compliant workers with **no boxes to predict**. In object detection these are *empty-GT negatives* — images whose ground truth is an empty annotation list. Because such an image has no foreground target to match, any box the model proposes there is trained toward background, pushing its scores on compliant workers down. The only catch is that detection frameworks discard annotation-less images by default; you have to keep them explicitly.
 
 ```python
 # configs/helmet_hook/rtmdet_m_helmet_hook_neg.py  (MMDetection config; overrides the RTMDet base)
 train_dataloader = dict(
     dataset=dict(
         ann_file='train_neg.json',   # 56,150 positives + 26,855 compliant negatives
-        filter_empty_gt=False,       # KEY: do NOT drop zero-annotation (compliant) frames
+        # KEY: keep zero-annotation (compliant) frames — MMDetection 3.x filters them out by default
+        filter_cfg=dict(filter_empty_gt=False, min_size=32),
     )
 )
 ```
@@ -127,13 +128,13 @@ I sourced negatives from compliant-worker frames in the *same* sites (so they ar
 
 Same architecture and schedule — the intended variable was the 2,250 empty-GT negatives added to model B (the seed was not pinned, so it varied too; see Limitations):
 
-| | val mAP | FP images (of 50) | FP boxes | `helmet_head` boxes |
+| | val mAP | FP images (of 50) | FP boxes | `helmet_off_head` boxes |
 |---|:---:|:---:|:---:|:---:|
 | **A** (no negatives) | 0.880 | 50 | 159 | 100 |
 | **B** (+2,250 negatives) | 0.869 | **24** | **72** | **24** |
 | change | −0.011 | **−52%** | **−55%** | **−76%** |
 
-Adding negatives cut false-positive boxes by 55% while validation mAP barely moved (−0.011). One caveat: these false-positive counts use the same in-domain probe that overlaps the training negatives, so read the A/B *magnitude* as directional — the clean cross-domain estimate is the YouTube −66% in the Results section. The direction was confirmed; the magnitude said "scale it up."
+Adding negatives cut false-positive boxes by 55% while validation mAP barely moved (−0.011). Two caveats: (1) this A/B is RTMDet-**tiny**, so its absolute false-positive counts are lower than the full RTMDet-m run in the Results section (159 here vs 314 there for the same 50-frame probe); (2) these counts use the same in-domain probe that overlaps the training negatives, so read the A/B *magnitude* as directional — the clean cross-domain estimate is the YouTube −66% in the Results section. The direction was confirmed; the magnitude said "scale it up."
 
 ### Then, the full-scale run (RTMDet-m + 26,855 negatives)
 
@@ -144,23 +145,23 @@ flowchart LR
     T --> M["RTMDet-m<br/>filter_empty_gt=False, 10 epochs"]
 ```
 
-The full negative set (26,855 compliant frames, ~0.48× the positives) trained cleanly for 10 epochs. Validation mAP rose monotonically — 0.895 → 0.901 → 0.906 → 0.911 — with the final gain realized in the cosine-decay tail (loss 0.30 → 0.23):
+The full negative set (26,855 compliant frames, ~0.48× the positives) trained cleanly for 10 epochs. Validation mAP rose monotonically across epochs 4→10 — 0.895 → 0.901 → 0.906 → 0.911 — with the final gain realized in the cosine-decay tail (loss 0.30 → 0.23):
 
 ![Negative-model training loss over 10 epochs, with the cosine-decay tail annotated](/assets/img/posts/rtmdet-false-positives/neg_train_loss.png)
 _Training loss for the negative model. The flat fixed-LR region (~0.30) drops to ~0.23 once cosine decay kicks in (epochs 5–10), the same window where validation mAP climbs 0.906 → 0.911._
 
 ## Results
 
-The headline comparison is on the **external YouTube probe**, because it is the only one with no overlap with training data (see Limitations for why that distinction matters):
+The headline comparison is on the **external YouTube probe** — six frames I manually checked as fully compliant (workers wearing helmets) — because it is the only set with no overlap with training data (see Limitations). Every count below is boxes scoring above the 0.3 threshold; on a compliant frame, any such box is a false positive:
 
 | Probe | Baseline (no neg) | + Empty-GT negatives | Reduction |
 |-------|:---:|:---:|:---:|
-| **External YouTube** (6 frames, unlabeled) | 61 boxes · 6 of 6 frames | **21 boxes · 6 of 6 frames** | **−66%** |
+| **External YouTube** (6 compliant frames) | 61 boxes · 6 of 6 frames | **21 boxes · 6 of 6 frames** | **−66%** |
 | In-domain `New_Sample` (50 frames) | 314 boxes · 50 of 50 | 22 boxes · 14 of 50 | −93% † |
 
 _† The in-domain −93% is a training-distribution suppression rate, not a generalization estimate — the probe overlaps the training negatives. See Limitations._
 
-![Grouped bar chart: false-positive boxes for baseline vs the empty-GT-negative model, on the external YouTube probe and the in-domain probe](/assets/img/posts/rtmdet-false-positives/fp_comparison.png)
+![Two-panel bar chart: false-positive boxes for baseline vs the empty-GT-negative model, on the external YouTube probe and the in-domain probe](/assets/img/posts/rtmdet-false-positives/fp_comparison.png)
 _False-positive boxes, baseline vs + empty-GT negatives. The clean external probe (left) is the headline; the in-domain probe (right) is larger but contaminated. Independent y-axes._
 
 And crucially, suppressing the false positives did **not** cost detection accuracy on real violations:
@@ -191,9 +192,10 @@ Epoch 2's low false-positive count is an artifact of an under-confident model: t
 This fix is real but partial, and two of the headline numbers need honest caveats.
 
 - **External transfer is incomplete.** In-domain false positives nearly vanished, but the external YouTube probe still kept 21 boxes (−66%, not −100%). Every negative I added is from the AIHub domain, so it transfers only partially to out-of-domain footage. Fully closing the gap needs **external-domain compliant negatives**, which I do not have.
+- **The external result is a small sanity probe, not a benchmark.** It is six frames from a single YouTube clip — enough to expose the failure and show the negatives clearly help, not enough to quantify a rate. Read the −66% as directional.
 - **2,250 negatives were not enough.** In the A/B run, some compliant frames — different sites, orange helmets the negatives under-covered — still drew `helmet_off`. Negative *diversity*, not just count, matters.
 - **The in-domain −93% is contaminated.** The 50-frame in-domain probe overlaps the training negatives (some frames are byte-identical, all are within ≤6 frames of a training negative). So −93% is a *training-distribution suppression rate*, not generalization. This is exactly why I lead with the clean external −66%.
-- **Even the 0.91 mAP is near-train.** AIHub 507's official train/val split interleaves frames *within the same clip* — 94.2% of validation frames sit within ±1 label-index of a training frame from the same fixed-camera clip. So 0.908/0.911 reflects near-train performance, which is precisely why an external probe was able to expose a failure the validation set structurally could not. A clip-disjoint re-split would report a lower, more honest number. (This deserves its own post.)
+- **Even the 0.91 mAP is near-train.** AIHub 507's official train/val split interleaves frames *within the same clip* — 94.2% of validation frames sit within ±1 label-index of a training frame from the same fixed-camera clip. So 0.908/0.911 reflects near-train performance, which is precisely why an external probe was able to expose a failure the validation set structurally could not. A clip-disjoint re-split would report a lower, more honest number — a future post in this series will dig into that.
 - **No fixed seed.** MMDetection's training does not fix a seed by default, so ±0.003 mAP deltas are within run-to-run variance — another reason to read the detection result as "no loss," not "improvement."
 
 ## Conclusion
@@ -204,12 +206,19 @@ This fix is real but partial, and two of the headline numbers need honest caveat
 
 ## Reproduction
 
-The dataset is licensed, so the frames are not redistributed here, but the evaluation is two commands on the trained checkpoints — detection mAP through MMDetection's `test.py`, and the compliant-worker false-positive counts through a small probe script:
+The dataset is licensed, so the frames are not redistributed here, but the evaluation is a handful of commands on the trained checkpoints — detection mAP (baseline and + negatives) through MMDetection's `test.py`, and the compliant-worker false-positive counts through a small probe script:
 
 ```bash
-# Detection mAP on the 6,984 real-violation validation frames
+# Baseline (no negatives) detection mAP — its config already evaluates val.json (6,984 frames)
+python tools/test.py configs/helmet_hook/rtmdet_m_helmet_hook.py \
+    work_dirs/helmet_hook/best_coco_bbox_mAP_epoch_12.pth
+
+# + negatives model on the SAME 6,984 real-violation frames (val.json).
+# Its config defaults to val_neg.json (20,341 frames incl. negatives), so override it:
 python tools/test.py configs/helmet_hook/rtmdet_m_helmet_hook_neg.py \
-    work_dirs/helmet_hook_neg/epoch_10.pth
+    work_dirs/helmet_hook_neg/epoch_10.pth \
+    --cfg-options test_dataloader.dataset.ann_file=val.json \
+        test_evaluator.ann_file=$HOME/repo/datasets/helmet_hook_coco/val.json
 
 # Compliant-worker false positives, baseline vs + negatives (in-domain + YouTube probes)
 python scripts/measure_fp.py \
