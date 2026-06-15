@@ -3,7 +3,7 @@ title: "Building a Secure HTTPS CI/CD Pipeline for FastAPI on AWS EC2"
 description: "Deploying a FastAPI app to AWS EC2 with HTTPS via Nginx and Certbot, automated through GitHub Actions."
 date: 2025-12-02 00:00:00 +0900
 categories: [DevOps, CI/CD]
-tags: [FastAPI, AWS, EC2, Docker, GitHub Actions, HTTPS, Nginx, Certbot]
+tags: [fastapi, aws, ec2, docker, github-actions, https, nginx, certbot]
 author: seoultech
 image:
   path: assets/img/posts/fastapi-https/architecture_overview.png

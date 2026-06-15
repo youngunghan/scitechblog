@@ -70,6 +70,7 @@ mermaid: true
 
 - 리스트 표기는 따옴표 유무가 혼용됩니다(`['Algorithm', 'LeetCode']` / `[AI, Bioinformatics]`). 한 글 안에서는 일관되게 적습니다.
 - 카테고리·태그 페이지는 `jekyll-archives`가 자동 생성합니다(`/categories/:name/`, `/tags/:name/`). 새 카테고리/태그를 쓰면 해당 아카이브 페이지도 자동 생깁니다.
+- **태그 표기 규칙 — 한 개념엔 한 표기.** 새 글의 태그는 **소문자-하이픈(kebab-case)** 을 권장합니다(예: `github-actions`, `object-detection`, `ci-cd`). 이유: `jekyll-archives`는 태그를 *원본 문자열* 단위로 페이지를 만들지만 URL은 `:name`을 slugify(소문자화·공백→하이픈)하므로, **같은 개념을 두 표기로 쓰면**(`FastAPI`+`fastapi`, `GitHub Actions`+`github-actions`) 둘 다 같은 `/tags/fastapi/` 주소를 노려 **destination 충돌**(빌드 경고, 한쪽 글이 누락될 수 있음)이 납니다. (기존 알고리즘·리뷰 글의 `Algorithm`·`LeetCode` 같은 TitleCase 태그는 *각자 일관되게* 쓰여 충돌이 없고 URL도 이미 소문자라 그대로 둡니다 — 충돌은 오직 **혼용**일 때만.) 새 태그를 더할 땐 `/tags/`에 같은 개념이 다른 표기로 이미 있는지 확인하세요.
 
 ## 글쓴이(author)
 
