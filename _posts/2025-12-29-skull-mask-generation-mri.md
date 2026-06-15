@@ -1,9 +1,9 @@
 ---
-title: "A Classical Baseline for Skull-Mask Generation on a 5-Slice MRI Set"
+title: "A Classical Skull-Mask Baseline, and What 5 MRI Slices Did Not Prove"
 date: 2025-12-29 00:00:00 +0900
 categories: [AI, Medical Imaging]
 tags: [mri, image-segmentation, opencv, morphological-operations, skull-stripping]
-description: "A classical image processing approach to skull mask generation, reaching IoU 0.98 in a small internal 5-slice experiment—no deep learning required."
+description: "A classical image processing baseline reached IoU 0.9795 on 5 MRI slices, but the result came with important validation caveats."
 author: seoultech
 image:
   path: assets/img/posts/skull-mask/cover.png
@@ -20,7 +20,9 @@ Recently, I worked on a task to generate **skull masks** from MRI images. The go
 
 My first instinct was **U-Net**. But I only had **5 labeled images**—not enough to train a robust model from scratch.
 
-So I went with classical image processing instead. The result: **IoU 0.9794, Dice 0.9896**.
+So I went with classical image processing instead. The result looked strong on the provided slices: **IoU 0.9795, Dice 0.9896**.
+
+The important part is the caveat. My first explanation overemphasized an edge-touching scalp rule. A later review showed that, on these 5 slices, no bright connected component touched the image border at all. The baseline still worked, but the score was mainly carried by a simpler path: choose the largest internal bright component, dilate it by 26 pixels, then fill holes.
 
 ---
 
@@ -43,7 +45,7 @@ These are extremely small values—not the typical 0-255 range you'd expect. Thi
 
 ## Algorithm Overview
 
-After several iterations (more on that later), I settled on this pipeline:
+After several iterations (more on that later), I settled on this implementation:
 
 ```mermaid
 flowchart LR
@@ -55,11 +57,12 @@ flowchart LR
         B[Normalize<br/>0-255] --> C[Otsu<br/>Binarization]
         C --> D[Connected<br/>Components]
         D --> E{Edge<br/>Touching?}
-        E -->|Yes| F[Scalp]
-        E -->|No| G[Brain]
-        G --> H[Dilation<br/>26px]
-        H --> I[Remove<br/>Scalp]
-        I --> J[Fill<br/>Holes]
+        E -->|Yes| F[Scalp<br/>candidate]
+        E -->|No| G[Brain<br/>candidate]
+        F --> I[Filter scalp<br/>candidate if present]
+        G --> I
+        I --> H[Dilation<br/>26px]
+        H --> J[Fill<br/>Holes]
     end
     
     subgraph Output
@@ -69,12 +72,20 @@ flowchart LR
     A --> B
     J --> K
     
-    style F fill:#ff6b6b,color:#fff
+    style F fill:#d0d4da,color:#333,stroke-dasharray: 5 5
     style G fill:#51cf66,color:#fff
     style K fill:#339af0,color:#fff
 ```
 
-The key insight: **Scalp touches the image border, Brain does not.**
+The intended rule was: **edge-touching bright components can be scalp candidates, while non-edge components can be brain candidates**. In the actual 5-slice dataset, the edge-touching bright component counts were `[0, 0, 0, 0, 0]`. That means the scalp-candidate removal branch existed in the code, but these slices did not exercise it.
+
+The load-bearing path for the reported score was:
+
+1. normalize the image,
+2. use Otsu thresholding to find bright tissue,
+3. choose the largest internal bright connected component,
+4. dilate it by `26px` to include the skull boundary,
+5. fill internal holes.
 
 The snippets below assume these imports:
 
@@ -101,11 +112,9 @@ def normalize_image(image: np.ndarray) -> np.ndarray:
     if img_max == img_min:
         # Flat image: avoid division by zero
         return np.zeros_like(image, dtype=np.uint8)
-    # end if
     img_norm = (image - img_min) / (img_max - img_min)
     img_uint8 = (img_norm * 255).astype(np.uint8)
     return img_uint8
-# end def
 ```
 
 **Before**: Values in range `[1.8e-07, 3.5e-05]`
@@ -154,39 +163,47 @@ Count
 
 ---
 
-## Step 3: Connected Component Analysis
+## Step 3: Connected Components: The Intended Rule
 
-### The Key Insight
+### The Intended Rule
 
-After binarization, we have bright regions (tissue) and dark regions (background). But how do we distinguish between **Scalp** (which we want to remove) and **Brain** (which we want to keep)?
+After binarization, we have bright regions (tissue) and dark regions (background). The intended connected-component rule was:
 
-Here's the crucial observation:
+| Region candidate | Rule |
+|:-----------------|:-----|
+| **Scalp candidate** | A bright component that touches the image border |
+| **Brain candidate** | A bright component that does not touch the image border |
 
-| Region | Characteristic |
-|:-------|:---------------|
-| **Scalp** | Touches the image border |
-| **Brain** | Does NOT touch the image border |
+This is a reasonable image-processing heuristic for some cropped slices: outer bright tissue may be connected to the border, while the brain candidate is enclosed inside.
 
-This makes sense anatomically: the scalp wraps around the head and extends to the edges of the MRI slice, while the brain is enclosed inside.
+But it did **not** fire on these 5 slices. After Otsu binarization, the number of edge-touching bright components per slice was:
 
-### Visual Explanation
+```text
+[0, 0, 0, 0, 0]
+```
+
+So in this dataset, connected components mainly provided a stable **largest internal bright component**. The scalp-candidate branch was present, but not validated by the sample.
+
+### Illustrative Diagram
 
 ```
 MRI Image (Binarized):
 
 ┌─────────────────────────────────┐
-│█████████████████████████████████│← Touches top edge (Scalp)
+│█████████████████████████████████│← Border-touching bright component
 │██                             ██│
-│█                               █│← Touches left/right edges (Scalp)
+│█                               █│← Scalp candidate in the intended rule
 │█    ┌───────────────────┐      █│
 │█    │                   │      █│
-│█    │      Brain        │      █│← No edge contact (Brain)
+│█    │  Brain candidate  │      █│← No edge contact
 │█    │                   │      █│
 │█    └───────────────────┘      █│
 │██                             ██│
-│█████████████████████████████████│← Touches bottom edge (Scalp)
+│█████████████████████████████████│
 └─────────────────────────────────┘
 ```
+
+This diagram explains the intended rule. It is **not** what happened in the 5 provided slices, where no bright component touched the border.
 
 ### Implementation
 
@@ -194,22 +211,24 @@ MRI Image (Binarized):
 for label in range(1, num_labels):
     component = (labels == label)
     
-    touches_edge = (
-        np.any(component[0, :]) or      # Top row
-        np.any(component[-1, :]) or     # Bottom row
-        np.any(component[:, 0]) or      # Left column
-        np.any(component[:, -1])        # Right column
+    touches_edge = any(
+        (
+            np.any(component[0, :]),    # Top row
+            np.any(component[-1, :]),   # Bottom row
+            np.any(component[:, 0]),    # Left column
+            np.any(component[:, -1]),   # Right column
+        )
     )
     
     if touches_edge:
-        # This is Scalp → Remove later
+        # Scalp candidate: remove later if present
         edge_labels.add(label)
     else:
-        # This is Brain → Keep
+        # Brain candidate: keep for largest-component selection
         inner_labels.append(label)
-    # end if
-# end for
 ```
+
+A quick synthetic sanity check confirmed that a border-touching component is labeled as a scalp candidate. That is useful, but it is not the same as validating the path on real MRI slices.
 
 ---
 
@@ -256,7 +275,9 @@ I tested various dilation sizes:
 | 28 | 0.9788 | 0.9893 |
 | 30 | 0.9763 | 0.9880 |
 
-On these slices, 26 pixels gave the best trade-off—the expanded brain region covered the skull bone well without extending too far into the scalp.
+On these slices, 26 pixels gave the best trade-off: the expanded brain candidate covered the skull boundary, while larger kernels over-expanded past the ground-truth boundary.
+
+The table is the dilation sweep summary. The final all-slice reported score from the full pipeline is **IoU 0.9795, Dice 0.9896**; the small IoU difference comes from aggregation/rounding details in the sweep versus the final reported average.
 
 ---
 
@@ -298,7 +319,7 @@ $$
 - **IoU = 1.0**: Perfect overlap
 - **IoU = 0.0**: No overlap at all
 
-Our result: **IoU = 0.9794** means the intersection is 97.94% of the union with the ground truth.
+Our final all-slice result: **IoU = 0.9795** means the intersection is about 97.95% of the union with the ground truth on this tiny set.
 
 ### Dice Coefficient
 
@@ -310,7 +331,9 @@ Our result: **Dice = 0.9896** is considered excellent in medical image segmentat
 
 ### A Note on Validation Limits
 
-These numbers come from just 5 slices, so they describe how the pipeline fits this small internal set rather than how it would generalize. Real deployment would need external validation on unseen scans, 3D/volume-level splits (so slices from the same volume don't leak between tuning and evaluation), and awareness that scanner and acquisition-protocol differences can shift intensities enough to break a fixed threshold. For details on `cv2.threshold` and Otsu behavior, see the [OpenCV imgproc misc docs](https://docs.opencv.org/4.x/d7/d1b/group__imgproc__misc.html).
+These numbers come from just 5 slices, and the dilation size was selected on the same small set. So the result describes how the pipeline fits this provided sample, not how it would generalize.
+
+There is one more important limit: the scalp-candidate removal path was not exercised because the edge-touching bright component count was zero for every slice. Real deployment would need external validation on unseen scans, 3D/volume-level splits (so slices from the same volume don't leak between tuning and evaluation), and samples where border-touching scalp candidates actually occur. For details on `cv2.threshold` and Otsu behavior, see the [OpenCV imgproc misc docs](https://docs.opencv.org/4.x/d7/d1b/group__imgproc__misc.html).
 
 ---
 
@@ -321,13 +344,13 @@ I didn't arrive at this solution immediately. Here's my iteration history:
 | Version | Approach | IoU | Issue |
 |:--------|:---------|:----|:------|
 | v1 | Otsu + Largest Component | 0.73 | Skull bone not included |
-| v2 | Flood Fill from Edges | 0.82 | Incomplete scalp removal |
+| v2 | Flood Fill from Edges | 0.82 | Border handling was unstable |
 | v3-v4 | Various Thresholds | 0.54 | Made it worse |
-| v5 | Connected Components + Dilation | 0.96 | Key breakthrough |
+| v5 | Connected Components + Dilation | 0.96 | Stable brain seed + skull-boundary coverage |
 | v6 | Dilation Size Tuning | 0.97 | Improved |
 | **v7** | **Optimized Dilation (26px)** | **0.98** | **Final** |
 
-The key insight came in v5 when I realized that **edge-touching** was the discriminating feature between scalp and brain, not just brightness values.
+The useful shift in v5 was not that the edge branch proved itself on this dataset. It was that connected components gave a stable bright brain candidate, and dilation expanded that candidate far enough to cover the dark skull boundary.
 
 ---
 
@@ -366,36 +389,30 @@ The classical approach was fast enough for this scale on CPU (single-process vs 
 
 ```python
 import numpy as np
+from functools import partial
 from multiprocessing import Pool
 
-# create_skull_mask() is the full Step 1-5 pipeline above, saved as skull_mask_generator.py
 from skull_mask_generator import create_skull_mask
-
-
-def process_single(image: np.ndarray) -> np.ndarray:
-    return create_skull_mask(image)
-# end def
 
 
 if __name__ == '__main__':
     images = np.load('large_dataset.npy')
+    dilation_size = 26
+    worker = partial(create_skull_mask, dilation_size=dilation_size)
     
     with Pool(processes=8) as pool:
-        masks = pool.map(process_single, images)
-    # end with
+        masks = pool.map(worker, images)
     
     np.save('output_masks.npy', np.array(masks))
-# end if
 ```
 
 ---
 
 ## Conclusion
 
-**Key insights:**
-1. **Edge-touching property** was the breakthrough—Scalp touches borders, Brain doesn't
-2. **Iterate and measure**—v1-v4 failed, v5 worked
-3. **Simple can be a strong baseline**—Otsu + Connected Components + Dilation = 98% IoU
+**Key takeaways:**
+1. **Classical baselines can be useful** when labeled data is tiny and the image structure is stable.
+2. **A high score on 5 tuned slices is not deployment evidence.** It is a promising internal fit, not a generalization claim.
+3. **A code path can exist without being validated.** Here, scalp-candidate removal was implemented, but the provided slices never triggered it.
 
-Not every problem needs deep learning.
-
+Not every problem needs deep learning, but every strong-looking number needs a careful account of what was actually tested.
