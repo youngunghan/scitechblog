@@ -23,10 +23,16 @@
         {% include media-url.html src=src subpath=page.media_subpath absolute=true %}
       {%- endcapture -%}
 
-      {%- capture old_url -%}{{ src | absolute_url }}{%- endcapture -%}
+      {%- comment -%}
+        jekyll-seo-tag resolves a relative `image.path` against the page URL, emitting
+        `.../posts/<slug>/assets/...` for og:image/twitter:image. Replace BOTH that
+        page-relative form and the root-relative form with the correct Chirpy media URL.
+      {%- endcomment -%}
+      {%- capture old_url_root -%}{{ src | absolute_url }}{%- endcapture -%}
+      {%- capture old_url_page -%}{{ page.url | absolute_url | append: src }}{%- endcapture -%}
       {%- capture new_url -%}{{ img_url }}{%- endcapture -%}
 
-      {% assign seo_tags = seo_tags | replace: old_url, new_url %}
+      {% assign seo_tags = seo_tags | replace: old_url_page, new_url | replace: old_url_root, new_url %}
     {% endunless %}
 
   {% elsif site.social_preview_image %}
