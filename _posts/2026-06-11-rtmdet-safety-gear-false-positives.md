@@ -3,7 +3,7 @@ title: "When 0.91 mAP Still Fails: Fixing Safety-Gear False Positives with Empty
 date: 2026-06-11 00:00:00 +0900
 categories: [AI, Computer Vision]
 tags: [object-detection, rtmdet, mmdetection, false-positives, dataset-bias, hard-negative-mining]
-description: "A safety-gear detector scored 0.91 mAP yet fired 'helmet-off' on helmeted workers. Here is the diagnosis, and how empty-GT negatives cut external false positives by 66% with no measured loss on the AIHub in-clip validation mAP."
+description: "A safety-gear detector scored 0.91 mAP yet fired 'helmet_off' on helmeted workers. Here is the diagnosis, and how empty-GT negatives cut external false positives by 66% with no measured loss on the AIHub in-clip validation mAP."
 author: seoultech
 image:
   path: assets/img/posts/rtmdet-false-positives/epoch_ablation.png
@@ -142,7 +142,7 @@ Adding negatives cut false-positive boxes by 55% while validation mAP barely mov
 flowchart LR
     P["Positive frames<br/>56,150 with violations"] --> T["train_neg.json"]
     N["Compliant frames<br/>26,855 empty-GT"] --> T
-    T --> M["RTMDet-m<br/>filter_empty_gt=False, 10 epochs"]
+    T --> M["RTMDet-m<br/>filter_cfg(filter_empty_gt=False), 10 epochs"]
 ```
 
 The full negative set (26,855 compliant frames, ~0.48× the positives) trained cleanly for 10 epochs. Validation mAP rose monotonically across epochs 4→10 — 0.895 → 0.901 → 0.906 → 0.911 — with the final gain realized in the cosine-decay tail (loss 0.30 → 0.23):
@@ -202,7 +202,7 @@ This fix is real but partial, and two of the headline numbers need honest caveat
 
 1. **A high mAP measures the labels, not the world.** 0.995 AP@50 coexisted with confident `helmet_off` calls on helmeted workers, because the validation set shared the training set's blind spot. Always probe the negative case the labels omit.
 2. **Reproduce the failure before explaining it.** The "obvious" cause was domain shift; reproducing the false positive *in-domain* falsified that and pointed at the real cause — a violation-only extraction filter that erased the compliant-worker class.
-3. **Empty-GT negatives are a cheap, targeted fix.** Adding compliant frames with `filter_empty_gt=False` cut external false positives 66% with no measured loss on the (near-train) validation mAP — but only as far as the negatives' domain reaches, so diversity and clean, disjoint evaluation are the next requirements.
+3. **Empty-GT negatives are a cheap, targeted fix.** Adding compliant frames with `filter_cfg(filter_empty_gt=False)` cut external false positives 66% with no measured loss on the (near-train) validation mAP — but only as far as the negatives' domain reaches, so diversity and clean, disjoint evaluation are the next requirements.
 
 ## Reproduction
 

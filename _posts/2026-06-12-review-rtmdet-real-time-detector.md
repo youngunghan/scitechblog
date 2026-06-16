@@ -33,7 +33,7 @@ Second, it is the detector behind a large slice of OpenMMLab's `mmdetection`, so
 
 Real-time object detection has been dominated by the YOLO family (YOLOX, YOLOv5/6/7, PPYOLOE), which iterates aggressively on the same recipe. RTMDet asks a cleaner question: if you systematically study each component — the basic block, the capacity split between backbone and neck, the detection head, the label assignment, and the training pipeline — how far can a real-time detector go without inventing a new module?
 
-The paper's stated answer (from the abstract): RTMDet reaches **52.8% AP on COCO at 300+ FPS** on an NVIDIA 3090, offers the best parameter-accuracy trade-off across tiny→extra-large sizes, and set what were, at publication, new state-of-the-art results for real-time instance segmentation and rotated detection. Its contributions are, in effect:
+The paper's stated answer (from the abstract): RTMDet reaches **52.8% AP on COCO at 300+ FPS** on an NVIDIA 3090, offers the best parameter-accuracy trade-off across tiny→extra-large sizes, and, at publication, set new state-of-the-art results for real-time instance segmentation and rotated detection. Its contributions are, in effect:
 
 1. An efficient **macro architecture** with *compatible capacities* in the backbone and neck.
 2. A basic building block based on **large-kernel depth-wise convolutions** (CSPNeXt).
@@ -113,7 +113,7 @@ The headline benchmark is the parameter-accuracy-latency trade-off across the fi
 | RTMDet-l | 52.3 | 80.2 | 2.40 | 51.5 |
 | **RTMDet-x** | 94.9 | 141.7 | 3.10 | **52.8** |
 
-_Table 1: RTMDet COCO results (numbers from the paper's Table 2; latency on an NVIDIA 3090 with TensorRT-FP16, batch size 1). The released MMDetection model zoo lists the same figures up to rounding — e.g. it reports 2.44 ms for RTMDet-l vs the paper's 2.40. The main claim, RTMDet-x at 52.8% AP and 3.10 ms (~300+ FPS), is the bold row._
+_Table 1: RTMDet COCO results (numbers from the paper's Table 2; latency on an NVIDIA 3090 with TensorRT-FP16, batch size 1). The released MMDetection model zoo mostly matches, with small repo/paper discrepancies — e.g. RTMDet-l latency 2.44 ms (zoo) vs 2.40 (paper), and RTMDet-s params 8.89M (zoo) vs 8.99M (paper). The main claim, RTMDet-x at 52.8% AP and 3.10 ms (~300+ FPS), is the bold row._
 
 ![RTMDet COCO box AP versus model size (tiny to extra-large), with each point's inference latency annotated](/assets/img/posts/paper-reviews/rtmdet-tradeoff.png)
 _The accuracy-vs-size curve from the table above. Each step up the ladder buys diminishing AP for steadily more parameters and latency — yet even RTMDet-tiny clears 41% AP at 0.98 ms._
@@ -141,7 +141,7 @@ That a single backbone + assignment design tops three task leaderboards is the s
 
 ## Conclusion & Insight
 
-RTMDet is a refreshing kind of paper: it advances the state of the art not by proposing one clever module but by **measuring** a coherent set of design decisions and keeping the ones that pay. The result is a clean, reproducible family of real-time detectors that generalizes across detection, segmentation, and rotated boxes.
+RTMDet is a refreshing kind of paper: it advanced the state of the art (at publication) not by proposing one clever module but by **measuring** a coherent set of design decisions and keeping the ones that pay. The result is a clean, reproducible family of real-time detectors that generalizes across detection, segmentation, and rotated boxes.
 
 ### Strengths
 
