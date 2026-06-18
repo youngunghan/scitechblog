@@ -22,6 +22,8 @@ Instead of assuming it, I tested it — cheaply. Four short runs that weaken D i
 > **Setup.** Multi-stage CLIP-guided GAN (64→128→256, per-stage discriminators, CLIP ViT-B/32 text conditioning). 25% subset of MM-CelebA-HQ captions: 2,490 train / 510 test. Single RTX 4060 Ti (8 GB), batch 4, ~204 s/epoch, seed 42, PyTorch 2.4. FID is the standard torchmetrics 2048-d pool3, fakes conditioned on each test caption. Dataset is licensed, so only metric plots are shown.
 {: .prompt-info }
 
+For the model map behind this experiment, see the companion architecture note: ["MS-CLIP-GAN Architecture: How a CLIP-Guided Multi-Stage GAN Is Wired"]({% post_url 2026-06-18-ms-clip-gan-architecture %}). Short version: this is a three-stage generator with three stage-wise discriminators, so the balance question was not abstract — it was specifically whether that discriminator stack was too strong for the generator refiners.
+
 ## The Symptom: Best at Epoch 20, Then It Falls Apart
 
 The baseline run (default config, 100 epochs) does not converge to its best — it *passes through* it:
@@ -151,4 +153,4 @@ Environment: PyTorch 2.4, CLIP ViT-B/32, single RTX 4060 Ti (8 GB), seed 42. The
 - **TTUR & FID** — Heusel et al., *GANs Trained by a Two Time-Scale Update Rule...*, NeurIPS 2017 ([arXiv:1706.08500](https://arxiv.org/abs/1706.08500))
 - **EMA / generator averaging** — Yazıcı et al., *The Unusual Effectiveness of Averaging in GAN Training*, ICLR 2019 ([arXiv:1806.04498](https://arxiv.org/abs/1806.04498))
 - **Multi-stage T2I GANs** — StackGAN++ ([arXiv:1710.10916](https://arxiv.org/abs/1710.10916)); LAFITE ([arXiv:2111.13792](https://arxiv.org/abs/2111.13792))
-- **Prerequisite** — this experiment only means something because the FID was fixed first: ["Your FID of 0.24 Isn't Near-Perfect"]({% post_url 2026-06-18-troubleshooting-fid-wrong-feature-space %}).
+- **Prerequisites** — this experiment only means something because the FID was fixed first: ["Your FID of 0.24 Isn't Near-Perfect"]({% post_url 2026-06-18-troubleshooting-fid-wrong-feature-space %}); and because the model structure makes the D-balance hypothesis precise: ["MS-CLIP-GAN Architecture: How a CLIP-Guided Multi-Stage GAN Is Wired"]({% post_url 2026-06-18-ms-clip-gan-architecture %}).

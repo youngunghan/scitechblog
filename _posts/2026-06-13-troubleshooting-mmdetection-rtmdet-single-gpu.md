@@ -5,6 +5,9 @@ categories: [Development, Troubleshooting]
 tags: [mmdetection, rtmdet, pytorch, mmcv, cuda, single-gpu]
 description: "RTMDet trains great on one consumer GPU — once you survive the prebuilt-wheel lock, a pkg_resources crash, and a pip ResolutionImpossible (and debunk the SyncBN scare). The exact pins and fixes that worked."
 author: seoultech
+image:
+  path: assets/img/posts/troubleshooting/rtmdet-single-gpu-stack.png
+  alt: "Dependency stack for training RTMDet on one 8 GB GPU"
 ---
 
 ## Introduction
@@ -13,6 +16,9 @@ RTMDet's paper trains on 8 GPUs. I wanted to fine-tune RTMDet-m on **one RTX 406
 
 > **Environment (where these reproduce).** WSL2 (Ubuntu) · NVIDIA RTX 4060 Ti 8 GB · CUDA 12.1 · conda env, Python 3.10.20. Verified stack: `torch 2.1.0+cu121`, `torchvision 0.16.0+cu121`, `mmcv 2.1.0`, `mmengine 0.10.7`, `mmdet 3.3.0`, `numpy 1.26.4`, `setuptools 69.5.1`, `opencv-python 4.13.0.92`. Bugs depend on versions — these are the ones I hit. My live env happens to run `opencv-python 4.13.0.92` (fine at runtime), but `opencv-python 4.13` can't be *clean-installed* against `numpy<2` — for a reproducible install pin `opencv-python==4.11.0.86` (Problem 4).
 {: .prompt-info }
+
+![Dependency stack for training RTMDet on one 8 GB GPU](/assets/img/posts/troubleshooting/rtmdet-single-gpu-stack.png)
+_RTMDet-m itself fit comfortably on an 8 GB card. The brittle part was choosing a wheel-compatible PyTorch/MMCV/MMDetection stack and pinning the packages around it._
 
 ## Problem 1: `mmcv` has no prebuilt wheel for your PyTorch version
 

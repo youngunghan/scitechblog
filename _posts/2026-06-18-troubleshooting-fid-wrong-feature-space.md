@@ -120,4 +120,4 @@ On our model this returns **164.9** — a high number, but the *real* one. And u
 - **FID** — Heusel et al., *GANs Trained by a Two Time-Scale Update Rule Converge to a Local Nash Equilibrium*, NeurIPS 2017 ([arXiv:1706.08500](https://arxiv.org/abs/1706.08500))
 - **torchmetrics** — [`FrechetInceptionDistance`](https://lightning.ai/docs/torchmetrics/stable/image/frechet_inception_distance.html) (2048-d pool3 by default)
 - **pytorch-ignite** — [`FID` metric](https://pytorch.org/ignite/generated/ignite.metrics.FID.html) and the GAN-evaluation tutorial that builds the custom 2048-d extractor
-- **Next in this series** — once the FID was trustworthy, I used it to kill a tempting hypothesis about *why* this GAN was stuck: ["Killing a Hypothesis Cheaply: The Discriminator Wasn't Our GAN's Bottleneck"]({% post_url 2026-06-18-killing-the-d-dominance-hypothesis %}).
+- **Next in this series** — before interpreting the training curves, map the model being measured: ["MS-CLIP-GAN Architecture: How a CLIP-Guided Multi-Stage GAN Is Wired"]({% post_url 2026-06-18-ms-clip-gan-architecture %}).
