@@ -1,15 +1,15 @@
 # 05. Python 스크립트
 
-레포 루트의 `*.py` 파일들은 **블로그 운영을 돕는 부가 유틸리티**입니다. Jekyll 사이트 콘텐츠와는 무관하며(페이지로 렌더링되지 않음), 글을 대량 생성·정리하거나 썸네일을 만들거나 품질을 점검할 때 손으로 실행하는 도구입니다. 상당수는 **1회용 마이그레이션/정리 스크립트**라 그대로 재실행하면 의도와 다르게 동작할 수 있으니, 아래 [주의사항](#주의사항)을 먼저 읽으세요.
+레포의 Python 스크립트들은 **블로그 운영을 돕는 부가 유틸리티**입니다. Jekyll 사이트 콘텐츠와는 무관하며(페이지로 렌더링되지 않음), 글을 대량 생성·정리하거나 썸네일을 만들거나 품질을 점검할 때 손으로 실행하는 도구입니다. 상당수는 **1회용 마이그레이션/정리 스크립트**라 그대로 재실행하면 의도와 다르게 동작할 수 있으니, 아래 [주의사항](#주의사항)을 먼저 읽으세요.
 
-> 참고: 이 `*.py` 파일들은 [_config.yml](../../_config.yml)의 `exclude` 목록에 들어 있지 않습니다. front matter가 없어 페이지로 렌더링되진 않지만, Jekyll은 이런 정적 파일을 `_site/`로 그대로 복사합니다(빌드 산출물에 원본이 포함됨). 게시되지 않게 하려면 `exclude`에 추가하면 됩니다.
+> 참고: `tools/` 아래 스크립트는 [_config.yml](../../_config.yml)의 `exclude` 목록에 들어 있어 사이트 산출물로 복사되지 않습니다. 레포 루트의 남은 `*.py` 유틸리티는 front matter가 없어 페이지로 렌더링되진 않지만, Jekyll이 `_site/`로 그대로 복사할 수 있습니다. 게시 산출물에 포함되면 안 되는 새 유틸리티는 `tools/` 아래에 둡니다.
 
 ## 한눈에 보기
 
 | 스크립트 | 분류 | 대상 | 성격 |
 | --- | --- | --- | --- |
-| `generate_thumbnail.py` | 썸네일 생성 | `assets/img/.../thumbnail.png` | 재사용 가능 |
-| `generate_latex_thumbnail.py` | 썸네일 생성 | `assets/img/.../latex_thumbnail.png` | 재사용 가능 |
+| `tools/thumbnails/generate_thumbnail.py` | 썸네일 생성 | `assets/img/.../thumbnail.png` | 재사용 가능 |
+| `tools/thumbnails/generate_latex_thumbnail.py` | 썸네일 생성 | `assets/img/.../latex_thumbnail.png` | 재사용 가능 |
 | `enable_math.py` | 수식/콘텐츠 정리 | `_posts/*.md` | 재사용 가능 |
 | `clean_mathjax.py` | 수식/콘텐츠 정리 | 단일 파일(하드코딩) | 1회용 |
 | `remove_redundant_links.py` | 링크/헤더 정리 | `_posts/*.md` | 재사용 가능 |
@@ -25,18 +25,18 @@
 
 matplotlib으로 글 대표 이미지를 그립니다.
 
-### `generate_thumbnail.py`
+### `tools/thumbnails/generate_thumbnail.py`
 
 - **목적**: html-proofer 출력처럼 보이는 터미널 스타일 썸네일 생성(트러블슈팅 글용).
 - **출력**: `assets/img/posts/troubleshooting/thumbnail.png` (폴더 없으면 생성).
-- **실행**: `python generate_thumbnail.py`
+- **실행**: `python tools/thumbnails/generate_thumbnail.py`
 - **의존성**: `matplotlib`.
 
-### `generate_latex_thumbnail.py`
+### `tools/thumbnails/generate_latex_thumbnail.py`
 
 - **목적**: LaTeX 렌더링 전/후를 보여주는 다크 테마 썸네일 생성.
 - **출력**: `assets/img/posts/troubleshooting/latex_thumbnail.png`.
-- **실행**: `python generate_latex_thumbnail.py`
+- **실행**: `python tools/thumbnails/generate_latex_thumbnail.py`
 - **의존성**: `matplotlib`.
 
 ## 수식/다이어그램 정리
@@ -116,7 +116,7 @@ matplotlib으로 글 대표 이미지를 그립니다.
 별도 `requirements.txt`는 없습니다. 외부 패키지가 필요한 스크립트는 두 개뿐입니다.
 
 ```bash
-pip install matplotlib   # generate_thumbnail.py, generate_latex_thumbnail.py
+pip install matplotlib   # tools/thumbnails/generate_thumbnail.py, tools/thumbnails/generate_latex_thumbnail.py
 pip install pyyaml       # generate_audit_report.py
 ```
 

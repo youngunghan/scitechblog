@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-from matplotlib.font_manager import FontProperties
 
 def create_terminal_thumbnail(output_path):
     # Setup figure
