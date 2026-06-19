@@ -105,19 +105,39 @@ print(f"standard FID = {fid.compute().item():.2f}")
 
 A couple of details that bite people: pass `normalize=False` and feed **uint8** `[0, 255]` (as above), *or* pass `normalize=True` and feed **float** `[0, 1]` — mixing them (uint8 into `normalize=True`) silently corrupts the score. And `FrechetInceptionDistance` resizes to 299×299 internally, so don't pre-resize.
 
+Those are the *implementation* traps; the **input pipeline** has its own, quantified by clean-fid (Parmar et al., CVPR 2022):
+
+- **Resize backend.** PIL-bicubic vs OpenCV/PyTorch bilinear shifts FID by ~4 on real FFHQ and ~7 on StyleGAN2 samples. Resize reals and fakes the same way.
+- **JPEG round-trip.** Exporting samples as JPEG-75 instead of PNG moved real FFHQ FID to ~21 (8-bit PNG quantization alone is <0.01). Never save generated images as JPEG before scoring.
+- **Sample count.** FID is a *biased* estimator whose bias is *model-dependent* (Chong & Forsyth, CVPR 2020), so comparing two models at different N can flip their ranking. Fix N and report it.
+
+Our 164.9 is reproducible only because the pipeline pins the resize path, uses PNG, and holds N constant.
+
 On our model this returns **164.9** — a high number, but the *real* one. And unlike the 1000-d artifact, it behaves like FID should: it falls as the model improves and rises as it degrades, so it is usable for checkpoint selection and ablations.
 
 **Lesson:** the metric object's defaults are part of the metric. If you didn't choose the feature extractor, you don't know what you measured.
+
+## Even the Right Extractor Has Limits
+
+Fixing 1000-d logits → 2048-d pool3 makes FID *comparable to the literature* — but it does not make it *correct for your domain*. The standard Inception-V3 pool3 backbone is trained on ImageNet, and two recent results show that is a real limitation:
+
+- Kynkäänniemi et al. (ICLR 2023) show FID's feature space is so close to ImageNet classification that you can **lower FID with no quality gain** by aligning generated images' top-N ImageNet-class histograms — an ImageNet-pretrained FastGAN can match StyleGAN2's FID while looking worse to humans. CLIP features largely resist this.
+- Stein et al. (NeurIPS 2023) — the largest human-realism study to date — found **no common metric strongly correlates with human judgment**, blaming over-reliance on Inception-V3, and propose FD-DINOv2; CMMD (CVPR 2024) makes the same case and proposes a CLIP-MMD distance.
+
+For a non-ImageNet domain like faces, that is a caveat on our own number: 164.9 is the honest *standard* FID, but a CLIP-FID or FD-DINOv2 cross-check would be a more faithful judge. One honest wrinkle: since MS-CLIP-GAN *conditions* on CLIP text features, a CLIP-based FID could be mildly self-favoring here — so DINOv2 is probably the cleaner second opinion. I fixed the bug that made FID *wrong*; this is the reason it may still be the *wrong tool*.
 
 ## Conclusion / Key Takeaways
 
 1. **The feature space is part of FID.** Confirm you are on the 2048-d `pool3` features; a metric library's *default* extractor is not guaranteed to be the standard one (ignite's default is the 1000-d logits).
 2. **A suspiciously tiny FID is a misconfigured extractor, not a great model.** Sanity-check against literature ranges (~3 excellent, tens mediocre) and a real-vs-real control (≈ 0).
 3. **Fix the comparison before the extractor.** Generate fakes from the real caption distribution and match input ranges, or the number is invalid no matter which features you use.
+4. **Even the correct extractor is ImageNet-tied.** A literature-comparable FID is not automatically the right judge for your domain — pin the input pipeline (resize/format/N) and cross-check faces with CLIP-FID / FD-DINOv2.
 
 ## Resources
 
 - **FID** — Heusel et al., *GANs Trained by a Two Time-Scale Update Rule Converge to a Local Nash Equilibrium*, NeurIPS 2017 ([arXiv:1706.08500](https://arxiv.org/abs/1706.08500))
 - **torchmetrics** — [`FrechetInceptionDistance`](https://lightning.ai/docs/torchmetrics/stable/image/frechet_inception_distance.html) (2048-d pool3 by default)
 - **pytorch-ignite** — [`FID` metric](https://pytorch.org/ignite/generated/ignite.metrics.FID.html) and the GAN-evaluation tutorial that builds the custom 2048-d extractor
+- **Input-pipeline pitfalls** — Parmar et al., *On Aliased Resizing and Surprising Subtleties in GAN Evaluation* (clean-fid), CVPR 2022 ([arXiv:2104.11222](https://arxiv.org/abs/2104.11222)); Chong & Forsyth, *Effectively Unbiased FID and Inception Score*, CVPR 2020 ([arXiv:1911.07023](https://arxiv.org/abs/1911.07023))
+- **The backbone itself** — Kynkäänniemi et al., *The Role of ImageNet Classes in Fréchet Inception Distance*, ICLR 2023 ([arXiv:2203.06026](https://arxiv.org/abs/2203.06026)); Stein et al., *Exposing flaws of generative model evaluation metrics*, NeurIPS 2023 ([arXiv:2306.04675](https://arxiv.org/abs/2306.04675)); CMMD, CVPR 2024 ([arXiv:2401.09603](https://arxiv.org/abs/2401.09603))
 - **Next in this series** — before interpreting the training curves, map the model being measured: ["MS-CLIP-GAN Architecture: How a CLIP-Guided Multi-Stage GAN Is Wired"]({% post_url 2026-06-18-ms-clip-gan-architecture %}).
