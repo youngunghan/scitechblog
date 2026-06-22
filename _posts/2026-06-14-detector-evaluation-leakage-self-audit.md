@@ -99,6 +99,8 @@ Importantly, this cuts only the *small* deltas. The false-positive effects (−6
 
 Even setting leakage aside, the single "0.908 mAP" macro-averages two box granularities of the *same* violation: a small part box (`WO`, e.g. the bare head) and a large whole-worker box (`UA`). The easy whole-worker classes (AP ~0.93–0.94) pull the average up; the harder part boxes sit at 0.875 / 0.880. If you care about localizing the *part*, quote the per-class AP, not the headline.
 
+There's a second decomposition the headline hides: COCO also averages over object **size** — AP-small / AP-medium / AP-large (areas below 32², 32²–96², above 96² px). Safety hooks are *small* objects, exactly the regime where real-time detectors are documented to be weakest, so a high overall mAP can sit on top of a weak AP-small. For a small-object task, report AP-small next to the headline — and the fix when it lags is usually input resolution and assignment, not blindly deepening the head.
+
 ## What the honest numbers are
 
 - **Detection accuracy:** "0.908 / 0.911 mAP on AIHub's official **in-clip** validation split" — near-train; a clip-disjoint number would be lower.
@@ -113,6 +115,9 @@ Even setting leakage aside, the single "0.908 mAP" macro-averages two box granul
 3. **Fix the seed** before reading small deltas, and separate **"no loss"** from **"improvement."**
 4. **Report an operating point or a curve**, not a single uncalibrated threshold.
 5. **Lead with the uncontaminated number.** When two estimates disagree, the cleaner one (here, external −66%, with its 6-frame caveat) is the honest headline; the rosier one needs an asterisk.
+
+> These rules aren't detection-specific. The same disease — a single scalar resting on an unstated pipeline assumption — shows up in generative metrics too: a [misconfigured FID]({% post_url 2026-06-18-troubleshooting-fid-wrong-feature-space %}) read 0.24 when the real number was ~165. The cross-domain pattern, and how to report a metric so it survives scrutiny, is the [capstone]({% post_url 2026-06-22-numbers-eat-pipelines %}).
+{: .prompt-info }
 
 ## Conclusion
 

@@ -160,9 +160,27 @@ RTMDet is a refreshing kind of paper: it advanced the state of the art (at publi
 
 The limitation I felt most directly is the last one. In my own project, an RTMDet-m fine-tune scored ~0.91 mAP on the in-domain validation set yet confidently fired `helmet_off` on workers who *were* wearing helmets — a failure the COCO-style metric never measures, and one that came from the **data distribution**, not the architecture. RTMDet's contribution is a strong, fast backbone; what it (reasonably) leaves open is how that backbone behaves once the training distribution is biased. A natural follow-up to an "empirical study of architecture" is an equally empirical study of **data and evaluation** for the same detector — which is exactly where the hands-on side of this project went.
 
+### Where RTMDet sits in 2025
+
+This reviews a 2022 paper, so it deserves a dated marker. RTMDet (52.8 COCO box AP at its largest) is no longer the top real-time number, and the field has made two structural moves it predates:
+
+| detector | COCO AP (largest) | head |
+|---|:---:|---|
+| RTMDet-X (2022) | 52.8 | CNN, NMS |
+| YOLO11-X (2024) | 54.7 | CNN, NMS |
+| RT-DETRv2 (2024 report) | up to 54.3 | DETR, **NMS-free** |
+| YOLOv10 (NeurIPS 2024) | — | CNN, **NMS-free** (dual assignment) |
+| D-FINE-X (ICLR 2025) | 55.8 (59.3 w/ Objects365) | DETR, **NMS-free** |
+
+Both shifts bear on this project: **NMS-free heads** (RT-DETR / YOLOv10 / D-FINE) remove the NMS/IoU duplicate-suppression step I tuned around — the confidence threshold itself still remains — and **DETR-style decoders** replace the dense head + label assignment. None of this makes RTMDet obsolete for a single-consumer-GPU project — it still trains comfortably on 8 GB where DETR-family defaults often assume far more — but a 2026 reader should know the COCO leaderboard moved on. A controlled head-to-head (accuracy *and* trainability on one GPU) is its own post.
+
+> Cross-source caveat: these AP figures are each model's own paper/repo numbers, measured on different hardware and runtimes — read them as *placement*, not a controlled comparison. The hardware-specific-latency caveat in Limitations applies doubly across models.
+{: .prompt-warning }
+
 ## Resources
 
 - **Companion post** — [the hands-on side of this project: when this exact model still produced false positives, and how empty-GT negatives fixed it]({{ '/posts/rtmdet-safety-gear-false-positives/' | relative_url }})
 - **Paper** — *RTMDet: An Empirical Study of Designing Real-Time Object Detectors*, Lyu et al., 2022 ([arXiv:2212.07784](https://arxiv.org/abs/2212.07784))
 - **Code & model zoo** — [OpenMMLab MMDetection — `configs/rtmdet`](https://github.com/open-mmlab/mmdetection/tree/3.x/configs/rtmdet)
 - **Related** — YOLOX (anchor-free + SimOTA), ConvNeXt / RepLKNet (large-kernel CNNs), OTA / SimOTA (dynamic label assignment)
+- **Since RTMDet (2025 placement)** — RT-DETR, *DETRs Beat YOLOs* ([arXiv:2304.08069](https://arxiv.org/abs/2304.08069)) and RT-DETRv2 ([arXiv:2407.17140](https://arxiv.org/abs/2407.17140)); YOLOv10, NeurIPS 2024 ([repo](https://github.com/THU-MIG/yolov10)); D-FINE, ICLR 2025 ([repo](https://github.com/Peterande/D-FINE)); Ultralytics YOLO11
