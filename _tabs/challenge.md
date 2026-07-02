@@ -119,7 +119,7 @@ details[open] .course-toggle {
 <details class="course-item in-progress">
   <summary>
     <span class="course-toggle">▶</span>
-    <span class="course-title">Mathematical Foundations of Deep Neural Networks</span>
+    <span class="course-title">M1407.001200: Mathematical Foundations of Deep Neural Networks</span>
     <span class="course-status">IN PROGRESS</span>
   </summary>
   <div class="course-content">
