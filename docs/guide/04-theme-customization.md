@@ -13,7 +13,7 @@
 | [_tabs/about.md](../../_tabs/about.md) | 개인 소개 페이지 내용 |
 | [_tabs/challenge.md](../../_tabs/challenge.md) | **신규 커스텀 탭** — "AI Challenge" 페이지(인라인 CSS + `<details>` 접이식 목록) |
 | `_posts/`, `assets/img/posts/` | 글 본문과 이미지(콘텐츠) |
-| 루트 `*.py` | 글 생성/정리/감사 스크립트([05 문서](05-python-scripts.md)) |
+| 루트 `*.py` | 콘텐츠 정리·감사 스크립트([05 문서](05-python-scripts.md)) |
 
 나머지(`_layouts`, `_includes`, `_sass`, `_javascript`, `_plugins`, `tools`, `_data/locales`)는 사실상 Chirpy 기본값입니다. 업그레이드 시 충돌을 줄이려면 이 영역은 가급적 수정하지 않는 것이 좋습니다.
 

@@ -72,7 +72,7 @@ bash tools/test.sh -c "_config.yml,_config.prod.yml"   # 다중 config
 | [tools/test.sh](../../tools/test.sh) | 빌드 + html-proofer 링크 검사 (`-c` 다중 config) |
 | [tools/release.sh](../../tools/release.sh) | Chirpy gem 릴리스용(버전 범프·패키지·배포). `production` 브랜치 CD에서 자동 호출됨 |
 
-> ⚠️ **`tools/init.sh`는 이 블로그에서 절대 실행하지 마세요.** 이 스크립트는 새 사용자용 1회성 부트스트랩으로, 마지막 릴리스 커밋으로 `git reset --hard` 후 `git clean -fd`를 하고 `_posts/*`(현재 글 42개 전부), `tools/init.sh`, `tools/release.sh`, 대부분의 `.github/`를 삭제한 뒤 커밋합니다(init.sh:68·69·89). 실행하면 기존 글이 모두 사라집니다.
+> ⚠️ **`tools/init.sh`는 이 블로그에서 절대 실행하지 마세요.** 이 스크립트는 새 사용자용 1회성 부트스트랩으로, 마지막 릴리스 커밋으로 `git reset --hard` 후 `git clean -fd`를 하고 `_posts/*`(현재 글 54개 전부), `tools/init.sh`, `tools/release.sh`, 대부분의 `.github/`를 삭제한 뒤 커밋합니다(init.sh:68·69·89). 실행하면 기존 글이 모두 사라집니다.
 >
 > `tools/release.sh`는 Chirpy **테마 자체**를 RubyGems에 배포하기 위한 스크립트(테마 메인테이너용)입니다. 이 블로그에선 쓰지 않으며, 과거 이를 자동 호출하던 `cd.yml` 워크플로도 제거됐습니다. 글만 운영한다면 신경 쓸 필요가 없습니다.
 

@@ -89,7 +89,7 @@ seoultech:
 - 글 이미지는 주제별 하위 폴더에 둡니다: `assets/img/posts/<주제>/`.
   - 예: `assets/img/posts/algo/`, `assets/img/posts/troubleshooting/`, `assets/img/posts/protein-classifier/`
 - **front matter `image.path`는 맨 앞 `/` 없이** 쓰는 것이 관례입니다(예: `assets/img/posts/algo/leetcode_new.png`). Chirpy 테마가 `media_subpath`/사이트 루트 기준으로 경로를 보정하므로 슬래시가 없어도 올바르게 렌더링됩니다(`_layouts/home.html`·`_layouts/post.html`).
-- **본문 인라인 이미지는 반대로 맨 앞에 `/`를 붙입니다**(예: `![alt](/assets/img/posts/protein-classifier/architecture.png)`). 본문에는 위 보정 로직이 없어 `/`로 시작해야 `baseurl: /scitechblog` 환경에서 올바르게 해석됩니다. (현재 모든 글의 본문 이미지가 이 규칙을 따릅니다 — `/assets/img` 22건, 슬래시 없는 본문 이미지 0건.) 배경 설명은 [troubleshooting-image-paths](../../_posts/2025-11-30-troubleshooting-image-paths.md) 글 참고.
+- **본문 인라인 이미지는 반대로 맨 앞에 `/`를 붙입니다**(예: `![alt](/assets/img/posts/protein-classifier/architecture.png)`). 본문에는 위 보정 로직이 없어 `/`로 시작해야 `baseurl: /scitechblog` 환경에서 올바르게 해석됩니다. (현재 모든 글의 본문 이미지가 이 규칙을 따릅니다 — `/assets/img` 33건, 슬래시 없는 본문 이미지 0건.) 배경 설명은 [troubleshooting-image-paths](../../_posts/2025-11-30-troubleshooting-image-paths.md) 글 참고.
 - 알고리즘 글은 공용 대표 이미지를 재사용합니다(예: `assets/img/posts/algo/leetcode_new.png`, `.../baekjoon_new.png`).
 
 ## 수식과 다이어그램

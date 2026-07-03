@@ -38,7 +38,7 @@
 
 | 섹션 | 내용 | 비고 |
 | --- | --- | --- |
-| `## Why I Read This Paper` | 이 논문을 왜 읽었는지, 무엇이 인상적이었는지 1인칭으로 | 리뷰의 시그니처 도입부. 4편 모두 이 섹션으로 시작 |
+| `## Why I Read This Paper` | 이 논문을 왜 읽었는지, 무엇이 인상적이었는지 1인칭으로 | 리뷰의 시그니처 도입부. 5편 모두 이 섹션으로 시작 |
 | `## Abstract` / `## Introduction` | 문제 정의·배경 + **논문의 핵심 기여(contributions)를 명시**. 둘 다 두거나 하나만 (DreamBooth는 둘 다, UNet++/KAD/Contamination은 Introduction만) | 원논문 흐름에 맞춰 선택. Keshav의 "Category·Contributions"를 앞에서 짚으면 좋음 |
 | `## Context / Related Work` *(강한 권장)* | 이 논문이 **기존 연구 대비 무엇이 다른지** 위치 짓기 | Keshav 3-pass의 Context/Contribution은 핵심. 아주 짧은 리뷰만 Introduction에 녹임 |
 | `## Method` / `## Methods` | 핵심 아이디어. 하위 기법은 `### `로 분리 (예: UNet++의 `### 1. Nested Dense Skip Connections`) | 그림은 본문 인라인 이미지로 — **출처 표시 필수**(아래 그림 규칙) |
@@ -61,7 +61,7 @@
 
 > arXiv 논문은 자동으로 DOI(`https://doi.org/10.48550/arXiv.<id>`)도 부여됩니다([arXiv 공식](https://info.arxiv.org/help/doi.html)). 학회/저널 정식판 DOI가 있으면 함께 적습니다.
 >
-> **신규 글은 arXiv/DOI 링크 필수.** 기존 4편(DreamBooth/UNet++/KAD/Data Contamination)은 OUTTA 링크만 있었으나, 같은 형식으로 arXiv 링크를 추가해 맞췄습니다(migration 완료).
+> **신규 글은 arXiv/DOI 링크 필수.** 기존 4편(DreamBooth/UNet++/KAD/Data Contamination)은 OUTTA 링크만 있었으나, 같은 형식으로 arXiv 링크를 추가해 맞췄습니다(migration 완료). 이후 추가된 5번째 리뷰(RTMDet, 2026-06)는 OUTTA 번역 없이 arXiv/DOI만으로 새로 작성했습니다(그래서 `.prompt-info`에 OUTTA 줄이 없음).
 
 섹션 사이의 큰 전환에는 본문에 `---`(수평선)을 넣어 시각적으로 끊어줍니다(예: prompt-info 다음, Conclusion 앞).
 

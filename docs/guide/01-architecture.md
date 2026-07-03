@@ -6,7 +6,7 @@
 - **슬로건**: Computer Science × Medical AI × Railroad Science
 - **성격**: 알고리즘 풀이(LeetCode·백준), AI/의료 AI 논문 리뷰, 개발·트러블슈팅 노트를 모은 1인 기술 블로그
 - **호스팅**: GitHub Pages — `url: https://youngunghan.github.io`, `baseurl: /scitechblog` ([_config.yml](../../_config.yml) 27·154행)
-- **기반 테마**: [Chirpy](https://github.com/cotes2020/jekyll-theme-chirpy) v7.4.x
+- **기반 테마**: [Chirpy](https://github.com/cotes2020/jekyll-theme-chirpy) v7.5.0 ([Gemfile.lock](../../Gemfile.lock) 기준; [Gemfile](../../Gemfile) 제약은 `~> 7.4`)
 
 > 참고: 이 레포는 Chirpy **스타터 템플릿**이 아니라 **테마 소스 전체**(`package.json`·빌드 설정 포함)를 그대로 가져와 사이트로 쓰는 형태입니다. 그래서 글만 쓰는 일반 블로그보다 빌드 도구(Node 기반)가 함께 들어 있고, 로컬 실행 전에 JS 에셋을 직접 빌드해야 합니다. (테마 배포용 `.gemspec`은 사용자 레포에서 제거되어 있고, [Gemfile](../../Gemfile)이 Chirpy를 gem으로 가져옵니다.)
 
@@ -21,7 +21,7 @@
 | 코드 품질 | ESLint(JS), Stylelint(SCSS), html-proofer(링크 검사) |
 | 커밋/릴리스 | Husky + commitlint(Conventional Commits), semantic-release |
 | 배포 | GitHub Actions → GitHub Pages |
-| 부가 도구 | 루트의 Python 스크립트(글 생성·정리·감사) |
+| 부가 도구 | 루트의 Python 스크립트(콘텐츠 정리·감사) + `tools/thumbnails/`(썸네일 생성) |
 
 JS 의존성은 [package.json](../../package.json), Ruby 의존성은 [Gemfile](../../Gemfile)에 선언되어 있습니다.
 
@@ -30,7 +30,7 @@ JS 의존성은 [package.json](../../package.json), Ruby 의존성은 [Gemfile](
 ```text
 scitechblog/
 ├── _config.yml            # Jekyll 사이트 전역 설정
-├── _posts/                # 블로그 글(Markdown), 42개
+├── _posts/                # 블로그 글(Markdown), 54개
 ├── _tabs/                 # 상단 내비게이션 페이지
 ├── _data/                 # 사이트 데이터(yml)
 │   ├── authors.yml        #   글쓴이 정보(author 키 매핑)
@@ -70,7 +70,7 @@ scitechblog/
 | `_plugins/` | git 기반 수정일 훅 | Chirpy 기본 |
 | `assets/` | 이미지·아이콘·번들 JS·피드 | 혼합 |
 | `tools/` | 개발·배포 명령 래퍼 | Chirpy 기본 |
-| `*.py` | 글 생성/정리/감사 스크립트 | 직접 작성 |
+| `*.py` | 콘텐츠 정리·감사 스크립트 | 직접 작성 |
 
 > `_layouts`, `_includes`, `_sass`, `_javascript`, `tools`는 대부분 Chirpy 업스트림 코드입니다. 커스텀이 들어간 지점은 [04. 테마 커스터마이징](04-theme-customization.md)에서 따로 짚습니다.
 
