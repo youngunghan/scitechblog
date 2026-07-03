@@ -1,19 +1,19 @@
 ---
-title: "[LeetCode] 241. Different Ways To Add Parentheses"
+title: "[LeetCode] 241. Different Ways to Add Parentheses"
 date: 2025-11-29 05:17:21 +0900
 categories: ['Algorithm', 'LeetCode']
 tags: ['Algorithm', 'LeetCode', 'Medium', 'Divide and Conquer', 'Recursion', 'Memoization']
-description: "Solution for LeetCode 241: Different Ways To Add Parentheses"
+description: "Solution for LeetCode 241: Different Ways to Add Parentheses"
 image:
   path: assets/img/posts/algo/leetcode_new.png
-  alt: "[LeetCode] 241. Different Ways To Add Parentheses"
+  alt: "[LeetCode] 241. Different Ways to Add Parentheses"
 author: seoultech
 math: true
 ---
 
 ## Problem
 
-> [LeetCode 241. Different Ways To Add Parentheses](https://leetcode.com/problems/different-ways-to-add-parentheses/)
+> [LeetCode 241. Different Ways to Add Parentheses](https://leetcode.com/problems/different-ways-to-add-parentheses/)
 
 Given a string like `"2*3-4*5"`, return all possible results from different ways to add parentheses.
 

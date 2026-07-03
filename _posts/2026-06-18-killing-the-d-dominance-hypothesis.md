@@ -93,7 +93,7 @@ flowchart TD
     C --> C2["Confirmed: weakening D<br/>made it worse"]
 ```
 
-Each run is short (40 epochs covers the early peak/oscillation region that matters here) — about 1.5–2 h on the 8 GB GPU. The whole sweep is an afternoon, not a week.
+The two aggressive probes (`swA_aggr`, `swB_mild`) are short — 40 epochs covers the early peak/oscillation region that matters here, about 1.5–2 h each on the 8 GB GPU; `baseline` reuses the original 100-epoch run and `stable` extends to ~90. The whole sweep is an afternoon, not a week.
 
 ## Results: Weakening D Didn't Help
 

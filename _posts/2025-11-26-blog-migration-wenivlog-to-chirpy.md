@@ -406,18 +406,18 @@ scitechblog/
 
 ### Site Features
 
- **Navigation:**
+**Navigation:**
 ```
 HOME → ABOUT → CHALLENGE → CATEGORIES → TAGS → ARCHIVES
 ```
 
- **Post Management:**
+**Post Management:**
 - 4 technical posts successfully migrated (at the time of migration)
 - All images displaying correctly
 - Code syntax highlighting working
 - Korean text rendering properly
 
- **Theme Features:**
+**Theme Features:**
 - Dark/Light mode toggle
 - Search functionality
 - Category/Tag organization

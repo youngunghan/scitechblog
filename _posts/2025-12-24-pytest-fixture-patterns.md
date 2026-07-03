@@ -201,7 +201,7 @@ When you need to **run the same test with different inputs**:
     {"role": "admin", "can_delete": True},
     {"role": "editor", "can_delete": False},
     {"role": "viewer", "can_delete": False},
-])
+], ids=["admin", "editor", "viewer"])
 def user_permissions(request):
     """Each param becomes a separate test run."""
     return request.param

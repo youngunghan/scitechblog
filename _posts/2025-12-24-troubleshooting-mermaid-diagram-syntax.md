@@ -28,7 +28,7 @@ The bizarre part? The diagrams looked **identical in structure**. This post docu
 
 I was creating search API diagrams with conditional queries:
 
-```mermaid
+```text
 flowchart LR
     Tester([Tester])
     API[Search API]
@@ -38,12 +38,12 @@ flowchart LR
 
 This resulted in a syntax error, while similar diagrams using `IS`, `IN`, `NOT` worked fine:
 
-```mermaid
+```text
 flowchart LR
     Tester([Tester])
     API[Search API]
     
-    Tester -->|"q=[col, IS, val]"| API   Works!
+    Tester -->|"q=[col, IS, val]"| API
 ```
 
 ### Root Cause
@@ -84,24 +84,24 @@ The most portable fix, though, is to rephrase the whole edge label so the operat
 
 Some response messages with angle brackets failed:
 
-```mermaid
+```text
 flowchart LR
     A[API]
     T([Tester])
     
-    A -.->|"200(rows=<row>)"| T       Error
-    A -.->|"200(rows=<unchanged>)"| T   Error
+    A -.->|"200(rows=<row>)"| T
+    A -.->|"200(rows=<unchanged>)"| T
 ```
 
 But these worked:
 
-```mermaid
+```text
 flowchart LR
     A[API]
     T([Tester])
     
-    A -.->|"200(rows=<1개>)"| T       Works
-    A -.->|"200(rows=<원래값>)"| T     Works
+    A -.->|"200(rows=<1개>)"| T
+    A -.->|"200(rows=<원래값>)"| T
 ```
 
 ### Root Cause Analysis
@@ -153,12 +153,12 @@ This works because the renderer only treats English-only content between `<` and
 
 This diagram consistently failed in my Markdown-PDF (Puppeteer/HTML) export pipeline, even with Korean characters nearby:
 
-```mermaid
+```text
 flowchart LR
     ML[Meta Listing API]
     T([Tester])
     
-    ML -.->|"200(rows=<meta값유지>)"| T   Failed in my Markdown-PDF export!
+    ML -.->|"200(rows=<meta값유지>)"| T
 ```
 
 ### Root Cause

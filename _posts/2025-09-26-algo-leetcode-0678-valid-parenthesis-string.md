@@ -28,7 +28,7 @@ Output: true
 ## Initial Thought (Failed)
 
 Use **Recursion** (DFS) for every `*`.
-- When `*` is met, branch into 3 cases: `(`, `)`, or ``.
+- When `*` is met, branch into 3 cases: `(`, `)`, or `''` (empty).
 - **Complexity**: $3^K$ where $K$ is the number of asterisks.
 - This is exponential and will TLE for $N=100$.
 

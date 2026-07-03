@@ -45,6 +45,7 @@ services:
     image: mysql:8.0
     container_name: app_db
     environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
       MYSQL_DATABASE: appdb
       MYSQL_USER: appuser
       MYSQL_PASSWORD: ${DB_PASSWORD}

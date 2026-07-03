@@ -59,7 +59,7 @@ Distrust applies to your *explanations*, not just your *measurements*. Once the 
 
 So I [tested it instead of believing it]({% post_url 2026-06-18-killing-the-d-dominance-hypothesis %}): four short runs (EMA, TTUR, label smoothing, n_critic) against a **pre-registered** decision rule. Weakening D never robustly broke the baseline-equivalent band — the hypothesis died in an afternoon, not a week. That cleared the way to the hypothesis that *did* hold: limited-data discriminator overfitting, where [DiffAugment cut FID 163 → 118]({% post_url 2026-06-19-can-diffaugment-break-the-fid-ceiling %}).
 
-The economics matter. A hypothesis you can falsify in four 90-minute runs is worth more than one you can't, and the eval-leakage audit is the same move pointed inward: **breaking your own evaluation is cheaper than having a reviewer (or production) break it for you.** Negative results, obtained cheaply, are how you avoid expensive dead ends — and they're only credible when the test was designed to be decisive (one variable, a pre-registered threshold) rather than a list of things that didn't work.
+The economics matter. A hypothesis you can falsify in four short runs is worth more than one you can't, and the eval-leakage audit is the same move pointed inward: **breaking your own evaluation is cheaper than having a reviewer (or production) break it for you.** Negative results, obtained cheaply, are how you avoid expensive dead ends — and they're only credible when the test was designed to be decisive (one variable, a pre-registered threshold) rather than a list of things that didn't work.
 
 ## A portable discipline
 
