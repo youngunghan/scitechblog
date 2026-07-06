@@ -288,7 +288,7 @@ Changed GitHub Pages source in repository settings:
 ## Problem 4: Menu Page Structure
 
 ### Symptom
-After migrating the menu pages, the custom **About** and **Contact** tabs showed up **after all of Chirpy's built-in tabs** (HOME, CATEGORIES, TAGS, ARCHIVES) instead of near the front of the sidebar.
+After migrating the menu pages, the custom **About** and **Contact** tabs showed up **after Chirpy's default tabs** (CATEGORIES, TAGS, ARCHIVES, and ABOUT — HOME is hardcoded in the sidebar, not a `_tabs` file) instead of near the front of the sidebar.
 
 For context, WENIVLOG used flat `menu/` pages:
 ```
@@ -301,7 +301,7 @@ menu/blog.md
 Chirpy instead uses `_tabs/` with `order:`-based front matter, so the layout doesn't map over directly.
 
 ### Analysis
-- Chirpy has built-in tabs: HOME, CATEGORIES, TAGS, ARCHIVES
+- Chirpy ships default `_tabs/` pages — CATEGORIES, TAGS, ARCHIVES, and ABOUT (rendered in ascending `order:`); HOME is hardcoded in the sidebar, not a `_tabs` file
 - Custom pages go in `_tabs/` with `order:` field
 - Each tab needs `icon:` and `title:` (or filename determines title)
 

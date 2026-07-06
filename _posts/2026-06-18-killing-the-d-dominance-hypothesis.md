@@ -109,7 +109,7 @@ _All four runs overlaid. Best FIDs cluster at 159–183 with large epoch-to-epoc
 
 Reading against the pre-registered thresholds:
 
-- The two genuinely aggressive D-weakenings (`stable`, `swA_aggr`) came out **worse** than baseline (179 and 183) — the opposite of the hypothesis.
+- The two runs that came out **worse** than baseline were `stable` (179) and `swA_aggr` (183) — the opposite of the hypothesis. (Note this isn't the aggressiveness ordering: `stable` is actually the *mildest* weakening — d_lr merely halved, D still updated every step — while the genuinely aggressive probes are `swA_aggr` and `swB_mild`, and `swB_mild`, which weakens D more than `stable` on both axes, was the *best* run at 159.)
 - `swB_mild` hit **159**, which lands in the 150–165 "baseline-equivalent" band, not the < 150 "reopen" band. And it is fragile: that run swung 252 → 165 → 159 over epochs 25–35, so 159 is the bottom of a ±50 oscillation that happens to fall on the last epoch, not a stable new minimum.
 - The d_loss/g_loss gap stayed wide in every run — even halving D's learning rate and updating it a third as often didn't rebalance the game.
 

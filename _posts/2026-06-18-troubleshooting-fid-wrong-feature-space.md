@@ -107,7 +107,7 @@ A couple of details that bite people: pass `normalize=False` and feed **uint8** 
 
 Those are the *implementation* traps; the **input pipeline** has its own, quantified by clean-fid (Parmar et al., CVPR 2022):
 
-- **Resize backend.** PIL-bicubic vs OpenCV/PyTorch bilinear shifts FID by ~4 on real FFHQ and ~7 on StyleGAN2 samples. Resize reals and fakes the same way.
+- **Resize backend.** PIL-bicubic vs OpenCV/PyTorch bilinear shifts FID by ~4 on real FFHQ (0 baseline → ~4.3) and ~4.5 on StyleGAN2 samples (2.98 → 7.45). Resize reals and fakes the same way.
 - **JPEG round-trip.** Exporting samples as JPEG-75 instead of PNG moved real FFHQ FID to ~21 (8-bit PNG quantization alone is <0.01). Never save generated images as JPEG before scoring.
 - **Sample count.** FID is a *biased* estimator whose bias is *model-dependent* (Chong & Forsyth, CVPR 2020), so comparing two models at different N can flip their ranking. Fix N and report it.
 

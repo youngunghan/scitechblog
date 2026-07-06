@@ -132,15 +132,20 @@ flowchart TD
 
 ### Fix Korean Text Rendering
 
-If Korean appears as boxes:
+If Korean appears as boxes, use a **local** stylesheet plus a system-installed Korean font. A remote Google Fonts URL is unreliable for PDF export — the extension's docs note online CSS works for JPG/PNG but has problems with PDF, and `markdown-pdf.styles` expects local paths:
 
 ```json
 {
-  "markdown-pdf.styles": [
-    "https://fonts.googleapis.com/css2?family=Noto+Sans+KR&display=swap"
-  ]
+  "markdown-pdf.styles": ["./korean.css"]
 }
 ```
+
+```css
+/* korean.css */
+body { font-family: 'Noto Sans KR', sans-serif; }
+```
+
+Install the **Noto Sans KR** font on the machine that runs the export (Chromium/Puppeteer uses installed system fonts for PDF). A bare `css2` Google Fonts URL only ships `@font-face` rules with no `body` `font-family`, so it wouldn't change the render font even if it loaded.
 
 ### Page Layout Settings
 

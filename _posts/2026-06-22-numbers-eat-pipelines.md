@@ -22,7 +22,7 @@ Neither number was a lie the *model* told. Both were lies the **pipeline** told 
 
 ## Lie #1 — a generative metric (FID 0.24 → 165)
 
-The GAN's evaluation notebook computed FID with a library default that scored in the wrong feature space — 1000-d Inception *logits* instead of the standard 2048-d `pool3`. The number it produced (0.24) was ~900× smaller than the real FID (164.9 on the same model and images), on a non-comparable scale. It wasn't "near-perfect"; it was misconfigured. The [full diagnosis is here]({% post_url 2026-06-18-troubleshooting-fid-wrong-feature-space %}), and the reusable [reporting protocol here]({% post_url 2026-06-22-how-to-actually-report-fid-checklist %}).
+The GAN's evaluation notebook computed FID with a library default that scored in the wrong feature space — 1000-d Inception *logits* instead of the standard 2048-d `pool3`. The number it produced (0.24) was ~690× smaller than the real FID (164.9 on the same model and images), on a non-comparable scale. It wasn't "near-perfect"; it was misconfigured. The [full diagnosis is here]({% post_url 2026-06-18-troubleshooting-fid-wrong-feature-space %}), and the reusable [reporting protocol here]({% post_url 2026-06-22-how-to-actually-report-fid-checklist %}).
 
 The tell was domain knowledge: face GANs land around FID 3 — not 0.24 for a visibly blurry generator. **A number too good to be true usually is — and the cause is upstream of the model.**
 

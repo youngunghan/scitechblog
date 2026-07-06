@@ -50,7 +50,7 @@ flowchart LR
 
 This isn't a documented Mermaid feature, so treat the following as an empirical observation rather than a rule. In practice, `AND` and `OR` sitting bare inside an edge label seem to trigger a parsing conflict — likely an interaction with the surrounding brackets and commas in the label text — and even wrapping the label in quotes (`"..."`) doesn't always avoid it.
 
-> Note: the only officially reserved keyword in Mermaid flowcharts is the lowercase `end`. `AND` and `OR` are *not* documented reserved operators; this is just a workaround for the parsing conflict above.
+> Note: `AND` and `OR` are *not* documented reserved operators in Mermaid flowcharts; this is just a workaround for the parsing conflict above. (Mermaid *does* reserve keywords — lowercase `end`, `subgraph`, `graph`, `style`, `class`, `classDef`, `linkStyle`, `click`, etc. — with `end` being the most notorious for silently breaking flowcharts.)
 {: .prompt-info }
 
 ### Solution
@@ -119,7 +119,7 @@ The Markdown PDF exporter (or underlying HTML renderer) interprets **English-onl
 
 The recommended general fix is to stop the renderer from seeing the angle brackets as a tag in the first place. There are three robust approaches, in order of preference:
 
-1. **Escape the brackets as HTML entities** — replace `<` with `&lt;` and `>` with `&gt;` so they render as literal characters (this is the approach the [Mermaid flowchart docs](https://mermaid.js.org/syntax/flowchart.html) recommend for special characters in labels):
+1. **Escape the brackets as HTML entities** — replace `<` with `&lt;` and `>` with `&gt;` so they render as literal characters. This works because our Markdown-PDF/Puppeteer pipeline decodes the HTML entity before rendering; note that Mermaid's *own* [flowchart docs](https://mermaid.js.org/syntax/flowchart.html) escape special characters with `#`-prefixed codes (e.g. `#lt;`/`#gt;`), not `&`-entities:
 
    ```markdown
    <!-- Before (Error) -->
@@ -205,8 +205,8 @@ rows=<메타값유지>
 Mermaid is powerful for documentation, but its integration with HTML-based renderers (like VS Code's Markdown PDF extension) introduces hidden parsing conflicts.
 
 **Key Takeaways:**
-1. Avoid bare `AND`/`OR` inside message labels (the only officially reserved flowchart keyword is `end`).
-2. For angle brackets in labels, escape them as HTML entities (`&lt;row&gt;`), keep the label quoted, or remove the brackets — this is the portable fix recommended by the [Mermaid flowchart docs](https://mermaid.js.org/syntax/flowchart.html).
+1. Avoid bare `AND`/`OR` inside message labels (they aren't reserved words — Mermaid's reserved keywords are `end`, `subgraph`, `graph`, `style`, `class`, etc. — but the bare tokens still trip the parser).
+2. For angle brackets in labels, escape them as HTML entities (`&lt;row&gt;`), keep the label quoted, or remove the brackets — the entity escape is what works in our Markdown-PDF/Puppeteer pipeline. (Mermaid's own [flowchart docs](https://mermaid.js.org/syntax/flowchart.html) escape special characters with `#`-prefixed codes like `#lt;`/`#gt;`, not `&`-entities.)
 3. Be especially careful with real HTML tag names like `<meta>`, `<div>`, `<span>`; escaping handles these too.
 
 When in doubt, escape the brackets. As a quick hack you can add a Korean character or number to break the pattern, but `&lt;`/`&gt;` is the more reliable fix.

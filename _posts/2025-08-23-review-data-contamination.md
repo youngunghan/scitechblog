@@ -11,7 +11,7 @@ image:
 
 > **Note**: This is a review of the paper **"Investigating Data Contamination for Pre-training Language Models"** ([arXiv:2401.06059](https://arxiv.org/abs/2401.06059), 2024).
 >
-> **Code**: No official code repository found at the time of writing.
+> **Code**: Official repository at [minhaoJ2/Contamination_For_PreTraining](https://github.com/minhaoJ2/Contamination_For_PreTraining) (by first author Minhao Jiang).
 >
 > For a **Korean version** of this review, please visit the **[OUTTA AI Tech Blog](https://blog.outta.ai/339)**.
 {: .prompt-info }

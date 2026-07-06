@@ -50,7 +50,7 @@ HTML-Proofer found errors:
 ```
 
 The two symptoms were:
-1. **Internal hash error:** Our markup contained an anchor that linked to `#busuanzi_value_site_pv`, but that ID only exists on the `<span>` element that Busuanzi populates at runtime. Since the value is injected client-side by the script, the element is empty (and effectively absent) in the static HTML that HTML-Proofer scans, so it flagged the hash as a broken internal link.
+1. **Internal hash error:** Our markup contained an anchor that linked to `#busuanzi_value_site_pv`. HTML-Proofer's internal-hash check only verifies that *some* element on the rendered page carries a matching `id`/`name` attribute — the element's content is irrelevant, so even an empty `<span id="busuanzi_value_site_pv">` passes (Busuanzi writes only the count *text* into that span; the span and its ID are authored in the static HTML, not injected at runtime). The flag meant the ID simply wasn't present in the static HTML of the page being scanned — the anchor pointed at an element that isn't rendered on that page.
 2. **Protocol-relative script URL:** The script was added using a protocol-relative URL, which the proofer failed to validate.
 
 ### Root Cause
@@ -71,7 +71,7 @@ We explicitly specified the HTTPS protocol to ensure it's treated as a valid ext
 <script src="https://busuanzi.ibruce.info/..."></script>
 ```
 
-**Lesson:** Don't link to IDs that a script injects at runtime (they're absent in the static HTML htmlproofer scans), and give htmlproofer explicit `https://` URLs — under `--disable-external` it doesn't skip protocol-relative (`//`) links.
+**Lesson:** Don't anchor-link to an ID that isn't rendered in the static HTML of the scanned page (htmlproofer's hash check looks for the `id`/`name` attribute, not the element's content), and give htmlproofer explicit `https://` URLs — under `--disable-external` it doesn't skip protocol-relative (`//`) links.
 
 ## Problem 3: Centering Elements in Asymmetric Containers
 

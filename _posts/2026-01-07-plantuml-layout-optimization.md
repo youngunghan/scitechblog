@@ -18,7 +18,7 @@ When documenting API test scenarios, the primary goal is to **visualize complex 
 
 ### Symptom
 
-When using Mermaid's Communication Diagram, long API request/response messages caused text to overlap or arrows to pierce through the text, making it unreadable.
+When using Mermaid's sequence diagram, long API request/response messages caused text to overlap or arrows to pierce through the text, making it unreadable.
 
 ```text
 (Message between Tester and API is unreadable due to overlap)
