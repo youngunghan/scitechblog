@@ -16,13 +16,13 @@ mermaid: true
 Two unrelated projects on this blog — a safety-gear **object detector** and a text-to-image **GAN** — converged on the same lesson, the hard way. In each, the headline number looked great and was wrong, and in each the fix was not a better model but a better *understanding of what the number was made of*.
 
 - The detector scored **0.91 mAP**. It also fired `helmet_off` on workers wearing helmets.
-- The GAN scored **FID 0.24**. Its real FID was **~165**.
+- The GAN scored **FID 0.24**. Its real FID was **~205**.
 
 Neither number was a lie the *model* told. Both were lies the **pipeline** told — and the habit that caught them is portable across domains. This post pulls the two threads together: how the numbers lied, why "numbers eat pipelines," and the companion habit of killing wrong hypotheses cheaply before they cost you a week.
 
-## Lie #1 — a generative metric (FID 0.24 → 165)
+## Lie #1 — a generative metric (FID 0.24 → 205)
 
-The GAN's evaluation notebook computed FID with a library default that scored in the wrong feature space — 1000-d Inception *logits* instead of the standard 2048-d `pool3`. The number it produced (0.24) was ~690× smaller than the real FID (164.9 on the same model and images), on a non-comparable scale. It wasn't "near-perfect"; it was misconfigured. The [full diagnosis is here]({% post_url 2026-06-18-troubleshooting-fid-wrong-feature-space %}), and the reusable [reporting protocol here]({% post_url 2026-06-22-how-to-actually-report-fid-checklist %}).
+The GAN's evaluation notebook computed FID with a library default that scored in the wrong feature space — 1000-d Inception *logits* instead of the standard 2048-d `pool3`. The number it produced (0.24) was on a non-comparable scale; the same model's real standard FID was ~205 (the ratio is model-dependent, so the two don't convert). It wasn't "near-perfect"; it was misconfigured. The [full diagnosis is here]({% post_url 2026-06-18-troubleshooting-fid-wrong-feature-space %}), and the reusable [reporting protocol here]({% post_url 2026-06-22-how-to-actually-report-fid-checklist %}).
 
 The tell was domain knowledge: face GANs land around FID 3 — not 0.24 for a visibly blurry generator. **A number too good to be true usually is — and the cause is upstream of the model.**
 
@@ -38,7 +38,7 @@ A single-scalar metric is a **compression of the truth**, and the compression ar
 
 | | generative (FID) | detection (mAP) |
 |---|---|---|
-| headline | 0.24 (→ really 165) | 0.91 (near-train) |
+| headline | 0.24 (→ really 205) | 0.91 (near-train) |
 | where it broke | feature space + input pipeline | the train/val split (sampling) |
 | the smell | "too good vs literature" | "too good vs reality (false positives)" |
 | the fix | pin extractor/pipeline/N | split by clip, disjoint probes, fixed seed |

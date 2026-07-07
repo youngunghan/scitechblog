@@ -75,8 +75,9 @@ The question is binary — *does weakening D break the ~160 floor?* — so the d
 | swB_mild | 5e-5 | every 2 steps | 0.999 | 0.9 |
 
 ```bash
-# example: the most aggressive D-weakening run (others change only the four flags)
+# example: the most aggressive D-weakening run (others change only the four D-weakening levers)
 python scripts/train.py --name swA_aggr --data_path data/trainset_sub.zip \
+    --use_uncond_loss --use_contrastive_loss --use_mixed_loss \
     --use_ema --ema_decay 0.999 --d_lr 2e-5 --real_label_smooth 0.9 --d_update_every 3 \
     --num_epochs 40 --batch_size 4 --save_freq 5
 ```
@@ -134,11 +135,12 @@ Future work follows directly, and the literature names the first thing to try. F
 
 ## Reproduction
 
-The stability levers are opt-in flags (defaults reproduce the original training), and the whole pipeline — data prep, train, FID/IS curve, plots — is scripted:
+The three auxiliary losses (`--use_uncond_loss --use_contrastive_loss --use_mixed_loss`) are the shared base config for every run in the sweep; the D-weakening stability levers are opt-in flags layered on top, and the whole pipeline — data prep, train, FID/IS curve, plots — is scripted:
 
 ```bash
-# one D-weakening config (vary the four flags for the others)
+# one D-weakening config (vary the four D-weakening levers for the others)
 python scripts/train.py --name swB_mild --data_path data/trainset_sub.zip \
+    --use_uncond_loss --use_contrastive_loss --use_mixed_loss \
     --use_ema --ema_decay 0.999 --d_lr 5e-5 --real_label_smooth 0.9 --d_update_every 2 \
     --num_epochs 40 --batch_size 4 --save_freq 5
 

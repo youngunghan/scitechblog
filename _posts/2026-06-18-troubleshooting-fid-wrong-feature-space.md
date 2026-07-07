@@ -3,7 +3,7 @@ title: "[Troubleshooting] Your FID of 0.24 Isn't Near-Perfect — It's the Wrong
 date: 2026-06-18 09:00:00 +0900
 categories: [AI, Troubleshooting]
 tags: [fid, gan, model-evaluation, generative-models, torchmetrics, pytorch]
-description: "A text-to-image GAN reported FID 0.2423 and it looked near-perfect. It wasn't: pytorch-ignite's default FID scores in a 1000-d logit space, not the standard 2048-d pool3. The same model's real FID was ~165, and the two scales don't convert."
+description: "A text-to-image GAN reported FID 0.2423 and it looked near-perfect. It wasn't: pytorch-ignite's default FID scores in a 1000-d logit space, not the standard 2048-d pool3. That model's real FID was ~205, and the two scales don't convert."
 author: seoultech
 image:
   path: assets/img/posts/fid-feature-space/ignite-vs-2048.png
@@ -74,7 +74,7 @@ _Same generator, same 510 image pairs — only the Inception feature space diffe
 
 Two things to read off this:
 
-1. **0.18 is the same tiny scale as the original 0.2423.** The notebook's "near-perfect" number was this 1000-d artifact all along; the real FID of this model is ~165 — high, because the model is genuinely weak.
+1. **0.18 is the same tiny scale as the original 0.2423.** The notebook's "near-perfect" number was this 1000-d artifact all along. Recomputed in the standard space, this checkpoint's real FID is ~165, and the original notebook model re-scores to ≈205 — both high, because the model is genuinely weak.
 2. **You cannot convert one into the other.** There is no fixed multiplier: on an earlier run, the 2048-d / 1000-d ratio was **1343×** at one epoch and **1870×** at another. The ratio depends on the model, so a 1000-d FID carries no recoverable information about the standard FID. You have to recompute from images.
 
 ## A Second Bug: All Fakes From One Prompt

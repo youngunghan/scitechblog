@@ -14,7 +14,7 @@ mermaid: true
 
 ## Why a checklist
 
-Across this series, the one asset everything else leans on is that we **measured FID correctly**. An [earlier post]({% post_url 2026-06-18-troubleshooting-fid-wrong-feature-space %}) caught a generator reported at "FID 0.24" whose real FID was ~165 — the metric was computed in the wrong feature space. Later, that trustworthy FID is what let us [rule out a hypothesis]({% post_url 2026-06-18-killing-the-d-dominance-hypothesis %}) and then [break a ceiling with DiffAugment]({% post_url 2026-06-19-can-diffaugment-break-the-fid-ceiling %}).
+Across this series, the one asset everything else leans on is that we **measured FID correctly**. An [earlier post]({% post_url 2026-06-18-troubleshooting-fid-wrong-feature-space %}) caught a generator reported at "FID 0.24" whose real FID was ~205 — the metric was computed in the wrong feature space. Later, that trustworthy FID is what let us [rule out a hypothesis]({% post_url 2026-06-18-killing-the-d-dominance-hypothesis %}) and then [break a ceiling with DiffAugment]({% post_url 2026-06-19-can-diffaugment-break-the-fid-ceiling %}).
 
 The lesson generalizes past that one bug: **FID is a single scalar with several silent knobs, and if you don't pin all of them, your number is not reproducible and not comparable to anyone else's.** This post is the reusable protocol — a reporting table and a checklist — distilled from the bug story so you don't have to relive it. It needs no new experiment; every number below is from runs already in this series.
 
