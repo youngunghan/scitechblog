@@ -5,7 +5,7 @@ order: 1
 ---
 
 <div align="center">
-  <h1>Youngung Han, Ph.D candidate</h1>
+  <h2>Youngung Han, Ph.D candidate</h2>
   <p>
     Dedicated to solving complex, real-world challenges by leveraging mathematical frameworks and advanced computational methods.<br>
     Driven by the potential of data and algorithms to create tangible impact and innovation.

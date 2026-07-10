@@ -16,16 +16,14 @@ const config = {
   }
 };
 
-function main() {
-  fs.rm(DIST_PATH, { recursive: true, force: true })
-    .then(() => fs.mkdir(DIST_PATH))
-    .then(() => new PurgeCSS().purge(config))
-    .then((result) => {
-      return fs.writeFile(output, result[0].css);
-    })
-    .catch((err) => {
-      console.error('Error during PurgeCSS process:', err);
-    });
+async function main() {
+  await fs.rm(DIST_PATH, { recursive: true, force: true });
+  await fs.mkdir(DIST_PATH, { recursive: true });
+  const result = await new PurgeCSS().purge(config);
+  await fs.writeFile(output, result[0].css);
 }
 
-main();
+main().catch((err) => {
+  console.error('Error during PurgeCSS process:', err);
+  process.exitCode = 1;
+});

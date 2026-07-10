@@ -3,7 +3,7 @@ title: "How to Actually Report FID: A Single-GPU Reproducibility Checklist"
 date: 2026-06-22 06:00:00 +0900
 categories: [AI, Generative Models]
 tags: [fid, reproducibility, model-evaluation, gan, torchmetrics, generative-models]
-description: "A reusable protocol for reporting FID that someone can actually reproduce: pin the feature extractor, the input pipeline, the sampling, and the controls — with a copy-paste reporting table and checklist, distilled from a real FID bug."
+description: "A reusable protocol for auditing and reporting FID: pin the extractor, input pipeline, sampling, seeds, checkpoint, controls, and sample-size limits, while recording missing provenance honestly."
 author: seoultech
 image:
   path: assets/img/posts/fid-checklist/cover.png
@@ -14,9 +14,9 @@ mermaid: true
 
 ## Why a checklist
 
-Across this series, the one asset everything else leans on is that we **measured FID correctly**. An [earlier post]({% post_url 2026-06-18-troubleshooting-fid-wrong-feature-space %}) caught a generator reported at "FID 0.24" whose real FID was ~205 — the metric was computed in the wrong feature space. Later, that trustworthy FID is what let us [rule out a hypothesis]({% post_url 2026-06-18-killing-the-d-dominance-hypothesis %}) and then [break a ceiling with DiffAugment]({% post_url 2026-06-19-can-diffaugment-break-the-fid-ceiling %}).
+Across this series, the first requirement was to fix the FID **feature definition**. An [earlier post]({% post_url 2026-06-18-troubleshooting-fid-wrong-feature-space %}) caught a generator reported at "FID 0.24" because the metric used the wrong feature space; the canonical-extractor re-evaluation was approximately 205 at N=510. That correction made internal comparisons meaningful, but it did not remove finite-sample bias or missing evaluation-seed provenance. Later posts use those estimates as exploratory same-N evidence, not definitive causal measurements.
 
-The lesson generalizes past that one bug: **FID is a single scalar with several silent knobs, and if you don't pin all of them, your number is not reproducible and not comparable to anyone else's.** This post is the reusable protocol — a reporting table and a checklist — distilled from the bug story so you don't have to relive it. It needs no new experiment; every number below is from runs already in this series.
+The lesson generalizes past that one bug: **FID is a single scalar with several silent knobs.** Reproducibility requires pinning all of them; comparability additionally requires a compatible implementation, preprocessing path, sample distribution, and sample count. This checklist also records missing provenance instead of retroactively inventing it.
 
 ## What FID is, in one line
 
@@ -51,9 +51,9 @@ flowchart LR
 
 2. **Input pipeline — resize backend, format, range/dtype.** clean-fid (Parmar et al., CVPR 2022) quantifies the traps: PIL-bicubic vs OpenCV/PyTorch bilinear shifts FID by ~4–7; exporting samples as JPEG instead of PNG pushed real FFHQ FID to ~21. Match the resize for real and fake, never JPEG-round-trip generated images, and match range/dtype to the FID flag (uint8 `[0,255]` with `normalize=False`, *or* float `[0,1]` with `normalize=True` — not mixed). Details and numbers in the [first post]({% post_url 2026-06-18-troubleshooting-fid-wrong-feature-space %}).
 
-3. **Sampling — same N, the right distribution, accumulate over the full set.** Generate fakes from the **real caption/label distribution** (one fake per test caption), not a single fixed prompt. Accumulate over the whole test set and `compute()` once — never average per-batch FIDs. Fix N and report it: FID is a *biased* estimator whose bias is model-dependent (Chong & Forsyth, CVPR 2020), so comparing models at different N can flip the ranking.
+3. **Sampling — same N, the right distribution, accumulate over the full set.** Generate fakes from the **real caption/label distribution** (one fake per test caption), not a single fixed prompt. Accumulate over the whole test set and `compute()` once — never average per-batch FIDs. Fix N and report it: FID is a *biased* estimator whose bias is model-dependent (Chong & Forsyth, CVPR 2020), so comparing models at different N can flip the ranking. Here N=510 is smaller than the 2048 feature dimension, so each empirical covariance has rank at most 509; close differences need repeated draws and a small-sample complement such as KID.
 
-4. **Controls — a real-vs-real ≈ 0 sanity check, plus a fixed seed and checkpoint.** Score real-vs-(shuffled)-real; it should be ≈ 0. If it isn't, your pipeline is broken before the model enters. Then fix the seed and name the exact checkpoint, so the number is re-derivable.
+4. **Controls and provenance — identity, independent splits, seeds, checkpoint, code.** Scoring the exact same real tensor set against itself should be approximately zero, but that is only an identity/accumulator smoke test: a wrong deterministic extractor also passes it. Add a comparison between independent real splits that traverse the real loading pipeline, and a deliberately perturbed-input check when debugging preprocessing. Record the training seed, **evaluation latent seed**, checkpoint hash/path, evaluator commit, and library version separately.
 
 ## A worked example (our own numbers, no new run)
 
@@ -62,31 +62,37 @@ Why trust these four knobs? Because they explain every FID surprise in this seri
 | evidence | what it shows | knob |
 |---|---|---|
 | ignite-default = **0.18**, standard 2048-d = **164.9** (same model, same images) | the extractor alone moves FID ~900× | ① extractor |
-| real-vs-real control = **≈ 0.0** | the pipeline is sound; the 164.9 is real | ④ controls |
-| baseline 163 → DiffAugment **118** | a correctly-measured FID *tracks real improvement* | (the payoff) |
+| same real tensors vs themselves = **≈ 0.0** | the accumulator identity path behaves; full-pipeline validity remains untested | ④ controls |
+| baseline 163 → DiffAugment **118.5** | one matched-horizon run gives a promising same-N difference | (exploratory payoff) |
 
-That last row is the point of getting it right: a broken FID (the 1000-d 0.18) is a flat, meaningless artifact; the **correct FID went down when the model actually got better and up when it collapsed.** A metric is only useful for decisions once it behaves — and it only behaves once the four knobs are pinned.
+The canonical-extractor estimate moved in the same direction as the unshared visual inspection in this run, unlike the tiny 1000-d number. That makes it more useful, but does not establish that the model "actually got better" by a known amount: the visual check was not blinded, the training was not repeated, and the historical evaluator did not record its latent seed.
 
 ## A reporting table you can copy
 
-Put this next to any FID you publish. If a reader can't reproduce your number from it, it isn't a measurement:
+Put this next to any FID you publish. The example deliberately exposes the missing historical provenance rather than filling it with the configured training seed:
 
 | field | example value |
 |---|---|
 | feature extractor | InceptionV3 `pool3`, **2048-d** |
-| FID implementation | torchmetrics `FrechetInceptionDistance` |
+| FID implementation | torchmetrics `FrechetInceptionDistance`; **version not recorded** |
 | resize | library-internal → 299×299 (no pre-resize) |
 | image format | PNG (no JPEG round-trip) |
 | input range / dtype | uint8 `[0,255]`, `normalize=False` |
 | samples N | 510 real / 510 fake, full-set accumulation |
 | fake conditioning | one fake per real test caption |
-| seed / checkpoint | seed 42, `epoch_90` |
-| **FID** | **118.5** |
-| control: real-vs-real | ≈ 0.0 |
+| training/data-split seed | 42 |
+| evaluation latent seed | **not recorded for historical JSON** |
+| checkpoint | `diffaug100`, `epoch_90` (raw local checkpoint, not promoted) |
+| evaluator source | result introduced at `f64515f`; audited branch `6fac9ec` |
+| **historical FID estimate** | **118.5** |
+| control: same real tensors vs themselves | ≈ 0.0 (identity smoke only) |
+| control: independent real splits | not reported |
+
+Because the historical evaluation latent seed and distributable checkpoint are missing, this table documents a historical result rather than a fully re-derivable artifact. Branch `origin/fix/correctness-audit` at `6fac9ec` adds a run-level seed, but it does **not** reset or reuse noise per checkpoint: changing the epoch list changes later checkpoints' inputs. Fix that by resetting a dedicated generator per checkpoint or precomputing fixed latent tensors; then re-evaluate the old checkpoints. Direct script calls also need `export PYTHONPATH="$(pwd)"`.
 
 ## The limits even a clean FID has
 
-Pinning the four knobs makes FID *reproducible and comparable* — not *correct for your domain*. The 2048-d pool3 backbone is ImageNet-trained: Kynkäänniemi et al. (ICLR 2023) show FID is gameable by aligning ImageNet-class histograms, and Stein et al. (NeurIPS 2023) show it under-tracks human realism, recommending FD-DINOv2; CMMD (CVPR 2024) proposes CLIP-MMD. For a non-ImageNet domain (e.g. faces), add a **CLIP-FID or FD-DINOv2 cross-check**. One caveat if your model conditions on CLIP: a CLIP-based FID can be mildly self-favoring, so DINOv2 is the cleaner second opinion.
+Pinning the knobs can make a run reproducible; it does not automatically make it comparable or statistically precise. At N=510, report the result as a same-N estimate, repeat the fake draw, and add KID or another small-sample analysis. The 2048-d pool3 backbone is also ImageNet-trained: Kynkäänniemi et al. (ICLR 2023) show FID is gameable by aligning ImageNet-class histograms, and Stein et al. (NeurIPS 2023) show it under-tracks human realism, recommending FD-DINOv2; CMMD (CVPR 2024) proposes CLIP-MMD. For faces, add an **FD-DINOv2 cross-check**. A CLIP-based metric is less independent here because the model itself uses CLIP conditioning.
 
 ## The checklist
 
@@ -95,9 +101,12 @@ Pinning the four knobs makes FID *reproducible and comparable* — not *correct 
 [ ] real and fake resized the same way; don't pre-resize (library does 299 internally)
 [ ] PNG, not JPEG; range/dtype matches the FID flag (uint8+normalize=False OR float[0,1]+normalize=True)
 [ ] fakes from the real caption/label distribution, not one fixed prompt
-[ ] fixed N, accumulate over the full set, compute() once — report N
-[ ] real-vs-real control ≈ 0
-[ ] fixed seed + named checkpoint
+[ ] fixed N, accumulate over the full set, compute() once — report N and whether N < feature dimension
+[ ] same-set real-vs-real identity smoke ≈ 0; do not call it full-pipeline validation
+[ ] independent real splits and an intentional preprocessing perturbation behave as expected
+[ ] training seed and evaluation latent seed recorded separately
+[ ] exact checkpoint + evaluator commit + library version recorded
+[ ] small N? repeat fake draws and add KID/uncertainty analysis
 [ ] report extractor + library + N alongside the number
 [ ] non-ImageNet domain? add a CLIP-FID / FD-DINOv2 cross-check
 ```

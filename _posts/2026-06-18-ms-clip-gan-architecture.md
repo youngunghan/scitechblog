@@ -13,7 +13,7 @@ mermaid: true
 
 ## Introduction
 
-The previous post in this series fixed the metric: our "FID 0.24" was not a near-perfect generator, but a non-standard 1000-d logit-space FID. Once the measurement was honest, the next question was architectural: **what kind of model was actually producing the plateau around FID ~160?**
+The previous post in this series fixed the feature extractor: our "FID 0.24" was not a near-perfect generator, but a non-standard 1000-d logit-space distance. The replacement 2048-d estimate used only 510 samples, so it is best suited to same-N comparisons rather than an absolute literature benchmark. The next question was architectural: **what kind of model was producing the pre-DiffAugment band around FID ~160 in those runs?**
 
 This note is the model map I wanted before interpreting the training curves. MS-CLIP-GAN is not a diffusion model with one denoising U-Net. It is a **StackGAN++-style multi-stage GAN** with CLIP text conditioning, three generator stages, and three discriminators. That shape matters because the later stability experiment asks a very specific question: was the **stage-wise discriminator stack** too strong for the generator refiners?
 
@@ -85,7 +85,7 @@ flowchart LR
     D --> E
 ```
 
-That prediction is what the next post tested. The result was negative: weakening D did not robustly improve FID, and the model stayed around the same ~160 floor.
+That prediction is what the next post probed. Across four bundled, single-seed configurations, lowering D's learning rate or update frequency alongside other stabilization changes did not robustly improve the same-N FID estimate. This lowers the priority of those configurations; it does not rule out every D/G-balance mechanism.
 
 ## Compared With RTMDet
 
@@ -98,7 +98,7 @@ This is where the RTMDet paper-review style is useful. RTMDet and MS-CLIP-GAN ar
 | Multi-scale role | feature pyramid for boxes at different strides | image synthesis/refinement at 64/128/256 |
 | Main metric | COCO-style mAP | standard 2048-d FID / IS |
 | Failure mode studied | false positives despite high mAP | FID plateau despite GAN-balance tuning |
-| Lesson | architecture is strong, but evaluation/data can still hide deployment failures | architecture runs, but the bottleneck is likely data/objective/model capacity rather than D-balance |
+| Lesson | architecture is strong, but evaluation/data can still hide deployment failures | the tested balance configurations did not help; the bottleneck remains unidentified without cleaner ablations |
 
 RTMDet is a mature detector whose paper carefully ablates backbone, neck, head, label assignment, and training schedule. MS-CLIP-GAN is a project implementation that combines StackGAN++-style staging, CLIP conditioning, and auxiliary losses. So the standard of evidence is different. RTMDet's architecture is the thing the paper validates; MS-CLIP-GAN's architecture is the thing we must audit before trusting the experiment.
 
@@ -106,16 +106,16 @@ The common lesson is the same one this blog keeps coming back to: **a model diag
 
 ## What This Architecture Does Not Prove
 
-The diagram explains the training dynamics, but it does not rescue the results. The subset experiment still plateaued around FID ~160, and the best checkpoint still came from the baseline epoch-20 run.
+The diagram organizes hypotheses, but it does not establish their causes. In the pre-DiffAugment sweep, estimates stayed around FID ~160 and baseline epoch 20 remained the promoted checkpoint. A later DiffAugment run reached a lower historical estimate (~118.5 at epoch 90), so ~160 was never an architecture-wide ceiling.
 
 The main limitations follow directly from the structure:
 
 - The text condition is only a CLIP embedding, not a token-level cross-attention mechanism.
 - The 256px stage is asked to learn real high-resolution detail from a small subset.
-- Three discriminators provide strong feedback, but also make optimization noisy.
+- Three discriminators create a more coupled optimization problem; the available runs do not isolate how much each stage contributes to noise or instability.
 - CLIP guidance helps semantic alignment, but it is not a full image-quality objective.
 
-So future gains probably require more than tuning `d_lr` or `n_critic`: larger data, stronger conditioning, a better objective mix, or a more modern generator family.
+The next experiments should compare interventions under matched seeds and evaluation: data scale or symmetric augmentation, stronger conditioning, objective changes, per-stage discriminator ablations, and modern generator baselines. The current architecture diagram alone cannot rank those causes.
 
 ## Resources
 

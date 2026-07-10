@@ -43,7 +43,7 @@ UNet++ extends **U-Net** (plain same-resolution skip connections) and its wider 
 
 ### 1. Nested Dense Skip Connections
 Unlike U-Net, which directly connects the encoder feature map to the corresponding decoder layer, UNet++ introduces intermediate convolution blocks on the skip pathways.
--   **Dense Connections**: The skip pathways are densely connected, meaning that each node receives inputs from all previous nodes at the same level.
+-   **Dense Connections**: For a node $X^{i,j}$ with $j>0$, the inputs are **all earlier nodes on the same skip pathway**, $X^{i,0},\ldots,X^{i,j-1}$, plus the upsampled output $X^{i+1,j-1}$ from the next deeper level. The concatenated tensor is then processed by the convolution block $H$. The dense connectivity is therefore inside each redesigned skip pathway, not a claim that every node in the whole network connects to every other node.
 -   **Semantic Gap Reduction**: These intermediate blocks help bridge the semantic gap between the low-level encoder features and high-level decoder features, making the optimization easier.
 
 ### 2. Deep Supervision
@@ -57,7 +57,7 @@ Thanks to deep supervision, UNet++ can be **pruned** at inference time.
 -   **Efficiency**: This allows users to trade off between performance and inference speed without retraining the model.
 
 ## Results
-The authors evaluated UNet++ on multiple medical segmentation tasks (lung nodules, colon polyps, liver, etc.).
+The expanded TMI paper evaluates six applications: five 2D tasks (EM, cell, nuclei, brain tumor, and liver) and one genuinely volumetric task. For the latter, the authors train **VNet++** on 1,012 LIDC-IDRI lung-nodule crops of size $64\times64\times64$. Table IV reports IoU $71.17\pm4.53$ for V-Net and $77.05\pm2.42$ for VNet++ with deep supervision, so the redesigned connections were validated in a 3D setting as well as on 2D images.
 
 | Method | Lung Nodule (IoU) | Colon Polyp (IoU) | Liver (IoU) | Cell Nuclei (IoU) |
 | :--- | :---: | :---: | :---: | :---: |
@@ -81,8 +81,8 @@ UNet++'s clearest contribution is reducing the **semantic gap of skip connection
 
 ### Limitations
 - More parameters, memory, and compute than plain U-Net; the IoU gains are large on some datasets (Liver, ~+6) but modest on others (Cell Nuclei, ~+1.8).
-- The numbers are on a few 2D medical datasets at a fixed backbone; generalization to 3D volumes and other modalities is not established here.
+- The 3D evidence is limited to one lung-nodule CT task using fixed $64^3$ crops and a V-Net backbone. That supports volumetric feasibility, but not broad generalization to full-volume segmentation, other 3D organs, or other backbones.
 - Deep supervision adds loss-weighting choices ($L^1$–$L^4$) to tune, and pruning trades accuracy for speed without a principled stopping rule.
 
 ### Open Questions / My Take
-The most transferable idea is "**one architecture you can prune to the right depth**." I'd want to see whether the gains hold with modern backbones and on volumetric (3D) data, where U-Net variants are most used.
+The most transferable idea is "**one architecture you can prune to the right depth**." The paper includes one 3D VNet++ experiment; the next question is whether that result holds with modern backbones and across larger, full-volume 3D datasets.

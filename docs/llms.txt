@@ -1,0 +1,22 @@
+# scitechblog docs
+
+> CSMAIR Jekyll 블로그의 실행·작성·설정·테마 관리 문서. 사람용 인덱스는 README.md.
+
+## Tutorials
+- [tutorials/quickstart.md](tutorials/quickstart.md) : 설치→자산 빌드→로컬 실행→production 검증
+
+## How-to
+- [how-to/write-posts.md](how-to/write-posts.md) : 공통 글 작성·출처·검증 절차
+- [how-to/post-types/algorithm.md](how-to/post-types/algorithm.md) : 알고리즘 풀이 글
+- [how-to/post-types/paper-review.md](how-to/post-types/paper-review.md) : 논문 리뷰 글
+- [how-to/post-types/project-engineering.md](how-to/post-types/project-engineering.md) : 프로젝트·실험 글
+- [how-to/post-types/sql.md](how-to/post-types/sql.md) : SQL 풀이 글·공개 정책
+- [how-to/post-types/troubleshooting.md](how-to/post-types/troubleshooting.md) : 트러블슈팅 글
+
+## Reference
+- [reference/configuration.md](reference/configuration.md) : Jekyll·사이트 설정
+- [reference/maintenance-tools.md](reference/maintenance-tools.md) : 운영 보조 도구
+
+## Explanation
+- [explanation/architecture.md](explanation/architecture.md) : 빌드·검증·배포 구조
+- [explanation/theme-customization.md](explanation/theme-customization.md) : Chirpy 소스·버전 관리

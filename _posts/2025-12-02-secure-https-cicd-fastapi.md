@@ -26,7 +26,7 @@ The architecture consists of:
 -   **FastAPI**: The backend application.
 -   **MySQL RDS**: Managed database service on AWS.
 -   **Nginx**: Reverse proxy to handle SSL termination and forward traffic to FastAPI.
--   **Certbot**: Automates Let's Encrypt SSL certificate issuance and renewal.
+-   **Certbot**: Issues the Let's Encrypt certificate; the historical renewal loop is audited below because it was not actually wired to the running Nginx challenge path.
 -   **Docker Compose**: Orchestrates the application, Nginx, and Certbot containers.
 -   **GitHub Actions**: CI/CD pipeline to build and deploy on every push to `main`.
 
@@ -34,7 +34,7 @@ The architecture consists of:
 
 ### Docker Compose Configuration
 
-We use `docker-compose.yaml` to define our services. A key part is setting up Nginx and Certbot to share volumes for the ACME challenge. Note that `stable-alpine` is convenient for tutorials but is itself a moving tag; for production, pin a specific supported [Nginx version](https://hub.docker.com/_/nginx) (or an image digest) and update it on a regular security cadence, rather than chasing `latest` or leaving an old pin in place.
+The historical `docker-compose.yaml` defined three services. The relevant detail is not just that Nginx and Certbot share volumes; it is which ACME authenticator created the certificate lineage. The deployed file used `nginx:1.25` and an unpinned `certbot/certbot` tag. Both should be replaced with supported, reviewed versions or digests on a regular update cadence.
 
 ```yaml
 services:
@@ -44,7 +44,7 @@ services:
     # ... (omitted for brevity)
 
   nginx:
-    image: nginx:stable-alpine
+    image: nginx:1.25
     ports:
       - "80:80"
       - "443:443"
@@ -54,17 +54,23 @@ services:
       - ./data/certbot/www:/var/www/certbot
     depends_on:
       - wapang
+    command: >-
+      /bin/sh -c 'while :; do sleep 6h & wait $${!};
+      nginx -s reload; done & nginx -g "daemon off;"'
 
   certbot:
     image: certbot/certbot
     volumes:
       - ./data/certbot/conf:/etc/letsencrypt
       - ./data/certbot/www:/var/www/certbot
+    entrypoint: >-
+      /bin/sh -c 'trap exit TERM; while :; do
+      certbot renew; sleep 12h & wait $${!}; done;'
 ```
 
-#### HTTPS & Certbot Workflow
+#### HTTPS & Certbot Workflow: Intended vs. Actual
 
-To automate SSL certificate issuance and renewal, we set up a shared volume between Nginx and Certbot.
+The intended design was a webroot flow:
 
 ![HTTPS Certbot Flow](/assets/img/posts/fastapi-https/https_certbot_flow.png)
 
@@ -73,14 +79,45 @@ To automate SSL certificate issuance and renewal, we set up a shared volume betw
 3.  **Let's Encrypt** verifies the file via HTTP.
 4.  Upon success, certificates are saved to the shared `/etc/letsencrypt` volume.
 
+_The diagram shows the intended webroot design. The historical bootstrap command did not configure that design._
+
+The deployment workflow actually did this when no certificate existed:
+
+```bash
+docker compose down
+docker run --rm -p 80:80 \
+  -v "$PWD/data/certbot/conf:/etc/letsencrypt" \
+  -v "$PWD/data/certbot/www:/var/www/certbot" \
+  certbot/certbot certonly --standalone \
+    --non-interactive --agree-tos --email "admin@$DOMAIN_NAME" \
+    -d "$DOMAIN_NAME"
+docker compose up -d
+```
+
+That first issuance works because the stack is down and the one-off container publishes host port 80. It also stores `standalone` as the lineage's authenticator. After the stack starts, host port 80 routes to Nginx, while the long-running Certbot service publishes **no host port**. A due `certbot renew` therefore reuses standalone inside an unreachable container port; ACME requests reach Nginx's webroot instead. The shared `/var/www/certbot` directory and Nginx's ACME location do not switch an existing lineage from standalone to webroot.
+
+Therefore the accurate status is:
+
+- initial HTTPS issuance was automated,
+- Nginx periodically reloaded certificates from the shared volume,
+- **unattended certificate renewal was not validated and is expected to fail when renewal becomes due**.
+
+A corrected deployment must choose one challenge strategy end to end:
+
+1. **Webroot (preferred for no renewal downtime):** start an HTTP-only bootstrap Nginx, issue with `certbot certonly --webroot -w /var/www/certbot`, then enable the TLS server. Future `certbot renew` reuses webroot while Nginx remains online.
+2. **Standalone:** schedule renewal at the host level, stop Nginx, run a one-off Certbot container that explicitly publishes host port 80 and mounts the existing certificate volume, then restart Nginx afterward. This accepts brief downtime and must restore Nginx even when renewal fails.
+
+Whichever design is chosen, verify it with `certbot renew --dry-run` from the deployed environment and alert on renewal failure. A successful first certificate does not test the renewal path.
+
 ### GitHub Actions Workflow
 
-The CD pipeline (`cd.yml`) handles:
-1.  Building the Docker image.
-2.  Pushing to Docker Hub.
-3.  SSHing into EC2.
-4.  Creating `.env` from GitHub Secrets.
-5.  Running `docker compose up -d`.
+The initial workflow had one `build-and-deploy` job. A later source audit added the missing pytest gate, so the current recorded design has two jobs:
+
+1. `test` runs `uv run pytest -q` on pushes and pull requests.
+2. `build-and-deploy` declares `needs: test` and runs only for a push to `main`.
+3. The deployment job builds and pushes the image, connects to EC2, writes `.env` from GitHub Secrets, bootstraps the certificate when absent, and recreates the Compose stack.
+
+The read-only vault mirror predates that CI change and still describes a single job; the vault wiki log records the post-audit two-job source state. That snapshot drift should not be mistaken for two workflows running at once.
 
 ## Troubleshooting
 
@@ -156,7 +193,7 @@ I added `ACCESS_TOKEN_SECRET` and `REFRESH_TOKEN_SECRET` to GitHub Secrets and u
 
 ## Verification
 
-To verify everything was working, I wrote a Python script to register a user via the public HTTPS API (sketch below — the request's JSON payload and headers are elided as `...`):
+At the time of the assignment, I verified the deployment with a Python script that registered a user through the public HTTPS API (sketch below — the request's JSON payload and headers are elided as `...`):
 
 ```python
 # verify_deployment.py
@@ -177,12 +214,15 @@ Status Code: 201
    - RDS Database Write: Verified
 ```
 
+This is a historical result, not an uptime claim. The DuckDNS endpoint was not reachable during the July 10, 2026 documentation audit, so readers should not expect the example domain to remain live.
+
 ## Limitations / Caveats
 
 This was a seminar assignment, so a few shortcuts are not production-grade:
 
 - **The rate-limit "fix" was situational.** Switching to a new DuckDNS domain only sidestepped Let's Encrypt's per-identifier limit to meet a deadline; the real fix is to validate against the **staging** environment and stop the failing retry loop.
-- **Moving image tags.** `nginx:stable-alpine` and `certbot/certbot` are mutable tags — pin a specific version or digest and update on a security cadence.
+- **Certificate renewal was not end-to-end.** Initial standalone issuance published host port 80, but the running Certbot service reused the standalone authenticator without any host port while HTTP traffic went to Nginx's webroot. Migrate the lineage to webroot or use a host-level standalone stop/run/start procedure, then pass `renew --dry-run` and monitor failures.
+- **Container versions.** The observed deployment used the old `nginx:1.25` line and an unpinned `certbot/certbot` tag. Move to currently supported, reviewed versions or digests and update them on a security cadence.
 - **Not zero-downtime.** Deployment runs `docker compose up -d`, so there is a brief gap while containers recreate; a blue-green or rolling strategy would remove it.
 - **Secrets & DB.** Secrets live in `.env` on the host and in GitHub Secrets; RDS credentials and JWT secrets should be rotated and least-privileged for real use.
 
@@ -190,4 +230,4 @@ This was a seminar assignment, so a few shortcuts are not production-grade:
 
 Building a CI/CD pipeline is rarely a "set it and forget it" process on the first try. It requires careful management of environment variables, secrets, and configuration files. Through this assignment, I learned the importance of checking container logs (`docker logs`) immediately when things go wrong and ensuring that local configuration changes are properly reflected in the deployment pipeline.
 
-The final result is a fully automated, secure FastAPI server running on EC2. 
+The assignment reached an HTTPS FastAPI deployment on EC2, but "fully automated" was too strong: the first certificate was automated while renewal still needed an end-to-end fix and monitoring. The broader lesson is to test lifecycle operations such as renewal and rollback, not just the first successful deployment.

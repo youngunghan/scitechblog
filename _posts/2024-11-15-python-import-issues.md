@@ -39,7 +39,7 @@ python /path/to/vision-ml-project/src/vision_utils/train.py --data-dir /path/to/
 ```
 
 We encounter this error:
-```python
+```text
 Traceback (most recent call last):
   File "train.py", line 3, in <module>
     from vision_utils.preprocessing import transforms

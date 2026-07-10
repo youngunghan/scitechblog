@@ -2,14 +2,13 @@ import babel from '@rollup/plugin-babel';
 import terser from '@rollup/plugin-terser';
 import { nodeResolve } from '@rollup/plugin-node-resolve';
 import fs from 'fs';
-import pkg from './package.json';
 
 const SRC_DEFAULT = '_javascript';
 const SRC_PWA = `${SRC_DEFAULT}/pwa`;
 const DIST = 'assets/js/dist';
 
 const banner = `/*!
- * ${pkg.name} v${pkg.version} | © ${pkg.since} ${pkg.author} | ${pkg.license} Licensed | ${pkg.homepage}
+ * jekyll-theme-chirpy v7.4.1 | © 2019 Cotes Chung | MIT Licensed | https://github.com/cotes2020/jekyll-theme-chirpy
  */`;
 const frontmatter = '---\npermalink: /:basename\n---\n';
 const isProd = process.env.BUILD === 'production';

@@ -178,7 +178,7 @@ The local 650M smoke run used this environment:
 | Model | `facebook/esm2_t33_650M_UR50D` |
 | Fresh Hugging Face cache size | 2.5 GB |
 
-That smoke run completed the download/cache path, ESM2 CUDA load, wt/mut forward passes, frozen feature cache writing, one epoch of head training, and checkpoint writing. Its validation set had only two synthetic examples, so its AUROC/AUPRC should not be interpreted as model quality.
+That smoke run completed the download/cache path, ESM2 CUDA load, wt/mut forward passes, frozen feature cache writing, one epoch of head training, and checkpoint writing. Its validation set had only two assignment-provided examples, both duplicating mutation patterns in training, so its AUROC/AUPRC should not be interpreted as model quality.
 
 ## What Didn't Work / Limitations
 
@@ -193,7 +193,7 @@ That smoke run completed the download/cache path, ESM2 CUDA load, wt/mut forward
 
 This project changed how I would write about protein-language-model experiments. The code path matters, but so does the evidence level behind each claim.
 
-1. For point mutations, mutation-position embeddings are a stronger engineering default than relying only on a whole-sequence CLS embedding.
+1. For point mutations, mutation-position embeddings are a mutation-local candidate worth testing against a whole-sequence CLS baseline; this fixture does not establish which is the stronger default.
 2. Frozen embedding caches make ESM2 650M practical for repeated classifier-head experiments on limited hardware.
 3. Tiny smoke-test metrics should be labeled as pipeline validation, not as biological or clinical validation.
 

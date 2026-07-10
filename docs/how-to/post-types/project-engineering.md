@@ -1,15 +1,17 @@
 # 프로젝트/엔지니어링 글 작성 가이드
 
-모델 구축·실험·시스템 구축류 글을 위한 콘텐츠 구조·스타일 가이드입니다. 대상 글 유형:
+> **범위:** 모델 실험·시스템 구축 글의 구조와 재현성 검증. 공통 규칙은 [write-posts.md](../write-posts.md) 참고.
+> **대상:** 블로그 작성자.
+> **상태:** 구현 반영 — 기준일 2026-07-10.
 
-- **모델/실험**: 예) [ESM2 변이 분류](../../_posts/2025-11-30-protein-variant-classification-esm2.md), [MRI skull mask 생성](../../_posts/2025-12-29-skull-mask-generation-mri.md)
-- **시스템 구축**: 예) [FastAPI CI/CD 파이프라인](../../_posts/2025-11-25-cicd-pipeline-fastapi.md), [HTTPS CI/CD](../../_posts/2025-12-02-secure-https-cicd-fastapi.md)
+대상 글 유형:
 
-> **언어 정책**: 모든 **블로그 글(`_posts/*.md`)은 영어**로 씁니다. 이 가이드처럼 저자용 문서(`docs/guide`, `docs/blog_post`)만 한국어입니다. 아래 템플릿·예시 본문은 그대로 복붙할 수 있도록 영어로 제공합니다.
+- **모델/실험**: 예) [ESM2 변이 분류](../../../_posts/2025-11-30-protein-variant-classification-esm2.md), [MRI skull mask 생성](../../../_posts/2025-12-29-skull-mask-generation-mri.md)
+- **시스템 구축**: 예) [FastAPI CI/CD 파이프라인](../../../_posts/2025-11-25-cicd-pipeline-fastapi.md), [HTTPS CI/CD](../../../_posts/2025-12-02-secure-https-cicd-fastapi.md)
 
-> 파일명·front matter 필드 의미·이미지 경로 규칙 등 **공통 규칙은 [03. 글 작성 규칙](../guide/03-writing-posts.md)에 정의**되어 있으니 여기서 반복하지 않습니다. 이 문서는 **프로젝트/엔지니어링 글의 콘텐츠 구조와 글 유형별 스타일**, 그리고 **게시 후 검증 체크리스트**에 집중합니다.
+실제 블로그 글은 영어로 작성합니다. 아래 템플릿은 복사 가능한 영어 본문으로 제공합니다.
 
-## 섹션 구조(H2)
+## 1. 섹션 구조
 
 본문 헤더는 항상 `## `(H2)부터 시작합니다. 단일 `#`는 쓰지 않습니다(파일 맨 위 `---` front matter의 `title`이 사실상 H1 역할). 권장 골격:
 
@@ -28,7 +30,7 @@
 
 > skull-mask 글처럼 **파이프라인 단계가 핵심**이면 `## Step 1: Normalization` … `## Step N` 으로 단계를 H2로 쪼개고, 각 단계에 `### Why` / `### How It Works` 하위 헤더를 둡니다. 단계마다 입력→출력을 한 줄로 적으면 스킴 읽기 좋습니다(`**Before**: [1.8e-07, 3.5e-05]` → `**After**: [0, 255]`).
 
-## 다이어그램: mermaid vs 외부 이미지
+## 2. 다이어그램
 
 front matter에 `mermaid: true`를 넣고 ```` ```mermaid ```` 블록을 씁니다. 아키텍처·파이프라인 흐름은 **mermaid를 우선**합니다(텍스트로 버전 관리되고 수정이 쉬움). skull-mask 글의 `flowchart LR` 예시처럼 단계와 분기(`{Edge Touching?}`)를 그대로 표현할 수 있습니다.
 
@@ -46,9 +48,9 @@ flowchart LR
 - 실제 산출물 스크린샷(Swagger UI, 추론 결과 오버레이 등) — CI/CD 글의 `swagger_ui_final_*.png`
 - mermaid로 표현하기 어려운 모델 구조도 — ESM2 글의 `architecture.png`, `baseline_architecture.png`
 
-> **이미지 경로 규칙(요약, 상세는 [03 문서](../guide/03-writing-posts.md#이미지-경로-규칙))**: front matter `image.path`는 **맨 앞 `/` 없이**(`assets/img/posts/<topic>/cover.png`), **본문 인라인 이미지는 맨 앞 `/`를 붙여서**(`![alt](/assets/img/posts/<topic>/<filename>.png)`) 씁니다(여기 `<topic>`·`<filename>`은 placeholder). 토픽 폴더(`<topic>`)는 글 슬러그와 맞춥니다.
+> **이미지 경로 규칙(요약, 상세는 [write-posts.md §4 이미지와 수식](../write-posts.md#4-이미지와-수식))**: front matter `image.path`는 **맨 앞 `/` 없이**(`assets/img/posts/<topic>/cover.png`), **본문 인라인 이미지는 맨 앞 `/`를 붙여서**(`![alt](/assets/img/posts/<topic>/<filename>.png)`) 씁니다(여기 `<topic>`·`<filename>`은 placeholder). 토픽 폴더(`<topic>`)는 글 슬러그와 맞춥니다.
 
-## 코드 스니펫: 자체완결되게
+## 3. 코드 스니펫
 
 코드 블록은 **그것만 복사해 실행해도 NameError가 안 나도록** import를 포함합니다. 독자는 보통 한 블록만 떼어 갑니다.
 
@@ -78,11 +80,11 @@ def compute_top_k_recall(df: pd.DataFrame, score_col: str, k: int) -> float:
 - 짧은 모델 정의(`nn.Module`)나 설정 스니펫(class weight 한 줄 등)은 import를 생략해도 되지만, **import가 없으면 "어떤 라이브러리인지" 한 줄로 본문에 적어** 둡니다(`I used PyTorch's DistributedDataParallel (DDP)`).
 - 셸 명령은 ```` ```bash ````, YAML/설정은 ```` ```yaml ````, 에러 로그·다이어그램 ASCII는 ```` ```text ```` 또는 라벨 없는 펜스로 구분합니다.
 
-## 수식 표기: 일관되게
+## 4. 수식 표기
 
 **수식을 쓰는 글은** front matter에 `math: true`를 넣고 인라인 `$...$`, 블록 `$$...$$`를 씁니다. **하나의 지표는 글 전체에서 같은 표기**를 유지합니다.
 
-> **교훈(skull-mask 글 사례)**: 같은 IoU를 정의식($\frac{|P \cap G|}{|P \cup G|}$)·표·결과 문장에서 표기와 자리수가 어긋나지 않게 합니다. 예를 들어 표는 `0.9794`인데 초안 단계에서 intro에 `0.9795`로 적힌 적이 있는 식의 **소수 자릿수 불일치**는 흔히 생기는 대표적 위험입니다(현재 글은 모두 `0.9794`로 통일되어 있습니다; 아래 [지표 상호 일관성](#지표수치-상호-일관성) 참고). 약어도 글마다 한 번 풀어 줍니다 — `IoU (Intersection over Union)`, `Dice`처럼 첫 등장 시 정의.
+> **교훈(skull-mask 글 사례)**: 같은 IoU를 정의식($\frac{|P \cap G|}{|P \cup G|}$)·표·결과 문장에서 표기와 자리수가 어긋나지 않게 합니다. 예를 들어 표는 `0.9794`인데 초안 단계에서 intro에 `0.9795`로 적힌 적이 있는 식의 **소수 자릿수 불일치**는 흔히 생기는 대표적 위험입니다(현재 글은 모두 `0.9794`로 통일되어 있습니다; [§5 지표와 수치](#5-지표와-수치) 참고). 약어도 글마다 한 번 풀어 줍니다 — `IoU (Intersection over Union)`, `Dice`처럼 첫 등장 시 정의.
 
 표준 표기 예(이 두 식은 모든 segmentation 글에서 동일하게 씀):
 
@@ -94,7 +96,7 @@ $$
 - 분류 지표도 첫 등장 시 정의식을 표로 제시: Recall $\frac{TP}{TP+FN}$, Precision $\frac{TP}{TP+FP}$, F1 $\frac{2 \cdot P \cdot R}{P + R}$ (ESM2 글 참고).
 - 같은 식 안에서 기호를 섞지 않습니다($P$로 Precision도 쓰고 Predicted도 쓰면 충돌 — 문맥이 겹치면 한쪽을 풀어 씀).
 
-## 지표/수치 상호 일관성
+## 5. 지표와 수치
 
 본문 여러 곳에 흩어진 수치는 **서로 모순되지 않아야** 합니다. 게시 전에 직접 산수로 확인합니다.
 
@@ -115,7 +117,7 @@ $$
 - 단위 환산(ms ↔ /sec ↔ min, MB ↔ GB, build+deploy 합이 "총 N분"과 맞는지 — CI/CD 글: build 2~3분 + deploy ~30초 → "under 4 minutes").
 - 데이터셋 규모(예: `107 patients`, `5 labeled images`, `(5, 768, 624)`)를 Introduction/Data 섹션과 코드·표에서 동일하게.
 
-## 재현성: 코드 링크 · 환경 · 시드
+## 6. 재현성
 
 존경받는 엔지니어링/ML 글의 거의 **보편적 관행**은 재현 수단을 함께 제공하는 것입니다.
 
@@ -125,7 +127,7 @@ $$
 
 > 완전한 재현은 PyTorch 공식 노트 기준으로도 릴리스·플랫폼·CPU/GPU에 따라 보장되지 않습니다. 목표는 "**이 환경에서 이 수치가 나왔다**"를 명시하는 것입니다.
 
-## front matter 예시
+## 7. Front matter 예시
 
 `categories`는 `[대분류, 소분류]` 2단계. 프로젝트/엔지니어링 글의 대분류는 보통 `AI` 또는 `DevOps`입니다(소분류 예: `Bioinformatics`, `Medical Imaging`, `CI/CD`). **수식이 있으면 `math: true`**(모델/실험 글은 수식이 들어갈 가능성이 높으니 필요 여부를 확인), 아키텍처·파이프라인 다이어그램이 있으면 `mermaid: true`.
 
@@ -135,7 +137,7 @@ $$
 | MRI skull mask | `[AI, Medical Imaging]` | true | true |
 | FastAPI CI/CD | `[DevOps, CI/CD]` | true | (이미지로 대체) |
 
-## 복붙 템플릿(영어 본문)
+## 8. 영어 본문 템플릿
 
 아래를 `_posts/YYYY-MM-DD-<slug>.md`로 복사해 사용합니다. 본문은 영어, `<topic>`는 슬러그와 맞춥니다.
 
@@ -216,9 +218,9 @@ One closing sentence.
 - <Paper / dataset / docs links, if any>
 ````
 
-## 게시 후 검증 체크리스트
+## 9. 게시 후 검증 체크리스트
 
-게시(또는 PR) 직전에 확인합니다. 빌드·링크 검사는 `bash tools/run.sh` / `bash tools/test.sh`로([02 문서](../guide/02-getting-started.md) 참고).
+게시(또는 PR) 직전에 확인합니다. 빌드·링크 검사는 `bash tools/run.sh` / `bash tools/test.sh`로([02 문서](../../tutorials/quickstart.md) 참고).
 
 - [ ] **언어**: 본문이 영어인가(이 가이드 외 `_posts/*.md`는 영어).
 - [ ] **헤더 레벨**: 본문 헤더가 `## `(H2)부터 시작하고 단일 `#`가 없는가.
@@ -232,5 +234,5 @@ One closing sentence.
 - [ ] **코드/프로젝트 링크**: 공개 repo가 있으면 본문·`## Resources`에 링크했는가(비공개 과제면 스택·버전·핵심 스니펫으로 재현 단서를 남겼는가).
 - [ ] **재현성(실험형 한정)**: 하드웨어/GPU·프레임워크 버전·데이터셋 규모(시드 민감하면 seed)에 더해, [PwC 체크리스트](https://github.com/paperswithcode/releasing-research-code) 기준 **의존성(requirements/env)·학습/평가 재현 커맨드·결과 표를 재현하는 커맨드**(공개 가능하면 commit/tag)를 적었는가.
 - [ ] **한계/실패**: 안 된 시도·한계를 정직하게 적었는가(요약만으로 끝나지 않음).
-- [ ] **다이어그램 렌더**: mermaid 블록이 실제로 렌더되는가(문법 오류 시 [troubleshooting-mermaid-diagram-syntax](../../_posts/2025-12-24-troubleshooting-mermaid-diagram-syntax.md) 참고).
+- [ ] **다이어그램 렌더**: mermaid 블록이 실제로 렌더되는가(문법 오류 시 [troubleshooting-mermaid-diagram-syntax](../../../_posts/2025-12-24-troubleshooting-mermaid-diagram-syntax.md) 참고).
 - [ ] **빌드/링크**: `tools/run.sh` 미리보기 정상, `tools/test.sh`(html-proofer) 링크 깨짐 없음.

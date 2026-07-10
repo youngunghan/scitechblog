@@ -1,11 +1,12 @@
 ---
 icon: fas fa-trophy
 order: 2
+title: AI Challenge
 ---
 
-# AI Challenge
-
 Inspired by [Scott Young's MIT Challenge](https://www.scotthyoung.com/blog/myprojects/mit-challenge-2/)
+
+<p class="text-muted"><small>Last reviewed: July 10, 2026. Study progress has not been updated.</small></p>
 
 ---
 
@@ -44,7 +45,8 @@ details.course-item.in-progress summary {
   background: linear-gradient(135deg, #9a5f12 0%, #70430c 100%);
 }
 
-details.course-item.not-started summary {
+details.course-item.not-started summary,
+details.course-item.status-unknown summary {
   background: linear-gradient(135deg, #45535c 0%, #313b42 100%);
 }
 
@@ -79,9 +81,10 @@ details[open] .course-toggle {
 }
 
 .course-content {
-  background: #f5f7f9;
-  border: 1px solid #d8dee4;
+  background: var(--card-bg);
+  border: 1px solid var(--main-border-color);
   border-top: none;
+  color: var(--text-color);
   padding: 20px;
 }
 
@@ -93,7 +96,7 @@ details[open] .course-toggle {
 
 .course-content li {
   padding: 8px 0;
-  border-bottom: 1px solid #d8dee4;
+  border-bottom: 1px solid var(--main-border-color);
 }
 
 .course-content li:last-child {
@@ -101,7 +104,7 @@ details[open] .course-toggle {
 }
 
 .course-content strong {
-  color: #1f5f68;
+  color: var(--link-color);
   display: inline-block;
   min-width: 120px;
 }
@@ -114,40 +117,54 @@ details[open] .course-toggle {
   font-size: 12px;
   margin-left: 10px;
 }
+
+@media (max-width: 576px) {
+  details.course-item summary {
+    flex-wrap: wrap;
+  }
+
+  .course-title {
+    flex-basis: calc(100% - 30px);
+  }
+
+  .course-status {
+    margin-left: 30px;
+  }
+}
 </style>
 
-<details class="course-item in-progress">
+<details class="course-item status-unknown">
   <summary>
     <span class="course-toggle">▶</span>
     <span class="course-title">M1407.001200: Mathematical Foundations of Deep Neural Networks</span>
-    <span class="course-status">IN PROGRESS</span>
+    <span class="course-status">STATUS NOT UPDATED</span>
   </summary>
   <div class="course-content">
     <ul>
       <li><strong>University:</strong> Seoul National University (서울대학교)</li>
       <li><strong>Semester:</strong> Spring 2024</li>
       <li><strong>Instructor:</strong> Ernest Ryu</li>
-      <li><strong>Course Page:</strong> <a href="https://ernestryu.com/courses/deep_learning.html" target="_blank">Course Website</a></li>
-      <li><strong>Assignments:</strong> Google Drive Folder <em>(Coming soon)</em></li>
+      <li><strong>Course Page:</strong> <a href="https://ernestryu.com/courses/deep_learning.html" target="_blank" rel="noopener noreferrer">Course Website</a></li>
+      <li><strong>Assignments:</strong> <em>Not published</em></li>
       <li><strong>Topics:</strong> Neural Networks, Backpropagation, CNNs, RNNs, Transformers</li>
     </ul>
   </div>
 </details>
 
-<details class="course-item not-started">
+<details class="course-item status-unknown">
   <summary>
     <span class="course-toggle">▶</span>
     <span class="course-title">EECS 498: Deep Learning for Computer Vision</span>
-    <span class="course-status">PLANNED</span>
+    <span class="course-status">STATUS NOT UPDATED</span>
   </summary>
   <div class="course-content">
     <ul>
       <li><strong>University:</strong> University of Michigan (미시간 대학교)</li>
       <li><strong>Semester:</strong> Fall 2020</li>
       <li><strong>Instructor:</strong> Justin Johnson</li>
-      <li><strong>Course Page:</strong> <a href="https://web.eecs.umich.edu/~justincj/teaching/eecs498/FA2020/" target="_blank">EECS 498-007 / 598-005</a></li>
-      <li><strong>Video Lectures:</strong> <a href="https://www.youtube.com/playlist?list=PL5-TkQAfAZFbzxjBHtzdVCWE0Zbhomg7r" target="_blank">YouTube Playlist</a></li>
-      <li><strong>Assignments:</strong> Google Drive Folder <em>(Coming soon)</em></li>
+      <li><strong>Course Page:</strong> <a href="https://web.eecs.umich.edu/~justincj/teaching/eecs498/FA2020/" target="_blank" rel="noopener noreferrer">EECS 498-007 / 598-005</a></li>
+      <li><strong>Video Lectures:</strong> <a href="https://www.youtube.com/playlist?list=PL5-TkQAfAZFbzxjBHtzdVCWE0Zbhomg7r" target="_blank" rel="noopener noreferrer">YouTube Playlist</a></li>
+      <li><strong>Assignments:</strong> <em>Not published</em></li>
       <li><strong>Topics:</strong> Image Classification, Object Detection, Segmentation, GANs, 3D Vision</li>
     </ul>
   </div>

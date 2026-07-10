@@ -282,16 +282,14 @@ def test_user_creation(service) -> None:
 | Create test user | **No** | Not every test needs a user |
 
 ```python
-import os
-
 @pytest.fixture(autouse=True)
-def reset_environment():
-    """Runs before EVERY test in this file."""
-    os.environ["TEST_MODE"] = "true"
-    yield
-    os.environ.pop("TEST_MODE", None)
+def reset_environment(monkeypatch):
+    """Set TEST_MODE for each test, then restore its previous value."""
+    monkeypatch.setenv("TEST_MODE", "true")
 # end def
 ```
+
+Using pytest's `monkeypatch` fixture matters here: its teardown restores the previous value if `TEST_MODE` was already set, and removes the variable only if it was originally absent. An unconditional `os.environ.pop(...)` would accidentally erase a value supplied by the developer or CI runner.
 
 ---
 

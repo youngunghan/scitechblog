@@ -52,13 +52,13 @@ For generation-style tasks, **Ground-truth Contamination** tends to have a large
 
 _Table 1: Performance comparison (numbers from the paper; see Tables 2 and 3). Ground-truth contamination boosts performance most clearly in generation tasks such as SQuAD and CNN/DM, whereas for the SST-2 classification task text contamination has the larger effect._
 
-### 2. The U-Shaped Effect of Repeated Contamination
-One of the most interesting findings is the **U-shaped performance trend** when the contamination is repeated multiple times in the pre-training corpus.
+### 2. Dataset-Dependent Effects of Repeated Contamination
+Repeated contamination is **not universally monotonic or universally inverted-U**. SST-2, SQuAD, and MMLU rise at lower repetition factors and then decline at high repetition, while CNN/DM ROUGE continues to increase over the tested factors. The paper calls attention to a U-shaped relationship, but the plotted higher-is-better scores show dataset-dependent non-monotonic or monotonic trends rather than one shared curve shape.
 
 ![Contamination Factor Analysis](/assets/img/posts/paper-reviews/contamination-factor.png)
-_Figure 1: The effect of repeated contamination. Performance initially improves as the contamination factor increases (0-10 repetitions), but then starts to decline and even drops below the baseline with excessive repetition (20+) (from Fig. 1 of the paper)._
+_Figure 1: Repetition-factor results from the paper. Several tasks improve and then decline at high repetition, whereas CNN/DM continues improving over the tested range; the effect is dataset-dependent (from Fig. 1 of the paper)._
 
-This suggests that while some exposure to test data helps, **over-fitting** to the specific examples eventually hurts the model's generalizability or introduces noise.
+For the tasks that decline, memorization, optimization imbalance, or distribution distortion are possible explanations, but the curve alone does not identify the mechanism. CNN/DM is an explicit counterexample to a universal "too much contamination always hurts" claim.
 
 ### 3. Failure of Existing Detection Methods
 The authors also evaluate existing contamination detection methods (like n-gram overlap used in PaLM and LLaMA-2).
@@ -75,7 +75,7 @@ The contribution is methodological: by training GPT-2 **from scratch** with cont
 
 ### Strengths
 - Controlled from-scratch training isolates the *causal* effect of contamination, which post-hoc studies on already-trained models cannot.
-- The Text vs. Ground-truth distinction is a useful, often-overlooked axis; the U-shaped repetition effect is a concrete, actionable finding.
+- The Text vs. Ground-truth distinction is a useful, often-overlooked axis; the dataset-dependent repetition experiment is a concrete warning against assuming contamination has a uniform effect.
 
 ### Limitations
 - Experiments are at **GPT-2 scale**; whether the same magnitudes hold for today's much larger LLMs is untested and may not extrapolate.

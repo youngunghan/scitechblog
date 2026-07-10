@@ -22,7 +22,7 @@ My first instinct was **U-Net**. But I only had **5 labeled images**—not enoug
 
 So I went with classical image processing instead. The result looked strong on the provided slices: **IoU 0.9795, Dice 0.9896**.
 
-The important part is the caveat. My first explanation overemphasized an edge-touching scalp rule. A later review showed that, on these 5 slices, no bright connected component touched the image border at all. The baseline still worked, but the score was mainly carried by a simpler path: choose the largest internal bright component, dilate it by 26 pixels, then fill holes.
+The important part is the caveat. My first explanation overemphasized an edge-touching scalp rule. A later review showed that, on these 5 slices, no bright connected component touched the image border at all. The baseline still worked, but the score was mainly carried by a simpler path: choose the largest internal bright component, dilate it once with a 26×26 elliptical kernel, then fill holes.
 
 ---
 
@@ -39,7 +39,7 @@ Min: 1.83e-07
 Max: 3.49e-05
 ```
 
-These are extremely small values—not the typical 0-255 range you'd expect. This immediately told me that **normalization** would be essential before applying any standard image processing operations.
+MRI intensity values are scanner- and reconstruction-dependent arbitrary units, so a small floating-point range is not inherently abnormal and 0–255 is not a medical-imaging reference range. Conversion is needed here for a narrower engineering reason: this pipeline feeds each slice to OpenCV's 8/16-bit Otsu path, so it maps the observed slice range to `uint8` first.
 
 ---
 
@@ -61,7 +61,7 @@ flowchart LR
         E -->|No| G[Brain<br/>candidate]
         F --> I[Filter scalp<br/>candidate if present]
         G --> I
-        I --> H[Dilation<br/>26px]
+        I --> H[Dilation<br/>26×26 kernel]
         H --> J[Fill<br/>Holes]
     end
     
@@ -84,7 +84,7 @@ The load-bearing path for the reported score was:
 1. normalize the image,
 2. use Otsu thresholding to find bright tissue,
 3. choose the largest internal bright connected component,
-4. dilate it by `26px` to include the skull boundary,
+4. dilate it once with a `26×26` elliptical kernel (roughly 13 pixels of radial reach) to include the skull boundary,
 5. fill internal holes.
 
 The snippets below assume these imports:
@@ -250,10 +250,10 @@ If we only keep the brain region, we miss the skull bone entirely.
 
 ### The Solution: Dilation
 
-**Dilation** expands a region by a certain number of pixels in all directions.
+**Dilation** expands a region according to its structuring element. This implementation applies one `26×26` elliptical kernel, which reaches roughly 13 pixels from the anchor; it does not expand the mask by 26 pixels on every side.
 
 ```
-Before Dilation:          After Dilation (26px):
+Before Dilation:          After Dilation (26×26 kernel):
 ┌─────────┐               ┌───────────────┐
 │         │               │███████████████│
 │  Brain  │      →        │███  Brain  ███│
@@ -263,11 +263,11 @@ Before Dilation:          After Dilation (26px):
 The expanded area covers the Skull Bone region!
 ```
 
-### Why 26 Pixels?
+### Why a 26×26 Kernel?
 
 I tested various dilation sizes:
 
-| Dilation Size | IoU | Dice |
+| Kernel Width | IoU | Dice |
 |:--------------|:----|:-----|
 | 22 | 0.9742 | 0.9869 |
 | 24 | 0.9776 | 0.9887 |
@@ -275,7 +275,7 @@ I tested various dilation sizes:
 | 28 | 0.9788 | 0.9893 |
 | 30 | 0.9763 | 0.9880 |
 
-On these slices, 26 pixels gave the best trade-off: the expanded brain candidate covered the skull boundary, while larger kernels over-expanded past the ground-truth boundary.
+On these slices, a 26-pixel-wide kernel gave the best trade-off: the expanded brain candidate covered the skull boundary, while larger kernels over-expanded past the ground-truth boundary.
 
 The table is the dilation sweep summary. The final all-slice reported score from the full pipeline is **IoU 0.9795, Dice 0.9896**; the small IoU difference comes from aggregation/rounding details in the sweep versus the final reported average.
 
@@ -327,7 +327,7 @@ $$
 \text{Dice} = \frac{2 \times |\text{Predicted} \cap \text{Ground Truth}|}{|\text{Predicted}| + |\text{Ground Truth}|}
 $$
 
-Our result: **Dice = 0.9896** is considered excellent in medical image segmentation.
+Our result, **Dice = 0.9896**, is high overlap on these five tuned slices; it is not an external-validation result.
 
 ### A Note on Validation Limits
 
@@ -347,8 +347,8 @@ I didn't arrive at this solution immediately. Here's my iteration history:
 | v2 | Flood Fill from Edges | 0.82 | Border handling was unstable |
 | v3-v4 | Various Thresholds | 0.54 | Made it worse |
 | v5 | Connected Components + Dilation | 0.96 | Stable brain seed + skull-boundary coverage |
-| v6 | Dilation Size Tuning | 0.97 | Improved |
-| **v7** | **Optimized Dilation (26px)** | **0.98** | **Final** |
+| v6 | Dilation Kernel Tuning | 0.97 | Improved |
+| **v7** | **Optimized Dilation (26×26 kernel)** | **0.98** | **Final** |
 
 The useful shift in v5 was not that the edge branch proved itself on this dataset. It was that connected components gave a stable bright brain candidate, and dilation expanded that candidate far enough to cover the dark skull boundary.
 
@@ -374,37 +374,78 @@ With only 5 labeled images, deep learning was simply not an option. However, if 
 
 As part of the project, I also planned for processing 100,000 images within 2 weeks.
 
-### Performance Analysis
+### Performance Estimate, Not an End-to-End Benchmark
 
-| Metric | Value |
-|:-------|:------|
-| Processing time per image | 16.6 ms |
-| Images per second | 60.2 |
-| Time for 100,000 images (single thread) | ~28 minutes |
-| Time for 100,000 images (8 cores) | ~4 minutes |
+The measured kernel time on the five provided slices was about **16.6 ms/image** in one process. The larger numbers below are arithmetic projections, not measurements on 100,000 files:
 
-The classical approach was fast enough for this scale on CPU (single-process vs 8 processes on the `(5, 768, 624)` slices)—no GPU required!
+| Quantity | Value | Evidence level |
+|:-------|:------|:---------------|
+| Processing time per image | 16.6 ms | measured on 5 slices |
+| Single-process throughput | 60.2 images/s | derived from 16.6 ms |
+| 100,000 images, one process | ~28 minutes | ideal compute-only projection |
+| 100,000 images, eight processes | ~3.5 minutes | ideal 8x projection; **not benchmarked** |
+
+The eight-process estimate assumes perfect scaling and ignores process startup, serialization, storage throughput, and output writes. At shape `(100000, 768, 624)`, the input alone is about **192 GB** as `float32`; the output is another **48 GB** as `uint8`. End-to-end throughput therefore needs a representative shard benchmark on the target storage before making a four-minute claim.
 
 ### Batch Processing Script
 
 ```python
 import numpy as np
-from functools import partial
 from multiprocessing import Pool
 
 from skull_mask_generator import create_skull_mask
 
 
+_IMAGES = None
+_DILATION_SIZE = 26
+
+
+def init_worker(input_path: str, dilation_size: int) -> None:
+    """Open the input array once per worker without loading it into RAM."""
+    global _IMAGES, _DILATION_SIZE
+    _IMAGES = np.load(input_path, mmap_mode="r")
+    _DILATION_SIZE = dilation_size
+# end def
+
+
+def process_index(index: int) -> tuple[int, np.ndarray]:
+    """Process one memmapped slice; only one uint8 mask is returned."""
+    mask = create_skull_mask(_IMAGES[index], dilation_size=_DILATION_SIZE)
+    return index, mask.astype(np.uint8, copy=False)
+# end def
+
+
 if __name__ == '__main__':
-    images = np.load('large_dataset.npy')
+    input_path = 'large_dataset.npy'
+    output_path = 'output_masks.npy'
     dilation_size = 26
-    worker = partial(create_skull_mask, dilation_size=dilation_size)
-    
-    with Pool(processes=8) as pool:
-        masks = pool.map(worker, images)
-    
-    np.save('output_masks.npy', np.array(masks))
+
+    images = np.load(input_path, mmap_mode='r')
+    if images.ndim != 3:
+        raise ValueError(f'expected (N, H, W), got {images.shape}')
+
+    masks = np.lib.format.open_memmap(
+        output_path,
+        mode='w+',
+        dtype=np.uint8,
+        shape=images.shape,
+    )
+
+    with Pool(
+        processes=8,
+        initializer=init_worker,
+        initargs=(input_path, dilation_size),
+    ) as pool:
+        results = pool.imap_unordered(process_index, range(images.shape[0]), chunksize=8)
+        for index, mask in results:
+            masks[index] = mask
+        # end for
+    # end with
+
+    masks.flush()
 ```
+
+This design keeps the input and output on disk, sends integer indices to workers instead of pickling full `float32` slices, and writes each returned mask immediately. Memory stays bounded by the memmap page cache, worker state, and a small number of in-flight masks rather than scaling with all 100,000 images.
 
 ---
 

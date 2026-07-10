@@ -77,6 +77,11 @@ def load_scale_results(base_path):
 
 ```python
 def plot_scale_comparison(scale_results, methods):
+    if not scale_results:
+        raise ValueError("scale_results must contain at least one experiment")
+    if not methods:
+        raise ValueError("methods must contain at least one label")
+
     plt.figure(figsize=(15, 8))
     
     # Set a fixed, explicit y-axis range (works before or after plotting)
@@ -88,8 +93,18 @@ def plot_scale_comparison(scale_results, methods):
     
     for idx, data in enumerate(scale_results):
         scale = data['scale']
-        # Ensure numeric conversion; non-numeric cells become NaN instead of crashing
-        accuracies = pd.to_numeric(data['data']['acc'][1:9], errors="coerce").fillna(0)
+        # Convert explicitly, then reject missing/non-numeric measurements.
+        # Replacing them with 0 would fabricate a real zero-accuracy result.
+        accuracy_cells = data['data']['acc'].iloc[1 : 1 + len(methods)]
+        accuracies = pd.to_numeric(accuracy_cells, errors="coerce")
+        if len(accuracies) != len(methods):
+            raise ValueError(
+                f"Scale {scale}: expected {len(methods)} accuracy rows, "
+                f"found {len(accuracies)}"
+            )
+        if accuracies.isna().any():
+            bad_rows = accuracies.index[accuracies.isna()].tolist()
+            raise ValueError(f"Scale {scale}: invalid accuracy values at rows {bad_rows}")
         
         x_pos = x - (0.4 - width/2) + (idx * width)
         plt.bar(x_pos, accuracies, width, 
@@ -110,7 +125,7 @@ def plot_scale_comparison(scale_results, methods):
 
 1. **Data Type Consistency**
    - Always convert string data to numeric using `pd.to_numeric()`
-   - Handle missing values appropriately
+   - Treat missing or malformed measurements as an input error; do not silently turn them into a real score of zero
 
 2. **Plot Stability**
    - Set a fixed, explicit y-axis range that is identical across charts

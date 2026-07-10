@@ -116,7 +116,7 @@ There's a second decomposition the headline hides: COCO also averages over objec
 4. **Report an operating point or a curve**, not a single uncalibrated threshold.
 5. **Lead with the uncontaminated number.** When two estimates disagree, the cleaner one (here, external −66%, with its 6-frame caveat) is the honest headline; the rosier one needs an asterisk.
 
-> These rules aren't detection-specific. The same disease — a single scalar resting on an unstated pipeline assumption — shows up in generative metrics too: a [misconfigured FID]({% post_url 2026-06-18-troubleshooting-fid-wrong-feature-space %}) read 0.24 when the real number was ~205. The cross-domain pattern, and how to report a metric so it survives scrutiny, is the [capstone]({% post_url 2026-06-22-numbers-eat-pipelines %}).
+> These rules aren't detection-specific. The same disease — a single scalar resting on an unstated pipeline assumption — shows up in generative metrics too: a [misconfigured FID]({% post_url 2026-06-18-troubleshooting-fid-wrong-feature-space %}) read 0.24, while one canonical-extractor N=510 draw for the same original model was ~205. That biased finite-sample estimate is diagnostic, not the uniquely "real" FID. The cross-domain pattern, and how to report a metric so it survives scrutiny, is the [capstone]({% post_url 2026-06-22-numbers-eat-pipelines %}).
 {: .prompt-info }
 
 ## Conclusion

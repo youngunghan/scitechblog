@@ -1,106 +1,134 @@
-import glob
-import yaml
+#!/usr/bin/env python3
+"""Generate a lightweight Markdown audit of blog post structure."""
+
+from __future__ import annotations
+
+import argparse
 import re
+import sys
+from pathlib import Path
 
-def parse_front_matter(file_path):
-    with open(file_path, 'r') as f:
-        content = f.read()
-    
-    match = re.match(r'---\n(.*?)\n---', content, re.DOTALL)
-    if not match:
+try:
+    import yaml
+except ModuleNotFoundError as error:
+    raise SystemExit("PyYAML is required: python -m pip install pyyaml") from error
+
+
+FRONT_MATTER_RE = re.compile(r"\A---\s*\r?\n(.*?)\r?\n---\s*$", re.DOTALL | re.MULTILINE)
+
+
+def parse_front_matter(path: Path) -> dict | None:
+    content = path.read_text(encoding="utf-8")
+    match = FRONT_MATTER_RE.match(content)
+    if match is None:
         return None
-    
+
     try:
-        fm = yaml.safe_load(match.group(1))
-        return fm
-    except:
+        front_matter = yaml.safe_load(match.group(1))
+    except yaml.YAMLError:
         return None
 
-def check_structure(file_path, category):
-    with open(file_path, 'r') as f:
-        content = f.read()
-    
-    if "algo" in file_path or "leetcode" in file_path or "boj" in file_path:
+    return front_matter if isinstance(front_matter, dict) else None
+
+
+def check_structure(path: Path) -> list[str]:
+    content = path.read_text(encoding="utf-8")
+    filename = path.name.lower()
+
+    if any(term in filename for term in ("algo", "leetcode", "boj")):
         required = ["## Problem", "## Solution", "## Complexity"]
-    elif "review" in file_path:
+    elif "review" in filename:
         required = ["## Introduction", "## Conclusion"]
     else:
-        required = ["## Introduction", "## Conclusion"] # Generic check
-        
-    missing = [req for req in required if req not in content and req.replace("## ", "# ") not in content]
-    return missing
+        required = ["## Introduction", "## Conclusion"]
 
-def generate_report():
-    files = sorted(glob.glob("_posts/*.md"))
-    
-    report = """# Blog Post Quality Audit Report
+    return [heading for heading in required if heading not in content and heading[1:] not in content]
 
-## 1. Blog Post Characteristics & Standards
 
-### Common Standards (All Posts)
-- **Front Matter**: Title, Date, Categories, Tags, Image (Relative path).
-- **Structure**: Clear headers, Intro/Conclusion.
+def markdown_cell(value: object) -> str:
+    return str(value).replace("|", "\\|").replace("\n", " ")
 
-### Category Standards
-- **Algorithm**: Problem, Approach, Solution, Complexity.
-- **Review**: Abstract, Method, Experiments.
-- **Troubleshooting**: Problem, Root Cause, Solution.
 
----
+def generate_report(posts_dir: Path) -> str:
+    lines = [
+        "# Blog Post Quality Audit Report",
+        "",
+        "## 1. Blog Post Characteristics & Standards",
+        "",
+        "### Common Standards (All Posts)",
+        "- **Front Matter**: Title, Date, Categories, Tags, Image (Relative path).",
+        "- **Structure**: Clear headers, Intro/Conclusion.",
+        "",
+        "### Category Standards",
+        "- **Algorithm**: Problem, Approach, Solution, Complexity.",
+        "- **Review**: Abstract, Method, Experiments.",
+        "- **Troubleshooting**: Problem, Root Cause, Solution.",
+        "",
+        "---",
+        "",
+        "## 2. Evaluation Results",
+        "",
+        "| Date | File | Category | Image Path | Structure | Status |",
+        "|------|------|----------|------------|-----------|--------|",
+    ]
 
-## 2. Evaluation Results
+    for path in sorted(posts_dir.glob("*.md")):
+        front_matter = parse_front_matter(path)
+        date = path.name[:10]
 
-| Date | File | Category | Image Path | Structure | Status |
-|------|------|----------|------------|-----------|--------|
-"""
-    
-    for file_path in files:
-        fm = parse_front_matter(file_path)
-        filename = file_path.split('/')[-1]
-        date = filename[:10]
-        
-        if not fm:
-            report += f"| {date} | `{filename}` | N/A | ❌ Invalid YAML | N/A | 🔴 Fail |\n"
+        if front_matter is None:
+            lines.append(f"| {date} | `{path.name}` | N/A | Invalid YAML | N/A | Fail |")
             continue
-            
-        # Category
-        cats = fm.get('categories', [])
-        cat_str = ", ".join(cats) if isinstance(cats, list) else str(cats)
-        
-        # Image Check
-        img = fm.get('image', {})
-        if not img:
-            img_status = "❌ Missing"
-        elif isinstance(img, dict):
-            path = img.get('path', '')
-            if path.startswith('/'):
-                img_status = "❌ Absolute Path"
-            elif not path.startswith('assets/img/'):
-                img_status = f"⚠️ Unusual Path (`{path}`)"
-            else:
-                img_status = "✅ Valid"
-        else:
-            img_status = "❌ Invalid Format"
-            
-        # Structure Check
-        missing_sections = check_structure(file_path, cat_str)
-        if missing_sections:
-            struct_status = f"⚠️ Missing: {', '.join(missing_sections)}"
-        else:
-            struct_status = "✅ Valid"
-            
-        # Overall Status
-        if "❌" in img_status:
-            status = "🔴 Fail"
-        elif "⚠️" in img_status or "⚠️" in struct_status:
-            status = "zk Warning"
-        else:
-            status = "🟢 Pass"
-            
-        report += f"| {date} | `{filename}` | {cat_str} | {img_status} | {struct_status} | {status} |\n"
 
-    with open("/root/.gemini/antigravity/brain/a8ec6fdd-de89-4479-8849-0cadae1999aa/blog_audit_report.md", "w") as f:
-        f.write(report)
+        categories = front_matter.get("categories", [])
+        category = ", ".join(map(str, categories)) if isinstance(categories, list) else str(categories)
+        image = front_matter.get("image")
+
+        if not image:
+            image_status = "Missing"
+        elif isinstance(image, dict):
+            image_path = str(image.get("path", ""))
+            if image_path.startswith("/"):
+                image_status = "Absolute path"
+            elif not image_path.startswith("assets/img/"):
+                image_status = f"Unusual path (`{image_path}`)"
+            else:
+                image_status = "Valid"
+        else:
+            image_status = "Invalid format"
+
+        missing = check_structure(path)
+        structure_status = f"Missing: {', '.join(missing)}" if missing else "Valid"
+
+        if image_status in {"Missing", "Absolute path", "Invalid format"}:
+            status = "Fail"
+        elif image_status.startswith("Unusual") or missing:
+            status = "Warning"
+        else:
+            status = "Pass"
+
+        lines.append(
+            f"| {date} | `{path.name}` | {markdown_cell(category)} | "
+            f"{markdown_cell(image_status)} | {markdown_cell(structure_status)} | {status} |"
+        )
+
+    return "\n".join(lines) + "\n"
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--posts-dir", type=Path, default=Path("_posts"))
+    parser.add_argument("--output", type=Path, help="Write to this path instead of stdout.")
+    args = parser.parse_args()
+
+    report = generate_report(args.posts_dir)
+    if args.output is None:
+        sys.stdout.write(report)
+    else:
+        args.output.parent.mkdir(parents=True, exist_ok=True)
+        args.output.write_text(report, encoding="utf-8")
+    return 0
+
 
 if __name__ == "__main__":
-    generate_report()
+    raise SystemExit(main())

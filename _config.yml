@@ -29,15 +29,12 @@ url: "https://youngunghan.github.io"
 github:
   username: youngunghan # change to your GitHub username
 
-twitter:
-  username: twitter_username # change to your Twitter username
-
 social:
   # Change to your full name.
   # It will be displayed as the default author of the posts and the copyright owner in the Footer
   name: Seoultech
   email: youngunghan@gmail.com # change to your email address
-  fediverse_handle: "@you@domain.com" # change to your fediverse handle or leave empty
+  fediverse_handle:
   links:
     # The first element serves as the copyright owner's link
     - https://github.com/youngunghan # change to your GitHub homepage
@@ -110,7 +107,8 @@ toc: true
 
 comments:
   # Global switch for the post-comment system. Keeping it empty means disabled.
-  provider: utterances # [disqus | utterances | giscus]
+  # Disabled because this repository currently has GitHub Issues turned off.
+  provider: # [disqus | utterances | giscus]
   # The provider options are as follows:
   disqus:
     shortname: # fill with the Disqus shortname. › https://help.disqus.com/en/articles/1717111-what-s-a-shortname
@@ -178,7 +176,7 @@ defaults:
       type: posts
     values:
       layout: post
-      comments: true # Enable comments in posts.
+      comments: false # Enable after configuring a working comment provider.
       toc: true # Display TOC column in posts.
       # DO NOT modify the following parameter unless you are confident enough
       # to update the code of all other post links in this project.
@@ -211,11 +209,16 @@ exclude:
   - "*.gemspec"
   - docs
   - tools
+  - CHANGELOG.md
   - README.md
   - LICENSE
+  - CONTENT_LICENSE.md
+  - THIRD_PARTY_NOTICES.md
   - purgecss.js
   - "*.config.js"
   - "package*.json"
+  - enable_math.py
+  - generate_audit_report.py
 
 jekyll-archives:
   enabled: [categories, tags]

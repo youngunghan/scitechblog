@@ -32,18 +32,26 @@ This post documents the complete migration process from WENIVLOG (a JavaScript-b
 
 ### 1. Repository Setup
 
-Created a new repository (`scitechblog`) to preserve the original blog as backup:
+I created a new repository (`scitechblog`) to preserve the original blog as a backup. At the time, I cloned the **theme source repository** and then repointed Git to my own empty repository:
 
 ```bash
-# Clone Chirpy theme
+# Historical path used for this migration
 git clone https://github.com/cotes2020/jekyll-theme-chirpy scitechblog
 cd scitechblog
 
-# Check initial structure
-ls -la
+# Keep the original repository as an explicitly named upstream,
+# and make the personal repository the push target.
+git remote rename origin chirpy-upstream
+git remote add origin https://github.com/youngunghan/scitechblog.git
+git branch -M master
+git push -u origin master
 ```
 
-**Key Decision:** Keep original `techblog` repository untouched for rollback capability.
+Without the remote handoff, `origin` still points at `cotes2020/jekyll-theme-chirpy`; a later `git push origin ...` does not publish to the new personal repository.
+
+For a new blog today, use GitHub's **Use this template** action on [Chirpy Starter](https://github.com/cotes2020/chirpy-starter), create the repository under your own account, and clone that repository. The starter is the blog-oriented distribution; cloning the theme source is appropriate when developing Chirpy itself and is the historical reason this migration later encountered theme-development files.
+
+**Key Decision:** Keep the original `techblog` repository untouched for rollback capability. The branch name is not universal: this repository currently uses `master`, while Chirpy Starter uses `main`; the Pages workflow and push commands must use the branch that actually exists.
 
 ### 2. Configuration (_config.yml)
 
@@ -192,35 +200,41 @@ can't find gem jekyll-theme-chirpy
 ```
 
 ### Root Cause
-The cloned repository contained a developer-oriented `Gemfile`:
+The cloned theme-source repository intentionally contained a developer-oriented `Gemfile`:
 
 ```ruby
 # frozen_string_literal: true
 source "https://rubygems.org"
 
-gemspec  # ← This is for theme developers, not users
+gemspec  # Resolve dependencies from the local theme gemspec
 
 gem "html-proofer", "~> 5.0", group: :test
 ```
 
-This setup is for theme development, not blog usage. The `gemspec` reference looks for a local `.gemspec` file, which shouldn't exist in user repositories.
+That setup is valid **inside a complete theme-source checkout**: Bundler resolves the local `jekyll-theme-chirpy.gemspec`. The Git history confirms that the gemspec existed, so the recorded error cannot be blamed on `gemspec` itself. The surviving log does not preserve enough context to distinguish a wrong working directory, incomplete checkout, stale workflow cache, or another Bundler-resolution problem. Replacing the Gemfile changed the ownership model and made the build pass, but it did not prove the original root cause.
 
 ### Analysis
-Jekyll Chirpy has two distributions:
+Jekyll Chirpy provides two common starting distributions:
 1. **Chirpy Starter** (for users) - uses theme as a gem
 2. **Theme Repository** (for developers) - uses gemspec
 
-We accidentally forked the theme repository instead of using the starter template.
+This repository started from the theme source rather than Starter. There are three coherent ownership models:
 
-### Solution
-Created a blog-ready Gemfile:
+1. **Starter/gem-based site**: depend on a released `jekyll-theme-chirpy` gem and keep only deliberate local overrides.
+2. **Theme development**: keep the local gemspec and the full theme source together.
+3. **Vendored/source-owned site**: track the full theme source in the blog, optionally keep an exactly pinned released gem as fallback, and build matching frontend assets locally/CI. Local layouts/includes shadow the gem, so the vendored source and gem must stay on the same Chirpy release.
+
+The current repository intentionally uses the third model with Chirpy 7.4.1. The important rule is consistency, not a forced two-way choice.
+
+### Historical Mitigation
+The migration switched to a released-gem Gemfile, which removed the immediate Bundler failure:
 
 ```ruby
 # frozen_string_literal: true
 source "https://rubygems.org"
 
 gem "jekyll", "~> 4.3"
-gem "jekyll-theme-chirpy", "~> 7.4"
+gem "jekyll-theme-chirpy", "~> 7.4" # historical version used in this migration
 
 group :test do
   gem "html-proofer", "~> 5.0"
@@ -247,12 +261,15 @@ Then removed the gemspec file:
 
 ```bash
 git rm jekyll-theme-chirpy.gemspec
-git add Gemfile
+bundle install
+git add Gemfile Gemfile.lock
 git commit -m "fix: update Gemfile for blog usage"
-git push origin main
+git push origin master
 ```
 
-**Lesson:** Use Chirpy Starter template for blogs, not the theme repository. If you already forked the theme repo, replace the Gemfile completely.
+Afterward, commit `Gemfile.lock` and update the gem, copied templates/SCSS, and built JavaScript as one tested version set. A broad version constraint without a lockfile can otherwise install a newer theme behind old local overrides.
+
+**Lesson:** Use Chirpy Starter for a blog. If converting a theme-source clone, replace the dependency model coherently rather than deleting the gemspec while leaving theme-development assumptions elsewhere.
 
 ## Problem 3: GitHub Pages Source Not Configured
 
@@ -344,7 +361,7 @@ Set About to `order: 4`, Contact to `order: 5`, but this pushed them after all d
 ## Problem 5: Author Attribution
 
 ### Symptom
-Posts showed different authors:
+During the initial four-post migration, posts showed different authors:
 - Some: `youngunghan`
 - Others: No author specified
 
@@ -353,26 +370,35 @@ During initial migration, author field was:
 1. Set to GitHub username in CI/CD post
 2. Missing in other posts
 
-But preferred author name was `seoultech` (organization name).
+The preferred explicit author identifier was `seoultech`. In Chirpy, an explicit `author: seoultech` must resolve to a `seoultech` entry in `_data/authors.yml`. A post with no `author` is a separate, valid case and falls back to the site's `social.name` metadata.
 
 ### Solution
-Added/updated `author:` field in all post front matter:
+For the four posts migrated at that time, I normalized the explicit field and defined the identifier in `_data/authors.yml`:
 
 ```yaml
 ---
 title: "Post Title"
-author: seoultech  # ← Consistent across all posts
+author: seoultech  # Explicit ID for these migrated posts
 ---
 ```
 
-Also updated `_config.yml`:
+```yaml
+# _data/authors.yml
+seoultech:
+  name: Seoultech
+  url: https://github.com/youngunghan
+```
+
+I also updated the site-wide fallback in `_config.yml`:
 
 ```yaml
 social:
   name: Seoultech  # ← Default author
 ```
 
-**Lesson:** Decide on author attribution strategy early. Use consistent identifiers across all content.
+This does **not** mean every later post must contain `author:`. The current archive includes both explicit `seoultech` posts and posts that intentionally use the site fallback.
+
+**Lesson:** Decide on an attribution strategy early. Keep explicit author IDs synchronized with `_data/authors.yml`, and document when omission means the site-wide fallback.
 
 ## Results
 
@@ -429,16 +455,16 @@ HOME → ABOUT → CHALLENGE → CATEGORIES → TAGS → ARCHIVES
 ### Deployment Metrics
 
 - **Build Time:** ~35-40 seconds
-- **GitHub Actions:** Automated on every push
-- **Uptime:** 100% since deployment
-- **Manual Intervention:** Zero (fully automated)
+- **GitHub Actions:** Automated for qualifying pushes to the configured deployment branches, except paths excluded by `paths-ignore`
+- **Availability:** Not measured by the build workflow; a successful deployment is not evidence of 100% uptime
+- **Manual Intervention:** No manual publish step after the initial setup for successful workflow runs
 
 ## Key Takeaways
 
 1. **Repository Choice Matters**
    - Use Chirpy Starter for new blogs
-   - Theme repository is for development only
-   - Check Gemfile structure before migration
+   - Use the theme repository when developing Chirpy itself
+   - If a blog vendors the full theme source, pin it coherently with the gem and frontend build rather than partially upgrading one layer
 
 2. **Conventional Commits**
    - Always review CI/CD requirements
@@ -464,7 +490,7 @@ HOME → ABOUT → CHALLENGE → CATEGORIES → TAGS → ARCHIVES
 
 Migrating from WENIVLOG to Jekyll Chirpy took approximately 2 hours, including troubleshooting. The main challenges were understanding Jekyll's conventions, debugging GitHub Actions workflows, and adapting to Conventional Commits requirements.
 
-The result is a modern, automated blog platform with better developer experience and built-in features that would have required custom development in WENIVLOG.
+The result is an automated static-site publishing workflow with better developer experience and built-in features that would have required custom development in WENIVLOG. Availability still needs independent monitoring; GitHub Actions only reports whether a build and deployment job completed.
 
 **Before vs After:**
 - Manual deployment → Automated GitHub Actions
@@ -479,4 +505,4 @@ The result is a modern, automated blog platform with better developer experience
 - [Chirpy Theme Guide](https://chirpy.cotes.page/)
 - [GitHub Pages Documentation](https://docs.github.com/en/pages)
 - [Conventional Commits Specification](https://www.conventionalcommits.org/)
-- [Original WENIVLOG Repository](https://github.com/paullabkorea/wenivlog)
+- [WENIVLOG Manual Repository](https://github.com/weniv/wenivlog_manual)

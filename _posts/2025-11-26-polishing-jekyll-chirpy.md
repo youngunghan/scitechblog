@@ -20,17 +20,26 @@ Beyond the major migration tasks and the visitor counter saga, refining a blog i
 After writing a detailed migration guide, I pushed the changes to GitHub. The build passed, but the post simply **refused to appear** on the homepage or in the archives. It was as if the file didn't exist.
 
 ### Root Cause
-Jekyll has a default behavior regarding **future-dated posts**.
-The post's front matter had:
+The original incident record does **not** establish the root cause. Jekyll does hide future-dated posts by default, so I initially suspected the front matter date:
 ```yaml
 date: 2025-11-26 ...
 ```
-At the time of deployment, the server time (UTC) or the configured timezone (`Asia/Seoul`) might have been slightly behind this timestamp. Jekyll filters out posts with dates in the future unless explicitly configured otherwise (`future: true`).
+
+However, the recorded timestamp was already in the past relative to the relevant build, and the Git history shows the post working after the year was restored to 2025. That evidence does not support a future-date diagnosis. The actual cause could have been an earlier unrecorded front matter state, build cache, branch mismatch, filename/date parsing, or another transient deployment condition.
 
 ### Solution
-I corrected the date to ensure it was in the past relative to the build time.
+The durable fix is a diagnostic sequence rather than changing the year until the post appears:
 
-**Lesson:** Jekyll hides future-dated posts by default — keep `date` in the past relative to build time (mind UTC vs your `timezone` in `_config.yml`), or set `future: true`.
+```bash
+bundle exec jekyll build --trace
+bundle exec jekyll doctor
+bundle exec jekyll console
+# In the console: site.posts.docs.map { |post| [post.date, post.path] }
+```
+
+Check the build's branch and commit, YAML parsing, `_posts/YYYY-MM-DD-...` filename, `date` with timezone, `published`/`hidden` flags, and whether `--future` changes the result. Clear `.jekyll-cache` only after preserving the failing state and logs.
+
+**Lesson:** Jekyll's future-date rule is a useful check, not a root cause without timestamp evidence. Record the failing build commit and inspect `site.posts` before assigning causality.
 
 ## Problem 2: Overlapping Badges in "About" Page
 
@@ -84,28 +93,43 @@ I switched to raw HTML to control the layout precisely:
 
 **Lesson:** Markdown can't control image layout — for a badge row use a flex container with CSS `gap`; chaining `&nbsp;` is only a quick fix.
 
-## Problem 3: The Broken Menu Links (Regression)
+## Problem 3: Broken Menu Links in the Legacy WENIVLOG Site
 
 ### Symptom
-Suddenly, the sidebar menu items (Categories, Tags) stopped working, leading to 404 errors or broken pages.
+Before the migration was complete, the **WENIVLOG** sidebar menu items (Categories, Tags) stopped working and led to 404 pages. This incident belongs to the legacy source site, not to Chirpy's current navigation implementation.
 
 ### Root Cause
-This was a classic **regression**.
-1.  We initially fixed the paths in `local_blogMenu.json` to include the repository name (`/scitechblog/`).
-2.  During a troubleshooting rollback for another issue, this JSON file was reverted to its original state (without the repo name).
-3.  The site, hosted on a subpath (`username.github.io/repo-name`), couldn't find the resources at the root path.
+This was a classic **regression** in the old WENIVLOG configuration.
+1.  We initially fixed paths in WENIVLOG's `local_blogMenu.json` to include its GitHub Pages repository prefix.
+2.  During an unrelated rollback, that JSON file reverted to root-relative paths.
+3.  A project site hosted below `username.github.io/repo-name` then resolved those paths against the domain root instead of the project subpath.
 
-### Solution
-Re-applied the path fix to the JSON configuration:
+The current Chirpy repository has no `local_blogMenu.json`. Chirpy builds its sidebar from `_tabs/` front matter and the site's `baseurl`, so searching this repository's history for that legacy JSON fix will not find it.
+
+### Historical Solution
+For the WENIVLOG deployment, I re-applied the repository prefix in its JSON configuration:
+
+**Before (broken):**
+
 ```json
-// Before (Broken)
-"url": "/categories/"
-
-// After (Fixed)
-"url": "/scitechblog/categories/"
+{ "url": "/categories/" }
 ```
 
-**Lesson:** On a project-subpath GitHub Pages site, resource URLs must include the repo prefix (`/scitechblog/...`); guard config files like this against being reverted during unrelated rollbacks.
+**After (fixed in WENIVLOG):**
+
+```json
+{ "url": "/scitechblog/categories/" }
+```
+
+For Jekyll/Chirpy, do not reproduce this with hard-coded JSON links. Set `url` and `baseurl` in `_config.yml`, keep navigation pages in `_tabs/`, and use Jekyll's `relative_url` filter for custom internal links when a template does not already handle the base URL:
+
+{% raw %}
+```liquid
+{{ '/categories/' | relative_url }}
+```
+{% endraw %}
+
+**Lesson:** Project-site URLs need base-path-aware generation. The JSON edit was a WENIVLOG-era fix; Chirpy should derive the prefix from `baseurl`.
 
 ## Conclusion
 
@@ -113,4 +137,4 @@ Building a polished tech blog is an iterative process — "it works on my machin
 
 1. **Content visibility**: future-dated posts silently vanish — check `date` and `timezone` (or set `future: true`).
 2. **Layout**: use CSS/flexbox (not Markdown) for multi-image rows like badges.
-3. **Regressions**: subpath sites need the repo prefix in resource URLs — protect those fixes from unrelated rollbacks.
+3. **Regressions**: distinguish fixes in the legacy platform from the current implementation, and generate subpath-aware URLs from one `baseurl` setting.

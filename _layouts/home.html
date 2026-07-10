@@ -46,6 +46,8 @@ layout: default
 {% endfor %}
 {% endif %}
 
+<h1 class="visually-hidden">{{ site.title }}</h1>
+
 <div id="post-list" class="flex-grow-1 px-xl-1">
   {% for post in posts %}
   <article class="card-wrapper card">
@@ -95,7 +97,7 @@ layout: default
 
       <div class="col-md-{{ card_body_col }}">
         <div class="card-body d-flex flex-column">
-          <h1 class="card-title my-2 mt-md-0">{{ post.title }}</h1>
+          <h2 class="card-title my-2 mt-md-0">{{ post.title }}</h2>
 
           <div class="card-text content mt-0 mb-3">
             <p>{% include post-summary.html %}</p>

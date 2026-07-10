@@ -59,70 +59,99 @@ Since each patient has multiple variants and we want the pathogenic variant to b
 
 | Metric | Formula | Clinical Importance |
 |--------|---------|---------------------|
-| **Top-K Recall** | $\frac{\text{# patients with causal variant in top K}}{\text{# total patients}}$ | Measures how often the pathogenic variant appears in the top K predictions |
+| **Hit@K** | $\frac{\text{# eligible patients with a pathogenic variant at rank }\le K}{\text{# eligible patients}}$ | Measures how often at least one pathogenic variant appears in the top K ranks |
 
 The formal definition:
 
 $$
-\text{Top-K Recall} = \frac{1}{N} \sum_{i=1}^{N} \mathbb{1}[\text{rank}(v_i) \leq K]
+\text{Hit@K} = \frac{1}{N} \sum_{i=1}^{N} \mathbb{1}[\exists v \in P_i:\operatorname{rank}(v) \leq K]
 $$
 
 Where:
 - $N$ = number of patients
-- $v_i$ = the pathogenic variant for patient $i$
-- $\text{rank}(v_i)$ = position when variants are sorted by prediction score (descending)
+- $P_i$ = the set of known pathogenic variants for patient $i$
+- $\operatorname{rank}(v)$ = descending score rank, using the minimum rank for tied scores
 - $\mathbb{1}[\cdot]$ = indicator function (1 if true, 0 if false)
+
+This patient-level binary success rate is **Hit@K**, not variant-level recall. The distinction matters when a patient has multiple pathogenic variants. Ties at the K boundary are included rather than broken by input row order, so a tie can produce more than K returned rows.
 
 ### Why Recall Is Critical
 
-In medical diagnostics, a **False Negative** (predicting benign when actually pathogenic) means:
-- Patient doesn't receive treatment
-- Disease progresses undetected
+In a validated clinical workflow, a **False Negative** (ranking a truly pathogenic variant too low) may:
+- delay follow-up or confirmatory analysis,
+- reduce the chance that a relevant variant is reviewed promptly.
 
-Therefore, **Recall must be prioritized**, even at the cost of some False Positives.
+The downstream effect depends on disease, evidence, review workflow, variant actionability, and clinician judgment; this classifier does not directly prescribe treatment. Recall or Hit@K should therefore be emphasized alongside precision and workload, not maximized without a deployment-specific trade-off analysis.
 
 ### Evaluation Framework
 
 I evaluated each predictor (A, B, C) with both classification and ranking metrics:
 
 ```python
-from sklearn.metrics import precision_recall_curve, roc_auc_score
+from sklearn.metrics import (
+    precision_recall_curve,
+    precision_recall_fscore_support,
+    roc_auc_score,
+)
 import numpy as np
 import pandas as pd
 
-def evaluate_predictor(y_true: np.ndarray, y_scores: np.ndarray) -> dict:
-    """Evaluate predictor with classification metrics."""
-    auroc = roc_auc_score(y_true, y_scores)
-    
-    precisions, recalls, thresholds = precision_recall_curve(y_true, y_scores)
-    f1_scores = 2 * (precisions * recalls) / (precisions + recalls + 1e-8)
-    best_idx = np.argmax(f1_scores)
-    
+def select_f1_threshold(y_true_val: np.ndarray, y_scores_val: np.ndarray) -> float:
+    """Choose an operating threshold on validation data only."""
+    precisions, recalls, thresholds = precision_recall_curve(y_true_val, y_scores_val)
+    f1_scores = 2 * precisions[:-1] * recalls[:-1] / (
+        precisions[:-1] + recalls[:-1] + 1e-8
+    )
+    return float(thresholds[np.argmax(f1_scores)])
+# end def
+
+def evaluate_predictor(
+    y_true_test: np.ndarray,
+    y_scores_test: np.ndarray,
+    threshold: float,
+) -> dict:
+    """Evaluate a validation-selected threshold on untouched test data."""
+    y_pred = (y_scores_test >= threshold).astype(int)
+    precision, recall, f1, _ = precision_recall_fscore_support(
+        y_true_test,
+        y_pred,
+        average="binary",
+        zero_division=0,
+    )
     return {
-        "auroc": auroc,
-        "best_f1": f1_scores[best_idx],
-        "recall_at_best_f1": recalls[best_idx],
-        "precision_at_best_f1": precisions[best_idx],
+        "auroc": roc_auc_score(y_true_test, y_scores_test),
+        "f1": f1,
+        "recall": recall,
+        "precision": precision,
+        "threshold": threshold,
     }
 # end def
 
-def compute_top_k_recall(df: pd.DataFrame, score_col: str, k: int) -> float:
-    """Compute Top-K Recall per patient."""
-    hits = 0
-    for patient_id, group in df.groupby("Patient_ID"):
-        sorted_group = group.sort_values(score_col, ascending=False)
-        top_k_labels = sorted_group.head(k)["LABEL"].values
-        if 1 in top_k_labels:
-            hits += 1
-        # end if
+def compute_top_k_hit(df: pd.DataFrame, score_col: str, k: int) -> float:
+    """Compute tie-inclusive patient-level Hit@K."""
+    if k <= 0:
+        raise ValueError("k must be positive")
+
+    patient_hits = []
+    for _, group in df.groupby("Patient_ID"):
+        if not group["LABEL"].eq(1).any():
+            continue
+        ranks = group[score_col].rank(method="min", ascending=False)
+        patient_hits.append(bool((group["LABEL"].eq(1) & ranks.le(k)).any()))
     # end for
-    return hits / df["Patient_ID"].nunique()
+    if not patient_hits:
+        raise ValueError("no patients with a pathogenic variant")
+    return float(np.mean(patient_hits))
 # end def
 ```
 
+The threshold-selection and test-evaluation calls must use different patients (or, at minimum, a group-disjoint split). Selecting the best F1 and reporting it on the same 107 patients is an exploratory upper estimate, not a deployable operating point.
+
 ### Results
 
-#### Classification Metrics
+#### Classification Metrics (Exploratory Same-Set Threshold Scan)
+
+The original comparison below selected each predictor's best-F1 threshold on the same 107-patient dataset used for reporting. It is useful for hypothesis generation, but it is optimistically biased; a clinical claim requires a patient-disjoint validation set for threshold selection and an untouched test cohort for the final table.
 
 | Predictor | AUROC | Best F1 | Recall @ Best F1 | Precision @ Best F1 |
 |-----------|-------|---------|------------------|---------------------|
@@ -130,22 +159,24 @@ def compute_top_k_recall(df: pd.DataFrame, score_col: str, k: int) -> float:
 | B | 0.88 | **0.58** | **0.82** | 0.45 |
 | C | 0.91 | 0.51 | 0.71 | 0.40 |
 
-#### Ranking Metrics (Patient-Centric)
+#### Ranking Metrics (Patient-Centric, Tie-Inclusive)
 
-| Predictor | Top-1 Recall | Top-5 Recall |
+| Predictor | Hit@1 | Hit@5 |
 |-----------|--------------|--------------|
 | A | 12% | 35% |
 | B | **24%** | **52%** |
 | C | 18% | 41% |
 
 **Key Findings**:
-1. Predictor A had the highest AUROC but the worst F1, Recall, and Top-K metrics
-2. Predictor B achieved **82% Recall** and **52% Top-5 Recall**—meaning it catches more pathogenic variants both in classification and ranking
+1. Predictor A had the highest AUROC but the worst F1, Recall, and Hit@K metrics
+2. Predictor B achieved **82% exploratory Recall** and **52% Hit@5** on this dataset, meaning at least one known pathogenic variant ranked within the top five for 52% of eligible patients
 
-**Decision**: For clinical use, **Predictor B** is preferred because:
+**Exploratory decision**: **Predictor B** is the candidate to carry into a disjoint validation because it had:
 1. Highest Recall (minimizes missed pathogenic variants)
 2. Best F1 Score (balanced performance on imbalanced data)
-3. Best Top-5 Recall (pathogenic variant is in top 5 for 52% of patients)
+3. Best Hit@5 (at least one pathogenic variant is within the top five ranks for 52% of patients)
+
+This table does **not** establish a clinical operating point: the threshold was tuned and evaluated on the same cohort, confidence intervals are absent, and Hit@K does not measure how many pathogenic variants were missed when a patient has more than one.
 
 **Lesson:** In medical AI with class imbalance, evaluate using multiple metrics that reflect clinical consequences—not just AUROC.
 
@@ -244,20 +275,25 @@ Key implementation details:
 2.  **`init_process_group`**: Sets up communication between GPUs.
 3.  **`torchrun`**: The launcher utility to manage processes.
 
-One interesting hurdle was **verifying DDP logic on a single local GPU**. I learned that you can use the `gloo` backend with `torchrun --nproc_per_node=1` to simulate the distributed environment locally before deploying to the expensive cluster.
+One useful pre-cluster check is a **CPU smoke test** of the data/model path. It is not a single-GPU DDP test: in the later public implementation, selecting `gloo` explicitly forces the device to CPU. The real 4xA100 run used `nccl`, which [PyTorch recommends](https://docs.pytorch.org/docs/stable/generated/torch.nn.parallel.DistributedDataParallel.html) for distributed GPU training.
 
-A caveat on backends: [PyTorch recommends `nccl`](https://docs.pytorch.org/docs/stable/generated/torch.nn.parallel.DistributedDataParallel.html) as the default backend for distributed **GPU** training, while `gloo` is intended for CPU (or a local single-process smoke test). So the local `gloo` command below is purely for **logic verification**, not the real 4xA100 run—which should use `nccl`.
+The original coursework used a different private training script. A later public reimplementation is available at commit [`6b8bcd5`](https://github.com/youngunghan/protein-variant-classifier/tree/6b8bcd57a4964f1f788f96fb934ae485986c5f25); its runnable one-process distributed CPU smoke path is:
 
 ```bash
-# Local verification command
-torchrun --nproc_per_node=1 train_script.py --backend gloo
+# Current public implementation: one-process distributed CPU smoke test
+git checkout 6b8bcd57a4964f1f788f96fb934ae485986c5f25
+torchrun --standalone --nproc_per_node=1 code/train_esm_classifier.py \
+    --backend gloo --use_mock_data --epochs 1 --batch_size 2 \
+    --max_len 64 --output_dir /tmp/pvc-ddp-smoke
 ```
+
+The current script reads `LOCAL_RANK` from `torchrun`, and its `gloo` branch deliberately selects CPU. This checks process-group and DDP plumbing, but it is not validation of CUDA/NCCL behavior or the historical four-GPU result.
 
 ## What Didn't Work / Limitations
 
 This was a small-scale study, so the results are a proof of concept rather than a validated clinical tool:
 
-- **Tiny evaluation set.** Task A's predictor comparison uses 107 patients with only a few pathogenic variants each, so the AUROC/F1/Top-K gaps between predictors A–C carry wide uncertainty — no confidence intervals or significance tests are reported.
+- **Tiny, reused evaluation set.** Task A's predictor comparison uses 107 patients with only a few pathogenic variants each, and the best-F1 threshold was selected on the same cohort used for reporting. The AUROC/F1/Hit@K gaps therefore carry both wide uncertainty and selection bias; no confidence intervals or significance tests are reported.
 - **Frozen backbone.** ESM2 is used purely as a feature extractor (backbone frozen, only the head trained), which caps how much variant-specific signal the model can capture; fine-tuning or LoRA was not compared.
 - **Static class weighting only.** The 9:1 GOF/LOF imbalance is handled with fixed inverse-frequency weights; resampling, focal loss, and threshold calibration were not benchmarked against it.
 - **Pooling not ablated.** CLS-token pooling is used; as noted above, mean-pooling may give a more stable representation, but the two were not compared head-to-head.
@@ -267,5 +303,5 @@ This was a small-scale study, so the results are a proof of concept rather than 
 
 This project reinforced the importance of domain-specific feature engineering (Difference Vector) and robust engineering practices (DDP, Weighted Loss) when working with biological data. By combining pre-trained PLMs with thoughtful architecture, we can build powerful tools for genomic analysis.
 
-> **Setup (for reproducibility).** Model: `facebook/esm2_t33_650M_UR50D` (HuggingFace `transformers`, backbone frozen). Hardware: 4× NVIDIA A100, PyTorch `DistributedDataParallel` (`nccl`) launched with `torchrun`. Data: 107 patients (Task A); ~9:1 LOF/GOF split (Task B). This was a private coursework project, so the code isn't public — the stack above and the in-post snippets are the reproduction cues.
+> **Setup (for reproducibility).** Model: `facebook/esm2_t33_650M_UR50D` (HuggingFace `transformers`, backbone frozen). Hardware: 4× NVIDIA A100, PyTorch `DistributedDataParallel` (`nccl`) launched with `torchrun`. Data: 107 patients (Task A); ~9:1 LOF/GOF split (Task B). The original coursework checkout remains private; the linked public repository is a later implementation, not provenance for every historical command or result.
 {: .prompt-info }

@@ -66,16 +66,16 @@ _The failure is helmet-specific: the baseline invents `helmet_off` on a helmeted
 
 ## Challenge 3: Is It Domain Shift? Reproducing the Failure In-Domain
 
-The convenient explanation is **domain shift** — YouTube footage looks different from the training CCTV, so of course it breaks. If that were the cause, the fix would be "collect more diverse data" and move on. I wanted to falsify it before believing it.
+The convenient explanation is **domain shift** — YouTube footage looks different from the training CCTV, so of course it breaks. If that were the complete explanation, the failure should depend on external footage. I tested whether domain shift was necessary for the failure before treating it as the sole cause.
 
-Two facts argued against domain shift:
+Two facts argued against domain shift as a complete explanation:
 
 1. **The model has seen plenty of helmets.** Every harness-violation frame (~32k of them) contains a helmeted worker, labeled `hook_off`. And on validation, the model *distinguishes* helmet-state from harness-state cleanly (`helmet_off_person` 0.944 vs `hook_off_person` 0.932). It is not "blind to helmets."
 2. **The failure reproduces in-domain.** I ran the model on `New_Sample` — the *same* fixed-CCTV style as training, helmeted compliant workers, no violation classes present. It still fired `helmet_off` at **0.44–0.76 confidence**, including `helmet_off_head` placed directly on the helmeted head.
 
-The same failure on same-domain footage rules out domain shift as the root cause. The model is not confused by a new look; it is doing something structural — **on a worker with no violation it often fires anyway, defaulting to `helmet_off`** (harness false positives stayed at zero, so this is not a blanket "any worker → any violation" reflex).
+Reproducing the failure on same-domain footage shows that domain shift is **not necessary** for it: the model often fires on a worker with no violation, usually as `helmet_off` (harness false positives stayed at zero, so this is not a blanket "any worker → any violation" reflex). It does **not** show that domain shift contributes nothing to the larger YouTube error; the external and in-domain probes were not matched or large enough to estimate that contribution.
 
-## Challenge 4: The Real Root Cause — Every Training Frame Had a Violation
+## Challenge 4: The Leading Mechanism — Every Training Frame Had a Violation
 
 The cause is upstream of the model, in the data extraction. To save disk and training time, I extracted *only* frames that contained one of the four violation classes. That decision has a subtle consequence:
 
@@ -83,14 +83,14 @@ The cause is upstream of the model, in the data extraction. To save disk and tra
 flowchart TB
     A["AIHub 507: 619,718 labeled frames"] --> B["Extract only frames<br/>containing a violation class"]
     B --> C["Training set: every frame<br/>has at least one violation"]
-    C --> D["Model learns the shortcut:<br/>worker visible to emit a violation box"]
+    C --> D["Model can learn a shortcut:<br/>worker visible to emit a violation box"]
     D --> E["A zero-violation frame<br/>never appears in training"]
     E --> F["At inference, a compliant worker<br/>still gets a violation box = false positive"]
 ```
 
-The model **never saw a zero-violation frame** — a worker present with no violation labeled. Since every training image contained at least one violation, the model never learned that a visible worker can warrant *no* box. So at inference it leans the same way — often firing on a compliant worker, and defaulting to `helmet_off` (the easier-to-localize cue) when it does. This is a textbook negative-space gap: the high validation mAP is real, but the validation set carries the *same* violation-only bias, so it cannot measure the compliant-worker false-positive rate at all.
+The model **never saw a zero-violation frame** — a worker present with no violation labeled. That makes a negative-space gap a strong causal hypothesis: the training objective never rewards producing no box for a compliant worker, and the validation set carries the same violation-only filter, so it cannot measure that false-positive rate. The intervention below supports this mechanism because adding empty-GT negatives sharply reduced false positives, but the one-run, non-disjoint design does not prove that this was the only cause or that `helmet_off` was chosen because it was easier to localize.
 
-**Lesson:** A dataset filtered to "only frames with the target" teaches presence, not discrimination. If the model will ever see the negative case in production, the negative case has to be in training.
+**Lesson:** A dataset filtered to "only frames with the target" never trains the zero-target case. If the model will see compliant workers in production, include representative compliant frames and evaluate them on a disjoint split.
 
 ## Challenge 5: The Fix — Empty-GT Negatives
 
@@ -171,7 +171,7 @@ And crucially, suppressing the false positives did **not** cost detection accura
 | baseline RTMDet-m (12 ep) | 0.908 | 0.995 |
 | + empty-GT negatives (10 ep) | **0.911** | 0.995 |
 
-The 0.908 → 0.911 move is within run-to-run seed noise, so the honest reading is **"detection held flat while false positives dropped by two-thirds,"** not "+0.003 mAP." Empty-GT negatives buy a large precision gain on compliant workers at no measured cost to the (near-train) in-clip validation mAP.
+The 0.908 → 0.911 move is within run-to-run seed noise, so the honest reading is **"detection held flat while false positives dropped by two-thirds,"** not "+0.003 mAP." Empty-GT negatives produced large false-positive suppression at this 0.3 threshold, with no measured cost to the (near-train) in-clip validation mAP; this probe did not measure precision or recall on compliant workers.
 
 One counterintuitive result is worth showing, because it is a trap. Looked at per epoch, the *earliest* checkpoint seems to have the fewest false positives:
 
@@ -185,7 +185,7 @@ One counterintuitive result is worth showing, because it is a trap. Looked at pe
 ![Detection mAP rising monotonically while false positives peak mid-training then fall](/assets/img/posts/rtmdet-false-positives/epoch_ablation.png)
 _Detection mAP (rising) vs false-positive count (non-monotonic) across epochs. Epoch 2's low FP count is a mirage._
 
-Epoch 2's low false-positive count is an artifact of an under-confident model: too few of its boxes clear the 0.3 score threshold, so they simply do not get counted — and its detection mAP (0.892) is the *worst* of the run, meaning it also misses the most real violations. As training raises confidence, false positives spike at epoch 6, then the negative suppression plus cosine decay pull them back down. **The fully-trained checkpoint is the right one: best detection and lowest sustained false positives at once.**
+Epoch 2's low false-positive count is consistent with an under-confident model: too few boxes clear the uncalibrated 0.3 threshold, and its detection mAP (0.892) is the worst of the run. Epoch 10 is the most defensible **candidate among these four reported checkpoints** because it has the highest in-clip mAP and fewer thresholded false positives than epochs 6 and 8. That table does not establish a globally optimal deployment checkpoint: selection should use a clip-disjoint mixed validation set, with either false positives compared at fixed recall or a FROC curve, followed by one untouched test evaluation.
 
 ## What Didn't Work / Limitations
 
@@ -201,7 +201,7 @@ This fix is real but partial, and two of the headline numbers need honest caveat
 ## Conclusion
 
 1. **A high mAP measures the labels, not the world.** 0.995 AP@50 coexisted with confident `helmet_off` calls on helmeted workers, because the validation set shared the training set's blind spot. Always probe the negative case the labels omit.
-2. **Reproduce the failure before explaining it.** The "obvious" cause was domain shift; reproducing the false positive *in-domain* falsified that and pointed at the real cause — a violation-only extraction filter that erased the compliant-worker class.
+2. **Reproduce the failure before explaining it.** Seeing the false positive *in-domain* showed that domain shift was not required and raised the violation-only extraction filter as the leading mechanism; it did not rule out an additional external-domain effect.
 3. **Empty-GT negatives are a cheap, targeted fix.** Adding compliant frames with `filter_cfg(filter_empty_gt=False)` cut external false positives 66% with no measured loss on the (near-train) validation mAP — but only as far as the negatives' domain reaches, so diversity and clean, disjoint evaluation are the next requirements.
 
 ## Reproduction
