@@ -52,7 +52,7 @@
 
 `_includes/pageviews/goatcounter.html`은 카운터 엔드포인트를 `https://<id>.goatcounter.com/counter/...`로 하드코딩합니다. 자체 호스팅 인스턴스나 커스텀 도메인은 지원하지 않으며, `analytics.goatcounter.id` 하나의 값이 전역 추적 스크립트와 글별 카운터 엔드포인트 양쪽에 그대로 쓰입니다.
 
-**당분간 모든 글이 조회수 "1"로 표시되는 것은 정상입니다.** `_includes/pageviews/goatcounter.html`의 fetch `.catch()`는 실패 원인을 구분하지 않고 항상 `1`을 써넣습니다(에러가 화면에 드러나지 않음). 트래커 설치 직후에는 아직 어떤 글에도 방문 기록이 쌓이지 않았으므로(`curl .../counter/%2Fscitechblog%2Fposts%2F<slug>%2F.json` → HTTP 404, "아직 데이터 없음"을 뜻함), 실제 방문이 쌓이기 전까지는 모든 글이 "1"로 보이는 것이 버그가 아니라 예상된 초기 상태입니다. 게다가 **GoatCounter는 `/counter` 응답을 최대 4시간까지 캐시**하므로, 새로 발생한 트래픽도 즉시 반영되지 않고 최대 4시간 지연될 수 있습니다. 이 "1"의 원인은 하나가 아니므로 단정하지 말고, 먼저 브라우저 개발자 도구 Network 탭에서 `/counter/*.json` 요청의 상태 코드를 확인하세요.
+**당분간 모든 글이 조회수 "1"로 표시되는 것은 정상입니다.** `_includes/pageviews/goatcounter.html`의 fetch `.catch()`는 실패 원인을 구분하지 않고 항상 `1`을 써넣습니다(에러가 화면에 드러나지 않음). 트래커 설치 직후에는 아직 어떤 글에도 방문 기록이 쌓이지 않았으므로(`curl .../counter/%2Fscitechblog%2Fposts%2F<slug>.json` → HTTP 404, "아직 데이터 없음"을 뜻함), 실제 방문이 쌓이기 전까지는 모든 글이 "1"로 보이는 것이 버그가 아니라 예상된 초기 상태입니다. 게다가 **GoatCounter는 `/counter` 응답을 최대 4시간까지 캐시**하므로, 새로 발생한 트래픽도 즉시 반영되지 않고 최대 4시간 지연될 수 있습니다. 이 "1"의 원인은 하나가 아니므로 단정하지 말고, 먼저 브라우저 개발자 도구 Network 탭에서 `/counter/*.json` 요청의 상태 코드를 확인하세요.
 - **403** — 대시보드의 "Allow adding visitor counts on your website" 설정이 꺼져 있음. 현재는 켜져 있는 것을 확인했으므로 다시 403이 뜬다면 설정이 되돌아간 것입니다.
 - **404** — 아직 조회 기록이 없는 경로. **새로 게시한 글, 또는 트래커 설치 직후에는 첫 방문 전까지 "1"이 정상**이며 설정 문제가 아닙니다.
 - 상태 코드가 정상(200)인데도 "1"이면 광고 차단기가 `*.goatcounter.com` 요청을 막고 있는지([jekyll-theme-chirpy#2412](https://github.com/cotes2020/jekyll-theme-chirpy/discussions/2412) 참고), 또는 위 4시간 캐시 지연 때문인지 확인합니다.
