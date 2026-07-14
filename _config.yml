@@ -19,8 +19,8 @@ title: CSMAIR # the main title
 tagline: Computer Science × Medical AI × Railroad Science # it will display as the subtitle
 
 description: >- # used by seo meta and the atom feed
-  A tech blog exploring the intersection of Computer Science, Artificial Intelligence, and Railway Engineering.
-  Featuring tutorials, project walkthroughs, and research insights.
+  A research blog on computer science and medical AI, extending object detection for industrial safety toward railroad science.
+  Also covers generative models, evaluation audits and negative results, algorithms, and developer tooling.
 
 # Fill in the protocol & hostname for your site.
 # E.g. 'https://username.github.io', note that it does not end with a '/'.
