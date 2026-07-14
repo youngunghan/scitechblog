@@ -62,7 +62,7 @@ The kicker: the pytorch-ignite GAN-evaluation tutorial the notebook was based on
 
 ## Proof: Same Model, Two Scales (and No Conversion)
 
-To show this is the metric and not the model, I took our shipped best checkpoint, generated one fake **per test caption** (510 test images), and scored the *same* fakes and reals two ways — ignite's default and the standard 2048-d FID:
+To show this is the metric and not the model, I took our shipped best checkpoint, generated one fake **per test image**, conditioned on that image's first stored caption embedding (510 test images, 510 fakes — the dataset stores up to ten captions per image and this demo uses only the first), and scored the *same* fakes and reals two ways — ignite's default and the standard 2048-d FID:
 
 | Inputs | ignite default (1000-d logits) | standard (2048-d pool3) |
 |--------|:---:|:---:|
@@ -117,7 +117,7 @@ Holding the extractor, resize path, format, and N constant makes comparisons bet
 
 On this historical draw it returned **164.9** — a high canonical-extractor estimate, not the uniquely "real" FID of the model. It is useful for checkpoint selection only when N, captions, evaluator code, preprocessing, checkpoint, and latent seeds are held fixed; repeated sampling seeds or KID should accompany close comparisons.
 
-The audited source is the pushed branch `origin/fix/correctness-audit` at commit `6fac9ec`. Scripts in that repository import project-root modules, so direct invocations need `export PYTHONPATH="$(pwd)"`. The feature-space demo itself still needs an explicit latent seed before its exact generated sample set can be reproduced.
+The audited source is commit `6fac9ec`. **Update (2026-07).** At the time of writing, `6fac9ec` was the head of the pushed branch `fix/correctness-audit`; that branch has since advanced (`c50baaa`, `1076caa`) and merged into `main` via PR #1 (`0548b72`); `main` has since advanced further to `2dee0b1` via a later, separate PR, so `main` no longer matches this snapshot — check out `6fac9ec` by SHA, not by branch name, to reproduce it. Scripts in that repository import project-root modules, so direct invocations need `export PYTHONPATH="$(pwd)"`. The feature-space demo itself still needs an explicit latent seed before its exact generated sample set can be reproduced.
 
 **Lesson:** the metric object's defaults are part of the metric. If you didn't choose the feature extractor, you don't know what you measured.
 

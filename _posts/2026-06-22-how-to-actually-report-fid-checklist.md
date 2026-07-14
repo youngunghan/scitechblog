@@ -51,7 +51,7 @@ flowchart LR
 
 2. **Input pipeline — resize backend, format, range/dtype.** clean-fid (Parmar et al., CVPR 2022) quantifies the traps: PIL-bicubic vs OpenCV/PyTorch bilinear shifts FID by ~4–7; exporting samples as JPEG instead of PNG pushed real FFHQ FID to ~21. Match the resize for real and fake, never JPEG-round-trip generated images, and match range/dtype to the FID flag (uint8 `[0,255]` with `normalize=False`, *or* float `[0,1]` with `normalize=True` — not mixed). Details and numbers in the [first post]({% post_url 2026-06-18-troubleshooting-fid-wrong-feature-space %}).
 
-3. **Sampling — same N, the right distribution, accumulate over the full set.** Generate fakes from the **real caption/label distribution** (one fake per test caption), not a single fixed prompt. Accumulate over the whole test set and `compute()` once — never average per-batch FIDs. Fix N and report it: FID is a *biased* estimator whose bias is model-dependent (Chong & Forsyth, CVPR 2020), so comparing models at different N can flip the ranking. Here N=510 is smaller than the 2048 feature dimension, so each empirical covariance has rank at most 509; close differences need repeated draws and a small-sample complement such as KID.
+3. **Sampling — same N, the right distribution, accumulate over the full set.** Generate fakes from the **real caption/label distribution** (one fake per real test item — e.g. one per test image, conditioned on that image's caption), not a single fixed prompt. Accumulate over the whole test set and `compute()` once — never average per-batch FIDs. Fix N and report it: FID is a *biased* estimator whose bias is model-dependent (Chong & Forsyth, CVPR 2020), so comparing models at different N can flip the ranking. Here N=510 is smaller than the 2048 feature dimension, so each empirical covariance has rank at most 509; close differences need repeated draws and a small-sample complement such as KID.
 
 4. **Controls and provenance — identity, independent splits, seeds, checkpoint, code.** Scoring the exact same real tensor set against itself should be approximately zero, but that is only an identity/accumulator smoke test: a wrong deterministic extractor also passes it. Add a comparison between independent real splits that traverse the real loading pipeline, and a deliberately perturbed-input check when debugging preprocessing. Record the training seed, **evaluation latent seed**, checkpoint hash/path, evaluator commit, and library version separately.
 
@@ -79,7 +79,7 @@ Put this next to any FID you publish. The example deliberately exposes the missi
 | image format | PNG (no JPEG round-trip) |
 | input range / dtype | uint8 `[0,255]`, `normalize=False` |
 | samples N | 510 real / 510 fake, full-set accumulation |
-| fake conditioning | one fake per real test caption |
+| fake conditioning | one fake per test image, conditioned on that image's **first stored caption** (not every caption, not a fixed prompt) |
 | training/data-split seed | 42 |
 | evaluation latent seed | **not recorded for historical JSON** |
 | checkpoint | `diffaug100`, `epoch_90` (raw local checkpoint, not promoted) |
@@ -88,7 +88,12 @@ Put this next to any FID you publish. The example deliberately exposes the missi
 | control: same real tensors vs themselves | ≈ 0.0 (identity smoke only) |
 | control: independent real splits | not reported |
 
-Because the historical evaluation latent seed and distributable checkpoint are missing, this table documents a historical result rather than a fully re-derivable artifact. Branch `origin/fix/correctness-audit` at `6fac9ec` adds a run-level seed, but it does **not** reset or reuse noise per checkpoint: changing the epoch list changes later checkpoints' inputs. Fix that by resetting a dedicated generator per checkpoint or precomputing fixed latent tensors; then re-evaluate the old checkpoints. Direct script calls also need `export PYTHONPATH="$(pwd)"`.
+Because the historical evaluation latent seed and distributable checkpoint are missing, this table documents a historical result rather than a fully re-derivable artifact. Branch `origin/fix/correctness-audit` at `6fac9ec` adds a run-level seed, but it does **not** reset or reuse noise per checkpoint: changing the epoch list changes later checkpoints' inputs. Fix that by resetting a dedicated generator per checkpoint or precomputing fixed latent tensors; then re-evaluate the old checkpoints.
+
+> **Update (2026-07).** This is fixed and merged. That branch advanced (`c50baaa`, `1076caa`) and merged into `main` via PR #1 (`0548b72`); `main` is now at `2dee0b1`. `experiments/eval_curve.py` calls `seed_fix(seed)` *after loading each checkpoint* (not once before the loop), so a checkpoint's generated sample stream is invariant to which other epochs are in the same invocation; the module docstring now states the RNG "is reset after loading every checkpoint." The old checkpoints were re-evaluated under this fix (see `experiments/RESULTS.md`).
+{: .prompt-info }
+
+Direct script calls also need `export PYTHONPATH="$(pwd)"`.
 
 ## The limits even a clean FID has
 

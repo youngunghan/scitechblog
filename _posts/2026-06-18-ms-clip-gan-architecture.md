@@ -13,7 +13,7 @@ mermaid: true
 
 ## Introduction
 
-The previous post in this series fixed the feature extractor: our "FID 0.24" was not a near-perfect generator, but a non-standard 1000-d logit-space distance. The replacement 2048-d estimate used only 510 samples, so it is best suited to same-N comparisons rather than an absolute literature benchmark. The next question was architectural: **what kind of model was producing the pre-DiffAugment band around FID ~160 in those runs?**
+The previous post in this series fixed the feature extractor: our "FID 0.24" was not a near-perfect generator, but a non-standard 1000-d logit-space distance. The replacement 2048-d estimate used only 510 samples, so it is best suited to same-N comparisons rather than an absolute literature benchmark. The next question was architectural: **what kind of model was producing the pre-DiffAugment band of roughly FID 159-184 in those runs?**
 
 This note is the model map I wanted before interpreting the training curves. MS-CLIP-GAN is not a diffusion model with one denoising U-Net. It is a **StackGAN++-style multi-stage GAN** with CLIP text conditioning, three generator stages, and three discriminators. That shape matters because the later stability experiment asks a very specific question: was the **stage-wise discriminator stack** too strong for the generator refiners?
 
@@ -36,6 +36,9 @@ That 512-d vector is not fed directly into every convolutional block. It first p
 ```text
 c_txt -> linear/ReLU -> mu, log_sigma -> c_hat (128-d)
 ```
+
+> **Update (2026-07).** A later correctness audit found this ReLU forced `mu >= 0` and `sigma >= 1`, and that the promoted checkpoint was saturated against those bounds (`mu` 76.0% exactly 0, `log_sigma` 99.85% exactly 0). The repo now defaults to `--conditioning_activation linear`; the ReLU path shown above is now the automatic fallback only for metadata-less legacy checkpoints, though it remains available as an explicit `--conditioning_activation relu` flag for fresh runs -- and legacy-fallback ReLU is what every run in this series used.
+{: .prompt-info }
 
 `c_hat` is a sampled conditioning vector, regularized with a KL term so the conditioning distribution does not drift arbitrarily. The model then combines `c_hat` with a 100-d noise vector and generates the image progressively:
 
@@ -65,7 +68,7 @@ Each discriminator compresses its input into a shared feature representation and
 
 The unconditional head exists in the model, but its loss is opt-in via `--use_uncond_loss`; the subset experiments discussed in this series enabled it.
 
-The generator also receives auxiliary guidance from a frozen CLIP image encoder at the 256px stage, plus KL and optional perceptual loss. So the training signal is not "just GAN loss"; it is adversarial realism plus semantic alignment and reconstruction-style pressure.
+The generator also receives auxiliary guidance from a frozen CLIP image encoder at the 256px stage (opt-in via `--use_contrastive_loss`, enabled in these runs), plus an always-on KL term and an optional perceptual loss (`--use_mixed_loss`). So the training signal is not "just GAN loss"; it is adversarial realism plus semantic alignment and reconstruction-style pressure.
 
 ## Why the Balance Hypothesis Was Plausible
 
@@ -106,7 +109,7 @@ The common lesson is the same one this blog keeps coming back to: **a model diag
 
 ## What This Architecture Does Not Prove
 
-The diagram organizes hypotheses, but it does not establish their causes. In the pre-DiffAugment sweep, estimates stayed around FID ~160 and baseline epoch 20 remained the promoted checkpoint. A later DiffAugment run reached a lower historical estimate (~118.5 at epoch 90), so ~160 was never an architecture-wide ceiling.
+The diagram organizes hypotheses, but it does not establish their causes. In the pre-DiffAugment sweep, the best per-run estimates spanned a ~159-184 band and baseline epoch 20 remained the promoted checkpoint. A later DiffAugment run reached a lower historical estimate (~118.5 at epoch 90), so ~160 was never an architecture-wide ceiling.
 
 The main limitations follow directly from the structure:
 

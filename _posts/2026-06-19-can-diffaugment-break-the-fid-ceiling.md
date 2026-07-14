@@ -17,7 +17,7 @@ The [previous post]({% post_url 2026-06-18-killing-the-d-dominance-hypothesis %}
 
 That left a different testable hypothesis: with only ~2.5k images, symmetric discriminator-side augmentation might improve data efficiency. DiffAugment and StyleGAN2-ADA are established limited-data methods, but a gain from augmentation alone cannot diagnose discriminator memorization without direct train/validation diagnostics. This post asks the narrower question: does the intervention lower our same-N subset estimate in a matched-length run?
 
-> **Setup.** Multi-stage CLIP-guided GAN (64→128→256, three stage-wise discriminators), 2,490 train / 510 test (25% of MM-CelebA-HQ captions), single RTX 4060 Ti (8 GB), batch 4, ~210 s/epoch, configured training/data-split seed 42, PyTorch 2.4. FID uses torchmetrics 2048-d pool3 with one fake per test caption. At N=510, the 2048-d covariance is rank-deficient and the estimator is biased, so the values are for same-N internal comparison rather than direct comparison with large-sample published FIDs. The historical JSON also predates a fixed evaluation latent seed, leaving additional one-shot sampling noise. Dataset images are licensed, so only metric plots are shown.
+> **Setup.** Multi-stage CLIP-guided GAN (64→128→256, three stage-wise discriminators), 2,490 train / 510 test (25% of MM-CelebA-HQ captions), single RTX 4060 Ti (8 GB), batch 4, ~210 s/epoch, configured training/data-split seed 42, PyTorch 2.4. FID uses torchmetrics 2048-d pool3 with one fake per test image. At N=510, the 2048-d covariance is rank-deficient and the estimator is biased, so the values are for same-N internal comparison rather than direct comparison with large-sample published FIDs. The historical JSON also predates a fixed evaluation latent seed, leaving additional one-shot sampling noise. Dataset images are licensed, so only metric plots are shown.
 {: .prompt-info }
 
 ## What not to do
@@ -101,6 +101,12 @@ So the result supports a narrower conclusion: the pre-DiffAugment ~160 band was 
 git checkout 6fac9ec
 export PYTHONPATH="$(pwd)"
 
+# build the 2,490 / 510 subset first — data/ is gitignored, nothing ships with the repo
+# NOTE: at this pinned commit, data_prep.sh hardcodes an absolute REPO= path (the
+# author's own machine) — edit that line to your own repo path before running, or
+# use main's fixed version, which derives REPO from $BASH_SOURCE instead.
+bash experiments/data_prep.sh 3000 0.83 sub   # -> data/trainset_sub.zip + data/testset_sub.zip (seed 42)
+
 # DiffAugment: same differentiable transform on real AND fake at the discriminator only
 python scripts/train.py --name diffaug100 --data_path data/trainset_sub.zip \
     --use_uncond_loss --use_contrastive_loss --use_mixed_loss \
@@ -113,7 +119,7 @@ CKPT="$(ls -dt checkpoints/diffaug100-*/ckpt | head -n 1)"
 python experiments/eval_curve.py data/testset_sub.zip "$CKPT" auto out.json
 ```
 
-Environment: PyTorch 2.4, CLIP ViT-B/32, single RTX 4060 Ti (8 GB). DiffAugment and the historical result entered at commit `f64515f`; `6fac9ec` is the audited, pushed `origin/fix/correctness-audit` tip. The augmentation is opt-in (`--use_diffaugment`). Training/data split used configured seed 42, but the committed `eval.json` predates evaluator commit `5d0de43`. That commit adds one run-level `torch.manual_seed(42)` before the checkpoint loop, not a per-checkpoint reset: ep90 measured 117.50 when evaluated alone and 123.86 when evaluated after ep0 in the July 10 audit. Fix checkpoint-level latent reuse, then repeat sampling and training seeds before quoting a confidence interval or a small delta. The large baseline-vs-DiffAugment direction survived the isolated-checkpoint audit (164.25 vs 117.50), but its uncertainty remains unmeasured.
+Environment: PyTorch 2.4, CLIP ViT-B/32, single RTX 4060 Ti (8 GB). DiffAugment and the historical result entered at commit `f64515f`; `6fac9ec` was the `origin/fix/correctness-audit` tip when this was written — that branch has since advanced (`1076caa`) and merged into `main` via PR #1 (`0548b72`); `main`'s current tip is `2dee0b1`, reached via a later, separate PR, not this branch's merge — so check out the pinned commit to reproduce these curves. The augmentation is opt-in (`--use_diffaugment`). Training/data split used configured seed 42, but the committed `eval.json` predates evaluator commit `5d0de43`. That commit adds one run-level `torch.manual_seed(42)` before the checkpoint loop, not a per-checkpoint reset: ep90 measured 117.50 when evaluated alone and 123.86 when evaluated after ep0 in the July 10 audit. Fix checkpoint-level latent reuse, then repeat sampling and training seeds before quoting a confidence interval or a small delta. **Update (2026-07).** Upstream `main` has since fixed the checkpoint-level latent reuse — `experiments/eval_curve.py` now reseeds after loading each checkpoint, so a checkpoint's FID no longer depends on which other epochs share the invocation. Repeated sampling/training seeds and a confidence interval are still not done. The large baseline-vs-DiffAugment direction survived the isolated-checkpoint audit (164.25 vs 117.50), but its uncertainty remains unmeasured.
 
 > **Source-report warning.** The linked commit's `experiments/RESULTS.md` predates this interpretation audit and describes augmentation as the only variable that moved FID. With one training run per condition and order-dependent evaluation noise, that is not a variance-controlled causal estimate. Use the report for artifact paths and implementation provenance; the limitations here supersede its stronger wording.
 {: .prompt-warning }
