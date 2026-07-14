@@ -5,7 +5,7 @@ order: 1
 ---
 
 <div align="center">
-  <h2>Youngung Han, Ph.D candidate</h2>
+  <h2>Youngung Han, Ph.D. candidate</h2>
   <p>
     Dedicated to solving complex, real-world challenges by leveraging mathematical frameworks and advanced computational methods.<br>
     Driven by the potential of data and algorithms to create tangible impact and innovation.
@@ -80,17 +80,17 @@ I actively engage in organizations to broaden my expertise, collaborate on chall
 
 - **[SNUPS (Seoul National University Problem Solving)](https://snups.org/)**
   - Enhancing computational thinking and advanced algorithm design skills through rigorous algorithmic training and competitive programming.
-- **[SNU MPS (Mathematical Problem Solving)](https://snumps.notion.site/)**
+- **[SNUMPS (Seoul National University Mathematical Problem Solving)](https://snumps.notion.site/)**
   - Developing mathematical intuition and logical reasoning by exploring and discussing complex problems across diverse mathematical fields.
-- **[SCSC (SNU Computer Study Club)](https://scsc.oopy.io/)**
+- **[SCSC (Seoul National University Computer Study Club)](https://scsc.oopy.io/)**
   - Engaging in in-depth studies and discussions on advanced topics within computer science.
 
 ---
 
 ## Selected Publications
 
-- **LOSA-NET: A LOCALIZED AND SCALE-ADAPTIVE NETWORK FOR BOUNDARY-SENSITIVE PREDICTION OF PERINEURAL INVASION IN 3D MRI** - *IEEE ISBI 2026 (Oral)*
-- **MMA-FORMER: MULTI-WINDOW MIXTURE-OF-HEAD ATTENTION TRANSFORMER FOR ADAPTIVE PNI PREDICTION IN 3D MRI** - *IEEE ISBI 2026 (Oral)*
+- **LOSA-Net: A Localized and Scale-Adaptive Network for Boundary-Sensitive Prediction of Perineural Invasion in 3D MRI** - *IEEE ISBI 2026 (Oral)*
+- **MMA-Former: Multi-Window Mixture-of-Head Attention Transformer for Adaptive PNI Prediction in 3D MRI** - *IEEE ISBI 2026 (Oral)*
 - **NeoNet: An End-to-End 3D MRI-Based Deep Learning Framework for Non-Invasive Prediction of Perineural Invasion via Generation-Driven Classification** - *Workshop on Health Intelligence (W3PHIAI), AAAI 2026 (Oral)*
 
-> 📚 Full publication list on my [**Google Scholar**](https://scholar.google.com/citations?hl=ko&user=KUTvLfQAAAAJ).
+> 📚 Full publication list on my [**Google Scholar**](https://scholar.google.com/citations?user=KUTvLfQAAAAJ).
