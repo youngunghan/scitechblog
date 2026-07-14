@@ -2,7 +2,7 @@
 
 > **범위:** 공개 가능한 Jekyll·사이트 설정 키. 정본은 [_config.yml](../../_config.yml)이며 시크릿 값은 다루지 않음.
 > **대상:** 개발자 · 운영자.
-> **상태:** 구현 반영 — 기준일 2026-07-10.
+> **상태:** 구현 반영 — 기준일 2026-07-14.
 
 ## 1. 사이트 식별
 
@@ -32,3 +32,25 @@
 ## 4. 변경 검증
 
 설정을 바꾼 뒤 [Quickstart §5 Production 검증](../tutorials/quickstart.md#5-production-검증)을 실행합니다. `url`과 `baseurl` 변경은 canonical URL, feed, sitemap, PWA scope까지 함께 확인합니다.
+
+## 5. 방문자 카운터 / 웹 분석 (Busuanzi · GoatCounter)
+
+사이드바 하단(`_includes/sidebar.html`)의 "Total Views" 카운터는 [Busuanzi](https://busuanzi.ibruce.info/)라는 외부 스크립트로 동작하며, 별도 설정 없이 현재 활성 상태입니다. Chirpy 테마에 내장된 GoatCounter 연동은 계정을 만든 뒤 ID만 채우면 되도록 준비만 되어 있고, 기본값은 비어 있어 비활성입니다.
+
+| 설정 | 타입 | 현재 값 | 의미 |
+|---|---|---|---|
+| `analytics.goatcounter.id` | string | 비어 있음 | GoatCounter 사이트 코드(`https://<id>.goatcounter.com`의 `<id>`). 채우면 사이트 전역 추적 스크립트(`_includes/analytics/goatcounter.html`)가 `_includes/head.html`을 통해 모든 페이지에 삽입됨 |
+| `pageviews.provider` | string | 비어 있음 | 글별 조회수 표시 provider. 현재 `goatcounter`만 지원 |
+
+### GoatCounter 활성화 절차
+
+1. [goatcounter.com](https://www.goatcounter.com/)에서 계정과 사이트를 만들고 사이트 코드(서브도메인)를 확보합니다.
+2. `_config.yml`의 `analytics.goatcounter.id`에 그 코드를 채웁니다. → 사이트 전역 추적 스크립트가 켜집니다.
+3. `pageviews.provider`를 `goatcounter`로 채웁니다. → `_layouts/post.html`의 `{% if site.pageviews.provider and site.analytics[site.pageviews.provider].id %}` 가드가 통과하며 글 페이지에 조회수(`_includes/pageviews/goatcounter.html`)가 표시됩니다. **두 값이 모두 채워져야** 글별 조회수가 렌더링됩니다. 하나만 채우면 전역 추적은 되어도 글별 카운터는 나타나지 않습니다.
+4. [Quickstart §5 Production 검증](../tutorials/quickstart.md#5-production-검증)으로 빌드·HTML-Proofer를 재실행해 확인합니다.
+
+### Busuanzi와의 공존 · 정리
+
+- 두 카운터는 서로 다른 위치에 독립적으로 표시됩니다: Busuanzi는 사이드바 전역 "Total Views"(`#busuanzi_value_site_pv`), GoatCounter pageviews는 글 페이지 내 개별 조회수(`#pageviews`)입니다. 둘 다 켜져 있어도 충돌하지 않습니다.
+- GoatCounter로 전환해 Busuanzi를 끄려면 `_includes/sidebar.html`에서 `<!-- #busuanzi_container_site_pv 관련 블록 -->`(nav의 `</nav>` 직후, `.sidebar-bottom` 직전)을 제거합니다. 제거 시 스크립트 태그(`https://` 절대경로 유지)와 `#busuanzi_value_site_pv` span을 가리키는 앵커 링크를 추가하지 않도록 주의합니다 — 과거 html-proofer 실패 이력은 [2025-11-26 트러블슈팅 글](../../_posts/2025-11-26-troubleshooting-visitor-counter.md)에 기록되어 있습니다.
+- `THIRD_PARTY_NOTICES.md`는 번들/vendored 코드(Chirpy 테마, 논문 그림, npm/gem 의존성) 범위만 다룹니다. Busuanzi·GoatCounter는 둘 다 외부 호스팅 스크립트를 브라우저가 직접 불러오는 방식(런타임 원격 호출)이라 이 범위 밖이며 별도 고지 항목을 추가하지 않았습니다.

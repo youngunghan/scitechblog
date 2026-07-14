@@ -58,6 +58,14 @@ webmaster_verifications:
 analytics:
   google:
     id: # fill in your Google Analytics ID
+  # GoatCounter is prepared but not yet enabled (see docs/reference/configuration.md §5).
+  # 1) Fill in `id` below with your GoatCounter account/site code (the part before
+  #    `.goatcounter.com`) to turn on the site-wide GoatCounter script (_includes/analytics/goatcounter.html).
+  # 2) `pageviews.provider` (below) must ALSO be set to `goatcounter` for the
+  #    per-post "views" counter to render — _layouts/post.html only includes it when
+  #    BOTH `site.pageviews.provider` and `site.analytics[site.pageviews.provider].id` are non-empty.
+  # Until both are filled in, this block stays inert and the sidebar's Busuanzi
+  # counter (_includes/sidebar.html) remains the site's only visitor metric.
   goatcounter:
     id: # fill in your GoatCounter ID
   umami:
@@ -73,7 +81,9 @@ analytics:
 
 # Page views settings
 pageviews:
-  provider: # now only supports 'goatcounter'
+  # now only supports 'goatcounter'. Set to `goatcounter` together with
+  # `analytics.goatcounter.id` above to enable the per-post pageviews counter.
+  provider:
 
 # Prefer color scheme setting.
 #
