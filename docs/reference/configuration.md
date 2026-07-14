@@ -45,9 +45,12 @@
 ### GoatCounter 활성화 절차
 
 1. [goatcounter.com](https://www.goatcounter.com/)에서 계정과 사이트를 만들고 사이트 코드(서브도메인)를 확보합니다.
-2. `_config.yml`의 `analytics.goatcounter.id`에 그 코드를 채웁니다. → 사이트 전역 추적 스크립트가 켜집니다.
-3. `pageviews.provider`를 `goatcounter`로 채웁니다. → `_layouts/post.html`의 `{% if site.pageviews.provider and site.analytics[site.pageviews.provider].id %}` 가드가 통과하며 글 페이지에 조회수(`_includes/pageviews/goatcounter.html`)가 표시됩니다. **두 값이 모두 채워져야** 글별 조회수가 렌더링됩니다. 하나만 채우면 전역 추적은 되어도 글별 카운터는 나타나지 않습니다.
-4. [Quickstart §5 Production 검증](../tutorials/quickstart.md#5-production-검증)으로 빌드·HTML-Proofer를 재실행해 확인합니다.
+2. GoatCounter 대시보드의 **Settings → Site settings**에서 "Allow adding visitor counts on your website" 옵션을 켭니다. 이 옵션이 꺼져 있으면 공개 `/counter/<path>.json` 엔드포인트가 막혀 있어 글 페이지의 조회수 fetch가 항상 실패합니다 (아래 문제 해결 참고). ID를 채우기 전에 미리 켜 두는 것을 권장합니다.
+3. `_config.yml`의 `analytics.goatcounter.id`에 사이트 코드를 채웁니다. → 사이트 전역 추적 스크립트가 켜집니다.
+4. `pageviews.provider`를 `goatcounter`로 채웁니다. → `_layouts/post.html`의 `{% if site.pageviews.provider and site.analytics[site.pageviews.provider].id %}` 가드가 통과하며 글 페이지에 조회수(`_includes/pageviews/goatcounter.html`)가 표시됩니다. **두 값이 모두 채워져야** 글별 조회수가 렌더링됩니다. 하나만 채우면 전역 추적은 되어도 글별 카운터는 나타나지 않습니다.
+5. [Quickstart §5 Production 검증](../tutorials/quickstart.md#5-production-검증)으로 빌드·HTML-Proofer를 재실행해 확인합니다.
+
+**문제 해결 — 모든 글이 조회수 "1"로만 표시됨:** `_includes/pageviews/goatcounter.html:16-18`은 fetch가 실패하면 원인을 구분하지 않고 `.catch()`에서 조용히 `1`을 써넣습니다(에러가 화면에 드러나지 않음). 대시보드에서 2단계의 "Allow adding visitor counts on your website"를 켜지 않은 채 ID·provider만 설정하면, 실제 트래픽과 무관하게 모든 글이 정확히 "1"로 고정되어 보입니다. 이 증상이 나타나면 실제 방문자가 0~1명이라는 뜻이 아니라 그 대시보드 설정이 꺼져 있다는 신호이므로, 브라우저 개발자 도구에서 `/counter/*.json` 요청의 상태 코드를 확인하기 전에 먼저 그 설정부터 점검합니다.
 
 ### Busuanzi와의 공존 · 정리
 
