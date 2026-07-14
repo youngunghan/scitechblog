@@ -58,16 +58,17 @@ webmaster_verifications:
 analytics:
   google:
     id: # fill in your Google Analytics ID
-  # GoatCounter is prepared but not yet enabled (see docs/reference/configuration.md §5).
-  # 1) Fill in `id` below with your GoatCounter account/site code (the part before
-  #    `.goatcounter.com`) to turn on the site-wide GoatCounter script (_includes/analytics/goatcounter.html).
-  # 2) `pageviews.provider` (below) must ALSO be set to `goatcounter` for the
-  #    per-post "views" counter to render — _layouts/post.html only includes it when
-  #    BOTH `site.pageviews.provider` and `site.analytics[site.pageviews.provider].id` are non-empty.
-  # Until both are filled in, this block stays inert and the sidebar's Busuanzi
-  # counter (_includes/sidebar.html) remains the site's only visitor metric.
+  # GoatCounter is ACTIVE (see docs/reference/configuration.md §5). Site code:
+  # `scitechblog` (dashboard: https://scitechblog.goatcounter.com/). This `id`
+  # both turns on the site-wide GoatCounter script (_includes/analytics/goatcounter.html)
+  # and, together with `pageviews.provider` below, enables the per-post "views"
+  # counter (_layouts/post.html only includes it when BOTH `site.pageviews.provider`
+  # and `site.analytics[site.pageviews.provider].id` are non-empty).
+  # Busuanzi (_includes/sidebar.html) is deliberately kept running alongside it —
+  # it preserves the site's existing cumulative view count, which GoatCounter
+  # (new as of 2026-07-14) cannot backfill. Both counters coexist; see §5.
   goatcounter:
-    id: # fill in your GoatCounter ID
+    id: scitechblog
   umami:
     id: # fill in your Umami ID
     domain: # fill in your Umami domain
@@ -81,9 +82,9 @@ analytics:
 
 # Page views settings
 pageviews:
-  # now only supports 'goatcounter'. Set to `goatcounter` together with
-  # `analytics.goatcounter.id` above to enable the per-post pageviews counter.
-  provider:
+  # Per-post pageviews counter, active. Currently only supports 'goatcounter';
+  # requires `analytics.goatcounter.id` above to also be set (it is).
+  provider: goatcounter
 
 # Prefer color scheme setting.
 #
