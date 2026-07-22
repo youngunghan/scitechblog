@@ -7,7 +7,7 @@ description: "A 329M-parameter MNIST diffusion reimplementation's validation los
 author: seoultech
 image:
   path: assets/img/posts/dpm-mnist-audit/cover.png
-  alt: "Reconstruction diagnostic: a real MNIST digit is forward-diffused to timestep 100 and the learned reverse chain recovers it, row 2 of a 7-row grid"
+  alt: "Three side-by-side grids of unconditional full-MNIST samples at epoch 8, 40, and 100 -- all speckle, with no visible trend toward digits as training progresses"
 math: true
 mermaid: true
 ---
@@ -59,7 +59,7 @@ print(f"{gaussian_nll_against(0.0, 1.0, -0.7350, 0.6210):.4f}")     # 1.3818
 | Per-pixel empirical marginal (true histogram, not Gaussian) | -0.8938 |
 | **Best constant $\mathcal{N}(-0.7350, 0.6210^2)$ -- two learnable scalars** | **0.9425** |
 | $\mathcal{N}(0, 1)$ -- no fitting at all | 1.3818 |
-| **Observed training plateau** | **0.9424-0.9426** |
+| **Observed validation plateau** | **0.9424-0.9426** |
 
 The plateau sits on top of the two-scalar row to four significant figures. A 329,452,500-parameter network was scoring exactly where a model with two parameters scores.
 
@@ -71,7 +71,7 @@ A matching plateau is a symptom, not a diagnosis. To find the cause, I pulled th
 
 The paper's training objective is a KL divergence between the model's predicted reverse-step Gaussian and the **true forward posterior** $q(x^{(t-1)} \mid x^{(t)}, x^{(0)})$ -- the distribution you get by conditioning the forward noising process on both endpoints. Everything downstream depends on that posterior being computed and fed into the loss. Here is the reference, `model.py`, doing exactly that:
 
-```python
+```text
 def cost_single_t(self, X_noiseless):
     X_noisy, t, mu_posterior, sigma_posterior = \
         self.generate_forward_diffusion_sample(X_noiseless)
@@ -80,7 +80,7 @@ def cost_single_t(self, X_noiseless):
     return negL_bound
 ```
 
-```python
+```text
 # the KL divergence itself
 KL = (  T.log(sigma) - T.log(sigma_posterior)
         + (sigma_posterior**2 + (mu_posterior-mu)**2)/(2*sigma**2)
@@ -89,37 +89,53 @@ KL = (  T.log(sigma) - T.log(sigma_posterior)
 
 The audited MNIST path had none of this. Instead: `loss = -Normal(mu, sigma).log_prob(x0)`, computed directly against the **clean image** $x^{(0)}$ -- not the posterior mean, not even the noisy input's relationship to it. `mu_posterior` and `sigma_posterior` were never computed. The forward posterior formula the reference uses,
 
-```python
+```text
 # model.py -- forward posterior, mixes the two noise sources by precision
 mu = (X_uniformnoise * mu1_scl / cov1 + X_noisy * mu2_scl / cov2) / lam
 sigma = T.sqrt(1./lam)
 ```
 
-had no counterpart anywhere in the image code. Diffing further turned up seven distinct defects, cross-checked against eight fidelity points from the reference (seven are quoted verbatim above and below; the eighth -- an added output activation on the mean prediction where the reference uses a plain linear readout -- has no line to quote, since an *absence* of an activation function isn't something you can cite):
+had no counterpart anywhere in the image code. Diffing further turned up seven distinct defects, cross-checked against eight citations from the reference implementation -- four quoted verbatim (`cost_single_t`, the KL formula, the forward-posterior mu/sigma, and the sampler's reverse loop below), four abbreviated for width in the table below (`T` for `trajectory_length`, `beta` for `beta_baseline`, `uniform(...)` for the full `rng.uniform(size=(1,1), low=1, high=self.trajectory_length, ...)` call, and `sigma = sqrt(beta_reverse)` paraphrasing the sigmoid form) -- plus one uncitable absence: an added output activation on the mean prediction where the reference uses a plain linear readout has no line to quote, since an *absence* of an activation function isn't something you can cite:
 
 | # | Reference (paper-faithful) | Audited MNIST path |
 |---|---|---|
 | 1 | Loss is the KL to the forward posterior $q(x^{(t-1)}\mid x^{(t)}, x^{(0)})$ | Loss regressed the mean directly against clean $x^{(0)}$; posterior never computed |
 | 2 | `mu = X_noisy*sqrt(1-beta) + mu_coeff*sqrt(beta)` -- reverse mean depends on $x^{(t)}$ | Predicted mean had no $x^{(t)}$ term at all |
 | 3 | `sigma = sqrt(beta_reverse)`, a learned sigmoid-parameterized variance | `sigma = exp(logsigma).clamp(min=sqrt(beta_t))` behind a trailing `tanh` that floors sigma at $e^{-1}=0.3679$ -- while $\sqrt{\beta_t}$ ranges only 0.100-0.224, so the clamp is dead code, never binding |
-| 4 | `beta = 1./linspace(T, 2, T)` -> $\beta_0=0.001$, $\beta_{T-1}=0.5$ | `beta = linspace(0.01, 0.05, 1000)`, driving $\bar\alpha_T$ to $5.5\times10^{-14}$ -- 79% of trained timesteps had $\sqrt{\bar\alpha_t} < 0.1$ |
+| 4 | `beta = 1./linspace(T, 2, T)` -> $\beta_0=0.001$, $\beta_{T-1}=0.5$ | `beta = linspace(0.01, 0.05, 1000)`, driving $\bar\alpha_T$ (the cumulative signal-retention product $\bar\alpha_t = \prod_{s=1}^{t}(1-\beta_s)$) to $5.5\times10^{-14}$ -- 79% of trained timesteps had $\sqrt{\bar\alpha_t} < 0.1$ |
 | 5 | `t = floor(uniform(low=1, high=T))` -- every timestep from 1 trainable | An invented `min_t=100` excluded $t=0..99$ from training entirely -- no counterpart in paper or reference |
 | 6 | Reverse loop runs `t = T-1 ... 0`, noise added at every step down to the final noise-free branch | Sampler truncated at `t=min_t`; the noise-free final branch was unreachable dead code |
 | 7 | Linear readout on the predicted mean (no output nonlinearity) | An added `sigmoid`/`tanh`-style activation squashed the mean prediction -- established by code comparison, not a quotable line |
 
 The sampler's reverse loop, for reference, is the paper-faithful ancestral chain that this fix has to reproduce down to $t=1$ before the noise-free final step:
 
-```python
+```text
 for t in xrange(model.trajectory_length-1, 0, -1):
     Xmid = diffusion_step(Xmid, t, get_mu_sigma, denoise_sigma, mask, XT, rng)
 # inside diffusion_step: Xmid = mu + sigma*rng.normal(size=Xmid.shape)
 ```
 
+### Where the drift came from
+
+The audited repo is not a from-scratch implementation -- it is a refactor of a single-notebook study-group submission by **최민서 (Choi Min-seo)**: [`2025-OUTTA-Gen-AI`, `Reviews/Diffusion/Deep_Unsupervised_Learning_using_Nonequilibrium_Thermodynamics_mschoi.ipynb`](https://github.com/youngunghan/2025-OUTTA-Gen-AI/blob/main/Reviews/Diffusion/Deep_Unsupervised_Learning_using_Nonequilibrium_Thermodynamics_mschoi.ipynb), a seven-cell PyTorch notebook. Nine of its defined names -- including `MultiscaleConvolution`, `DiffusionModel`, `get_mu_sigma`, `cost_single_t`, and `diffusion_step` -- reappear in the multi-file repo audited above. That is a derivation, not a coincidence. Choi also published a prior Korean review of the same paper, ["Deep Unsupervised Learning using Nonequilibrium Thermodynamics" 논문 리뷰](https://outta.tistory.com/109) (OUTTA AI Tech Blog, 2025-01-03), covering the abstract through the algorithm and experiments with the derivations spelled out.
+
+Symbol counts across the two sources make the shape of the drift precise:
+
+| Symbol | Notebook (mschoi) | Refactored repo, pre-fix |
+|---|---:|---:|
+| `get_negL_bound` | 4 | 0 |
+| `mu_posterior` / `sigma_posterior` | 5 / 6 | 0 / 0 |
+| `KL` | 3 | 0 |
+| `log_prob` | 0 | 1 (`dpm.py:327`) |
+| `min_t` | 0 | 5 (`min_t: int = 100`, plus the training gate) |
+
+The notebook was faithful -- it computed the KL against the true forward posterior, same as the reference. The refactor into a cleaner-looking multi-file project is what replaced that with `-Normal(mu, sigma).log_prob(x0).mean()` against the clean image and introduced the `min_t=100` gate that exists in neither the paper, the reference implementation, nor the notebook. So the story here is not "someone implemented the paper wrong" -- it is **a faithful notebook refactored into a multi-file project, and the refactor silently dropped the paper's objective**. That is a failure mode with nothing diffusion-specific about it: it happens whenever a working prototype gets restructured for readability before the tests that would have caught the regression exist.
+
 **Lesson:** a working demo elsewhere in the same repo is not evidence that the path you care about is correct. The swiss-roll model and the MNIST model shared a paper citation and a README, not a code path.
 
 ## Challenge 3: Fixing It -- Does the Denoiser Actually Work?
 
-With the forward posterior wired in, the correct KL loss, the paper's beta schedule, and `min_t` removed, the plateau broke: validation loss hit a floor around 0.001 within 3 epochs and stayed there. That is a much healthier-looking curve. It is also not, by itself, proof of anything about generation quality -- a low **per-step** KL only says the model's one-step reverse prediction is locally accurate. Ancestral sampling chains 999 of those one-step predictions together, and small per-step errors compound over the chain in ways a per-step loss cannot see.
+With the forward posterior wired in, the correct KL loss, the paper's beta schedule, and `min_t` removed, the plateau broke: validation loss hit a floor around 0.001 within 3 epochs and stayed there. That is a much healthier-looking curve, but **it is not the same number as the 0.9425 plateau, and it should not be read against it.** Defect #1 changed the loss *function*, not just its value: pre-fix, the reported number was a per-pixel NLL of the clean image $x^{(0)}$; post-fix, it is a per-step KL to the forward posterior, which is naturally tiny at the high-SNR timesteps that dominate a random $t$ draw. Two different objectives, two different scales -- on a post whose whole thesis is "numbers eat pipelines," stacking 0.9425 and 0.001 as if they were the same measurement would be exactly the mistake this post is about. Nor is the low post-fix number, by itself, proof of anything about generation quality -- a low **per-step** KL only says the model's one-step reverse prediction is locally accurate. Ancestral sampling chains 999 of those one-step predictions together, and small per-step errors compound over the chain in ways a per-step loss cannot see.
 
 So the useful next question isn't "did the loss go down" -- it's "does the learned reverse step actually point toward the data." The test: take a real digit, forward-diffuse it to a fixed timestep $t$, then run the **learned reverse chain** from there back to $t=0$, and measure how close the reconstruction is to the original.
 
@@ -129,13 +145,14 @@ So the useful next question isn't "did the loss go down" -- it's "does the learn
 ![Reconstruction diagnostic, 5M model at 100 epochs: three corrupt/reconstruction pairs at t=100, t=300, t=600, and the clean originals, 8 columns each](/assets/img/posts/dpm-mnist-audit/diag-recon100.png)
 _Rows top to bottom: corrupted at t=100, reconstruction at t=100, corrupted at t=300, reconstruction at t=300, corrupted at t=600, reconstruction at t=600, clean originals. Row 2 clearly recovers the digits 7 2 1 0 4 1 4 9 from row-1 noise -- the reverse chain is doing real denoising work, not passing noise through._
 
-| Corruption timestep | Reconstruction MSE, 5M @ 100 epochs | Reconstruction MSE, 5M @ 40 epochs |
-|---|---:|---:|
-| $t=100$ | 0.050 | 0.062 |
-| $t=300$ | 0.237 | 0.251 |
-| $t=600$ | 0.620 | 0.469 |
+| Corruption timestep | Reconstruction MSE, 5M @ 100 epochs |
+|---|---:|
+| constant-mean predictor (Challenge 1's baseline, replayed here: $\sigma^2 = 0.6210^2 = 0.386$) | 0.386 |
+| $t=100$ | 0.050 |
+| $t=300$ | 0.237 |
+| $t=600$ | 0.620 |
 
-Two things worth reading carefully here. First: reconstruction degrades with $t$, which is expected -- less of the original signal survives further into the forward process, so there's less for the reverse chain to recover from. Second, and not smoothed over: at $t=600$, the **100-epoch** checkpoint reconstructs *worse* (0.620) than the **40-epoch** one (0.469), the opposite direction from $t=100$ and $t=300$. I don't have a confirmed explanation for that inversion; it's flagged again in [Limitations](#what-didnt-work--limitations) rather than explained away.
+Reconstruction degrades with $t$, which is expected -- less of the original signal survives further into the forward process, so there's less for the reverse chain to recover from. The constant-mean row is Challenge 1's move applied to this table: emitting the data's own mean everywhere, with no model at all, costs 0.386 MSE. Read as multiples of that trivial floor, $t=100$ is **0.13x** trivial (real denoising happening), $t=300$ is **0.61x** trivial (still better than the floor, weaker), and **$t=600$ is 1.61x trivial -- worse than emitting the constant mean.** By $t=600$ the reverse chain has less useful signal to work with than doing nothing at all. This is the same test this post opened with, turned on its own result, and it should be read with the same skepticism: a model can look like it is denoising while, at high enough $t$, doing worse than the two-scalar baseline the whole post is built on.
 
 **Lesson:** "the per-step loss is low" and "the model denoises real corrupted inputs" and "ancestral sampling from pure noise reaches the data manifold" are three different claims. The first two can both be true while the third fails -- which is exactly what happens next.
 
@@ -171,30 +188,40 @@ def honest_pixel_stats(x: np.ndarray) -> dict:
 
 | Run | Loss floor | Raw std | bg (&lt;0.1) | ink (&gt;0.9) | mid (0.4-0.6) | Qualitative |
 |---|---:|---:|---:|---:|---:|---|
-| Synthetic disks, 5M, per-example t | 2e-4 | 0.593 | 0.901 | 0.096 | 0.000 | Clean coherent blobs |
-| Single MNIST class "1", 5M, per-example t | 4e-4 | 0.429 | 0.917 | 0.030 | 0.010 | Correctly-oriented strokes, fragmented |
+| Synthetic disks, 5M, per-example t | 2e-4 | 0.593 | 0.901 | 0.096 | 0.000 | Solid but irregular, off-scale blobs |
+| Single MNIST class "1", 5M, per-example t | 4e-4 | 0.429 | 0.917 | 0.030 | 0.010 | Correctly oriented but fragmented strokes |
+| Full MNIST, 5M @ 8ep, shared t | -- | -- | 0.699 | 0.082 | 0.027 | Speckle |
+| Full MNIST, 5M @ 40ep, shared t | -- | -- | 0.792 | 0.042 | 0.015 | Speckle |
 | Full MNIST, 5M @ 100ep, shared t | ~0.001 | -- | 0.703 | 0.127 | 0.027 | Speckle |
 | Full MNIST, 46M @ 15ep, per-example t | -- | 0.997 | 0.470 | 0.063 | 0.123 | Denser grey noise |
-| Real MNIST (reference) | -- | 0.60 | 0.843 | 0.073 | 0.021 | -- |
+| Real MNIST (test split) | -- | 0.6210 | 0.843 | 0.073 | 0.021 | -- |
 
-![Unconditional samples on synthetic disks, 8 columns, coherent white blobs on black; bottom row is real disks for comparison](/assets/img/posts/dpm-mnist-audit/synth-disks.png)
-_Synthetic disks: clean, coherent generated blobs (top rows) next to real disks (bottom row) under the same honest mapping._
+![Unconditional samples on synthetic disks, 8 columns, solid white blobs on black, irregular in shape and scale; bottom row is real disks for comparison](/assets/img/posts/dpm-mnist-audit/synth-disks.png)
+_Synthetic disks: solid but irregular, off-scale generated blobs (top rows) next to real disks (bottom row) under the same honest mapping._
 
 ![Unconditional samples on the single MNIST class "1", 8 columns, oriented but fragmented strokes; bottom row is real "1"s](/assets/img/posts/dpm-mnist-audit/class1-samples.png)
-_Single-class "1": correctly-oriented, elongated strokes -- a clear step down in coherence from the disks, but still recognizably digit-shaped -- next to real "1"s (bottom row)._
+_Single-class "1": correctly oriented but fragmented strokes -- a clear step down in coherence from the disks -- next to real "1"s (bottom row)._
+
+![Unconditional samples, full MNIST, 5M model, epoch 8, 8 columns of speckle noise](/assets/img/posts/dpm-mnist-audit/grid-epoch8.png)
+_Full MNIST, 5M model at epoch 8 -- speckle. bg 0.699 / ink 0.082 / mid 0.027._
+
+![Unconditional samples, full MNIST, 5M model, epoch 40, 8 columns of speckle noise](/assets/img/posts/dpm-mnist-audit/grid-epoch40.png)
+_Full MNIST, 5M model at epoch 40 -- still speckle. bg 0.792 / ink 0.042 / mid 0.015._
 
 ![Unconditional samples, full MNIST, 5M model, epoch 100, 8 columns of speckle noise](/assets/img/posts/dpm-mnist-audit/grid-epoch100.png)
-_Full MNIST, 5M model at epoch 100 -- still speckle, unchanged in character from epoch 8 and epoch 40 (not pictured; both looked the same)._
+_Full MNIST, 5M model at epoch 100 -- still speckle. bg 0.703 / ink 0.127 / mid 0.027._
 
-Reading down that table: background fraction falls and mid-tone fraction rises monotonically as the target distribution gets harder (disks -> single digit -> full MNIST), and the qualitative read tracks it -- filled blob, to thin stroke, to speckle. That's the pattern you'd expect if the sampler and architecture are fundamentally sound and the full-MNIST failure is a **data-difficulty** problem (a 999-step ancestral chain has to resolve 10-way multimodality plus thin-stroke precision from pure noise) rather than a leftover code bug from Challenge 2.
+Between epoch 8 and epoch 100 the pixel fractions drift -- background wanders 0.699 to 0.792 to 0.703, ink and mid-tone wobble along with it -- but none of the three epochs approaches the real-MNIST background fraction of 0.843, and the qualitative read never leaves speckle. More epochs did not trend this run toward the data; it moved around inside the same failure mode.
 
-One honest confound: disks and the single-digit run both used **per-example** timestep sampling (a deliberate DDPM-style deviation from the paper), while the 5M full-MNIST run used the paper-faithful **shared** timestep per minibatch. I did not run an easy dataset under the shared-t regime, so t-sampling regime and data difficulty aren't fully decoupled by this ladder alone. What does help: the 46M run switched full MNIST to per-example t and *still* produced non-generative output (denser grey noise, not clean digits) -- so within full MNIST, changing the t-sampling regime alone did not fix it, which weighs against t-sampling regime being the dominant variable.
+Reading down the full table, only **mid-tone fraction** moves monotonically with difficulty: 0.000 (disks) to 0.010 (single "1") to 0.027 (full MNIST). Background fraction does not -- it rises from 0.901 to 0.917 and then falls to 0.703, so "background falls monotonically as the problem gets harder" is not a claim this data supports; only the mid-tone trend is. The mid-tone trend, together with the qualitative read -- solid blob, to thin stroke, to speckle -- is still the pattern you'd expect if the sampler and architecture are fundamentally sound and the full-MNIST failure is a **data-difficulty** problem (a 999-step ancestral chain has to resolve 10-way multimodality plus thin-stroke precision from pure noise) rather than a leftover code bug from Challenge 2.
+
+Three axes are confounded together in this ladder, not just one. **T-sampling regime:** disks and the single-digit run used per-example timestep sampling (a deliberate DDPM-style deviation from the paper), while the 5M full-MNIST run used the paper-faithful shared timestep per minibatch; the 46M run switched full MNIST to per-example t and *still* produced non-generative output, which weighs against t-sampling regime being the dominant variable, but no easy dataset was run under the shared-t regime, so the two are not fully decoupled here. **Learning rate:** disks, single-"1", and the 46M run all used 3e-4, while the 5M full-MNIST run used 1e-3 -- a real difference this ladder does not isolate either. **Step budget**, and this one cuts *in favor* of the data-difficulty reading: the failing run (5M full MNIST) trained for 46,900 steps; the succeeding easy-data runs trained for only 5,000 steps each, about 9x fewer. If under-training were the explanation for full MNIST's failure, the run that failed is the one that got the *most* steps of any run in this ladder, not the fewest.
 
 A second, important caveat: the pixel-histogram summary can be fooled. Salt-and-pepper speckle also produces a low mid-tone fraction, since speckle is itself bimodal (near-black background, near-white specks) even though it looks nothing like a digit. The bg/ink/mid numbers in the table above are a useful *cross-check*, not a substitute for looking at the images -- **the images are the judge, not the statistics**.
 
 ## Challenge 5: A 46M-Parameter Rewrite Didn't Fix It -- And That's Not a Contradiction
 
-Alongside the fidelity fixes, two architectural changes were tried: per-example timestep sampling (raising the number of distinct $t$ values touched per batch of 128 from 1 to a measured 120 -- close to the ~120 the birthday-problem estimate $N(1-e^{-k/N})$ predicts for drawing 128 samples with replacement from ~1000 timesteps), and residual connections to stop signal collapse through a deep stack. The old 200-layer non-residual stack's per-layer spatial std collapsed from $3.10\times10^{-2}$ to $1.13\times10^{-8}$ by layer 7 alone; the new 8-layer residual stack instead **grows**, $4.84\times10^{-2}$ to $4.35\times10^{-1}$, roughly a $0.574\times$-per-layer contraction eliminated. Parameter count went from 4,989,396 to 46,405,524.
+Alongside the fidelity fixes, two architectural changes were tried: per-example timestep sampling (raising the number of distinct $t$ values touched per batch of 128 from 1 to a measured 120 -- close to the ~120 the birthday-problem estimate $N(1-e^{-k/N})$ predicts for drawing 128 samples with replacement from ~1000 timesteps), and residual connections to stop signal collapse through a deep stack. Two distinct measurements support this, and this post keeps them distinct rather than welding them into one ratio: the old 200-layer non-residual stack's **measured per-layer spatial std** collapsed from $3.10\times10^{-2}$ to $1.13\times10^{-8}$ by layer 7 alone -- a real, directly measured number. Separately, PyTorch's default init gives this kind of stack a **theoretical per-layer activation-contraction factor** of about $0.574\times$ absent residual connections (close to the standard $1/\sqrt{3}\approx0.577$ result for this init family) -- a different quantity, describing the expected contraction under default initialization rather than what was measured layer-by-layer above. Both are real; they are not the same number, and this post does not combine them into a single implied per-layer rate. The new 8-layer residual stack instead **grows**, $4.84\times10^{-2}$ to $4.35\times10^{-1}$. Parameter count went from 4,989,396 to 46,405,524.
 
 It did not fix unconditional full-MNIST generation at the budget this was run at (Challenge 4's "denser grey noise" row).
 
@@ -207,14 +234,16 @@ And it shouldn't be read as a regression either: the 46M run trained for 15 epoc
 
 | Metric | Value |
 |---|---:|
-| Pre-fix validation loss plateau | 0.9424-0.9426 |
-| Analytic NLL, best constant 2-scalar Gaussian | 0.9425 |
+| Pre-fix validation plateau (per-pixel NLL of clean $x^{(0)}$) | 0.9424-0.9426 |
+| Analytic NLL, best constant 2-scalar Gaussian (same objective as the row above) | 0.9425 |
 | Pre-fix model size | 329,452,500 params |
-| Post-fix validation loss floor | ~0.001 (by epoch 3) |
-| Reconstruction MSE, 5M @100ep, $t=100$ | 0.050 |
-| Reconstruction MSE, 5M @100ep, $t=600$ | 0.620 |
+| Post-fix validation floor (per-step KL to forward posterior -- a *different objective*, see below) | ~0.001 (by epoch 3) |
+| Reconstruction MSE, 5M @100ep, $t=100$ (vs. 0.386 constant-mean floor) | 0.050 |
+| Reconstruction MSE, 5M @100ep, $t=600$ (vs. 0.386 constant-mean floor) | 0.620 |
 | Full MNIST unconditional generation | Speckle / grey noise at all checkpoints tested |
-| Synthetic-disk unconditional generation | Clean coherent blobs |
+| Synthetic-disk unconditional generation | Solid but irregular, off-scale blobs |
+
+*The pre-fix and post-fix "validation loss" rows are not on the same scale -- Defect #1 (Challenge 2) changed the loss function itself, not just its value; see Challenge 3 for why 0.9425 and 0.001 must not be read as before/after on one curve.*
 
 **Reproducibility.**
 
@@ -236,16 +265,16 @@ And it shouldn't be read as a regression either: the 46M run trained for 15 epoc
 | Full 999-step chain, 64 images | 34.2 s / 535 ms per image | 208.7 s / 3,261 ms per image |
 | Peak VRAM, train / sample | 1,301 / 179 MiB | 5,577 / 637 MiB |
 
-The 5M end-to-end `sample(64)` call measured 34.4 s against 34.2 s extrapolated from the per-step reverse cost -- consistent. Observed wall clock including per-epoch validation, sampling, and checkpoint writes: 5M ran 77 epochs in 2h11m38s ($\approx$102 s/epoch, so 100 epochs $\approx$ 2h50m); 46M ran 15 epochs in $\approx$3h17m ($\approx$13 min/epoch, 557 MB checkpoint per epoch); disks took 1,161 s over 5,000 steps (232 ms/step); single-"1" took 980 s over 5,000 steps (196 ms/step). Inference is 999 sequential network evaluations -- the 2015 formulation predates DDIM-style step skipping, so there is no shortcut available here.
+The 5M end-to-end `sample(64)` call measured 34.4 s against 34.2 s extrapolated from the per-step reverse cost -- consistent. Observed wall clock including per-epoch validation, sampling, and checkpoint writes: 5M ran 77 epochs in 2h11m38s (102.6 s/epoch; timing logged at epoch 77, training continued to 100, so 100 epochs $\approx$ 2h51m at the same rate); 46M ran 15 epochs in $\approx$3h17m ($\approx$13 min/epoch, 557 MB checkpoint per epoch); disks took 1,161 s over 5,000 steps (232 ms/step); single-"1" took 980 s over 5,000 steps (196 ms/step). Inference is 999 sequential network evaluations -- the 2015 formulation predates DDIM-style step skipping, so there is no shortcut available here.
 
 ## What Didn't Work / Limitations
 
 - **Full unconditional MNIST generation does not produce recognizable digits**, at any checkpoint tested (5M at epochs 8/40/100; 46M at epoch 15). This is the headline negative result of this audit, not a caveat to it.
 - **The fixes are local, unpushed commits** (local `main` at `960e153`). The [public repo linked below](https://github.com/youngunghan/Deep-Unsupervised-Learning-using-Nonequilibrium-Thermodynamics) still contains the code audited in Challenge 2 -- the seven defects, not the fix. There is currently no way for a reader to clone the corrected version.
 - **No fixed seed.** The repo has no `--seed` flag; none of the runs above are bit-reproducible as reported.
-- **The $t=600$ reconstruction MSE got worse with more training** (0.620 at 100 epochs vs. 0.469 at 40 epochs), the opposite direction from $t=100$ and $t=300$. Unexplained; flagged rather than rationalized.
+- **At $t=600$, reconstruction MSE (0.620) exceeds the constant-mean trivial baseline (0.386)** -- past that corruption level, the reverse chain currently does worse than emitting nothing. That is a real ceiling on how far into the forward process the denoiser is presently useful, not smoothed over in Results.
 - **The pixel-histogram diagnostic can be fooled** by salt-and-pepper speckle, which is itself bimodal. It's a cross-check on the qualitative read, not a replacement for it.
-- **t-sampling regime and data difficulty are not fully decoupled** in the Challenge 4 ladder -- no easy dataset was run under the paper-faithful shared-t regime.
+- **T-sampling regime, learning rate, and step budget are all confounded together** in the Challenge 4 ladder, not just one axis -- no easy dataset was run under the paper-faithful shared-t/1e-3-lr regime the 5M full-MNIST run used. The step-budget confound cuts in the conclusion's favor (the failing run trained longest), but the other two remain open.
 - **The 46M-vs-5M comparison is confounded by gradient steps** (7,035 vs. 46,900); it cannot distinguish "the deeper residual architecture underperforms" from "it wasn't trained long enough."
 - Not tested: longer full-MNIST training budgets for either model size, conditional/class-guided generation, or any inference-time speedup.
 
@@ -260,6 +289,8 @@ The reimplementation now trains something close to the right objective, and the 
 ## Resources
 
 - **Audited repo (pre-fix, as described in Challenge 2)**: [github.com/youngunghan/Deep-Unsupervised-Learning-using-Nonequilibrium-Thermodynamics](https://github.com/youngunghan/Deep-Unsupervised-Learning-using-Nonequilibrium-Thermodynamics)
+- **Original notebook** -- 최민서 (Choi Min-seo), [`Deep_Unsupervised_Learning_using_Nonequilibrium_Thermodynamics_mschoi.ipynb`](https://github.com/youngunghan/2025-OUTTA-Gen-AI/blob/main/Reviews/Diffusion/Deep_Unsupervised_Learning_using_Nonequilibrium_Thermodynamics_mschoi.ipynb), `2025-OUTTA-Gen-AI`
+- **Prior review** -- 최민서, ["Deep Unsupervised Learning using Nonequilibrium Thermodynamics" 논문 리뷰](https://outta.tistory.com/109), OUTTA AI Tech Blog, 2025-01-03
 - **Reference implementation**: [Sohl-Dickstein/Diffusion-Probabilistic-Models](https://github.com/Sohl-Dickstein/Diffusion-Probabilistic-Models) (Theano)
 - **Paper**: Sohl-Dickstein et al., *Deep Unsupervised Learning using Nonequilibrium Thermodynamics*, ICML 2015 ([arXiv:1503.03585](https://arxiv.org/abs/1503.03585))
 - Related on this blog: ["Numbers Eat Pipelines"]({% post_url 2026-06-22-numbers-eat-pipelines %}) -- the same lesson (a headline number that looked fine was a pipeline artifact) from a GAN's FID and a detector's mAP.
