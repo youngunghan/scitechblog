@@ -160,7 +160,7 @@ Reconstruction degrades with $t$, which is expected -- less of the original sign
 
 Full unconditional MNIST generation -- sampling from pure Gaussian noise with no conditioning -- stayed speckle at epoch 8, 40, and 100 of the 5M-parameter run, despite the reconstruction test above working and the validation loss sitting at its floor since epoch 3.
 
-That leaves an ambiguous result: is the sampler/architecture still broken in some way the reconstruction test doesn't exercise, or is 10-class MNIST from pure noise just a hard generation problem for this size of model and training budget? A single failing run can't distinguish those. So the same architecture and training loop were pointed at three easier problems and one equally-hard one, and the samples were read qualitatively as well as by pixel histogram:
+That leaves an ambiguous result: is the sampler/architecture still broken in some way the reconstruction test doesn't exercise, or is 10-class MNIST from pure noise just a hard generation problem for this size of model and training budget? A single failing run can't distinguish those. So the same architecture and training loop were pointed at two easier problems and two runs at full difficulty, and the samples were read qualitatively as well as by pixel histogram:
 
 ```mermaid
 flowchart LR
@@ -221,7 +221,7 @@ A second, important caveat: the pixel-histogram summary can be fooled. Salt-and-
 
 ## Challenge 5: A 46M-Parameter Rewrite Didn't Fix It -- And That's Not a Contradiction
 
-Alongside the fidelity fixes, two architectural changes were tried: per-example timestep sampling (raising the number of distinct $t$ values touched per batch of 128 from 1 to a measured 120 -- close to the ~120 the birthday-problem estimate $N(1-e^{-k/N})$ predicts for drawing 128 samples with replacement from ~1000 timesteps), and residual connections to stop signal collapse through a deep stack. Two distinct measurements support this, and this post keeps them distinct rather than welding them into one ratio: the old 200-layer non-residual stack's **measured per-layer spatial std** collapsed from $3.10\times10^{-2}$ to $1.13\times10^{-8}$ by layer 7 alone -- a real, directly measured number. Separately, PyTorch's default init gives this kind of stack a **theoretical per-layer activation-contraction factor** of about $0.574\times$ absent residual connections (close to the standard $1/\sqrt{3}\approx0.577$ result for this init family) -- a different quantity, describing the expected contraction under default initialization rather than what was measured layer-by-layer above. Both are real; they are not the same number, and this post does not combine them into a single implied per-layer rate. The new 8-layer residual stack instead **grows**, $4.84\times10^{-2}$ to $4.35\times10^{-1}$. Parameter count went from 4,989,396 to 46,405,524.
+Alongside the fidelity fixes, two architectural changes were tried: per-example timestep sampling (raising the number of distinct $t$ values touched per batch of 128 from 1 to a measured 120 -- close to the ~120 the birthday-problem estimate $N(1-e^{-k/N})$ predicts for drawing 128 samples with replacement from ~1000 timesteps), and residual connections to stop signal collapse through a deep stack. Two distinct measurements support this, and this post keeps them distinct rather than welding them into one ratio: the old 200-layer non-residual stack's **measured per-layer spatial std** collapsed from $3.10\times10^{-2}$ to $1.13\times10^{-8}$ by layer 7 alone, then plateaus at that fp32 floor for the remaining layers -- a real, directly measured number, and one that stops moving right where a naive endpoint-to-endpoint extrapolation from just the first 7 layers would keep going. Separately measured per-layer activation contraction under PyTorch's default init: about $0.574\times$ absent residual connections (close to the standard $1/\sqrt{3}\approx0.577$ result for this init family) -- a different quantity from the spatial-std series above, not derived from it and not to be read as its per-layer rate. Both are real, measured numbers; they are not the same measurement, and this post does not combine them into a single implied per-layer rate -- doing that from just the two endpoints of the (already-plateaued) spatial-std series is exactly the kind of unwarranted extrapolation this paragraph exists to head off. The new 8-layer residual stack instead **grows**, $4.84\times10^{-2}$ to $4.35\times10^{-1}$. Parameter count went from 4,989,396 to 46,405,524.
 
 It did not fix unconditional full-MNIST generation at the budget this was run at (Challenge 4's "denser grey noise" row).
 
@@ -260,7 +260,7 @@ And it shouldn't be read as a regression either: the 46M run trained for 15 epoc
 | Cost (idle GPU) | 5M | 46M |
 |---|---:|---:|
 | Train step | 192.9 ms | 1,124.4 ms |
-| Train epoch (469 steps) | 90.5 s (check: $192.9\times469=90{,}470\,\mathrm{ms}\approx90.5\,\mathrm{s}$) | 527.4 s (check: $1124.4\times469=527{,}344\,\mathrm{ms}\approx527.4\,\mathrm{s}$) |
+| Train epoch (469 steps) | 90.5 s (check: $192.9\times469=90{,}470\,\mathrm{ms}\approx90.5\,\mathrm{s}$) | 527.3 s (check: $1124.4\times469=527{,}343.6\,\mathrm{ms}\approx527.3\,\mathrm{s}$) |
 | Reverse step | 34.3 ms | 208.9 ms |
 | Full 999-step chain, 64 images | 34.2 s / 535 ms per image | 208.7 s / 3,261 ms per image |
 | Peak VRAM, train / sample | 1,301 / 179 MiB | 5,577 / 637 MiB |
@@ -288,6 +288,7 @@ The reimplementation now trains something close to the right objective, and the 
 
 ## Resources
 
+- **Companion post** -- [the paper review: what the 2015 paper actually says, read from an implementer's seat]({% post_url 2026-07-22-review-diffusion-probabilistic-models %})
 - **Audited repo (pre-fix, as described in Challenge 2)**: [github.com/youngunghan/Deep-Unsupervised-Learning-using-Nonequilibrium-Thermodynamics](https://github.com/youngunghan/Deep-Unsupervised-Learning-using-Nonequilibrium-Thermodynamics)
 - **Original notebook** -- 최민서 (Choi Min-seo), [`Deep_Unsupervised_Learning_using_Nonequilibrium_Thermodynamics_mschoi.ipynb`](https://github.com/youngunghan/2025-OUTTA-Gen-AI/blob/main/Reviews/Diffusion/Deep_Unsupervised_Learning_using_Nonequilibrium_Thermodynamics_mschoi.ipynb), `2025-OUTTA-Gen-AI`
 - **Prior review** -- 최민서, ["Deep Unsupervised Learning using Nonequilibrium Thermodynamics" 논문 리뷰](https://outta.tistory.com/109), OUTTA AI Tech Blog, 2025-01-03

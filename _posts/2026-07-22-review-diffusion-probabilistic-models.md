@@ -7,7 +7,7 @@ description: "A review of Sohl-Dickstein et al.'s Deep Unsupervised Learning usi
 author: seoultech
 image:
   path: assets/img/posts/paper-reviews/dpm-beta-schedule.png
-  alt: Two stacked line charts comparing the 2015 paper's beta_t noise schedule against DDPM's 2020 linear schedule, and the resulting sqrt(alpha_bar_t) signal-retention curves on a log scale
+  alt: Two stacked line charts comparing the 2015 paper's stated beta_t schedule, its own released code's beta_t schedule, and DDPM's 2020 linear schedule, and the resulting sqrt(alpha_bar_t) signal-retention curves on a log scale with the paper-formula curve's off-scale terminal zero annotated
 math: true
 mermaid: true
 ---
@@ -23,7 +23,7 @@ mermaid: true
 
 ## Why I Read This Paper
 
-I came to this paper backwards. A few days ago I published [an audit of a PyTorch reimplementation of this exact paper]({% post_url 2026-07-22-dpm-mnist-audit %}) -- a repo whose MNIST path trained a 329-million-parameter network down to a loss that turned out to be the analytic likelihood of a two-parameter constant Gaussian, because the forward posterior the paper's entire objective is built from was missing from the code. Fixing that meant reading the 2015 paper closely enough to know exactly which quantity was missing, and why the training sum starts at $t=2$, not $t=1$ -- a different kind of reading than a first-pass summary, and one that turns up things a plain walkthrough skips.
+I came to this paper backwards. This review grew out of [an audit of a PyTorch reimplementation of this exact paper]({% post_url 2026-07-22-dpm-mnist-audit %}) -- a repo whose MNIST path trained a 329-million-parameter network down to a loss that turned out to be the analytic likelihood of a two-parameter constant Gaussian, because the forward posterior the paper's entire objective is built from was missing from the code. Fixing that meant reading the 2015 paper closely enough to know exactly which quantity was missing, and why the training sum starts at $t=2$, not $t=1$ -- a different kind of reading than a first-pass summary, and one that turns up things a plain walkthrough skips.
 
 최민서's OUTTA review linked above covers the abstract, algorithm, and experiments end to end, derivations included, so I'm not re-deriving what it already derives well. This review is written from the seat of someone who has tried to run the thing: what a reader intending to *implement* the paper needs and a summary tends to smooth over -- an architectural detail that's a common source of bugs, a footnote that quietly kills half of DDPM's design space, a table cell that disagrees with the text next to it, and a sentence in Appendix C that is classifier guidance five to six years before anyone called it that.
 
@@ -68,7 +68,7 @@ Look at the **Training targets** row. For the Gaussian case, the schedule $\beta
 
 For the binomial case $\beta$ cannot be learned this way at all: "the discrete state space makes gradient ascent with frozen noise impossible" (§2.4.1), so it is set analytically to erase a constant fraction $1/T$ of signal per step, $\beta_t = (T-t+1)^{-1}$.
 
-Sampling (§2.2, Eq. 5) draws $x^{(T)} \sim \pi$ and runs the learned reverse kernel down to $x^{(0)}$, $T$ sequential network evaluations, no shortcuts. The paper is explicit these are **true samples**, not the final Gaussian's posterior mean -- a distinction its Figure App.1 caption calls out for MNIST.
+Sampling (§2.2, Eq. 5) draws $x^{(T)} \sim \pi$ and runs the learned reverse kernel down to $x^{(0)}$ -- $T-1$ sequential network evaluations plus the fixed final step (Eq. 44, Section 2 below), no shortcuts. The paper is explicit these are **true samples**, not the final Gaussian's posterior mean -- a distinction its Figure App.1 caption calls out for MNIST.
 
 ### 2. From an intractable integral to a trainable bound
 
@@ -116,16 +116,27 @@ But the sentence that matters most is a footnote on the word "learn" in that sam
 
 The paper spends a page justifying gradient ascent on $\beta$ with the reparameterization trick and "frozen noise," then, in a footnote, says it probably didn't need to. This is the direct textual ancestor of DDPM's decision, five years later, to fix $\beta_t$ to a hand-set schedule and drop it from the learned parameters entirely -- DDPM states that design choice without citing this footnote, but the idea is here first.
 
-That gives a natural comparison: the paper's own analytic schedule, apparently just as good for Gaussian diffusion per the footnote, is $\beta_t = (T-t+1)^{-1}$, i.e. `1/linspace(T, 2, T)`. DDPM's schedule is linear from $10^{-4}$ to $0.02$. Both are "fixed" in the sense the footnote endorses, but they look nothing alike:
+That gives a natural comparison, but it takes a moment to attribute correctly. The Gaussian case has no closed-form schedule of its own anywhere in this paper -- Table App.1's "Training targets" row, and the more careful text above it, both say $\beta_{2\ldots T}$ is *learned* for Gaussian diffusion, not given analytically. What footnote 2 licenses is reusing the schedule the paper derives for the *other* branch: the binomial case's closed form from Section 1 above, $\beta_t = (T-t+1)^{-1}$ (§2.4.1, where it's forced by "the discrete state space makes gradient ascent with frozen noise impossible" -- there's no gradient to take, so it has to be set analytically). That formula is never derived for Gaussian diffusion in this paper; footnote 2 is the entire justification for carrying it over. DDPM's schedule is linear from $10^{-4}$ to $0.02$. Both are "fixed" in the sense the footnote endorses, but they look nothing alike -- and, as the next two paragraphs show, the binomial formula's own closed form and the paper's own released code for it don't even agree with each other:
 
 ```python
-"""Compare the 2015 paper's schedule against DDPM's (2020) linear schedule.
-Self-contained: run with numpy installed."""
+"""Compare the 2015 paper's *stated* schedule, its own *released code*'s
+schedule, and DDPM's (2020) linear schedule. Self-contained: run with numpy
+installed."""
 import numpy as np
 
 
-def sohl_dickstein_2015_schedule(T: int) -> np.ndarray:
-    """beta_t = 1 / linspace(T, 2, T), Sec. 2.4.1 (beta_t = (T-t+1)^-1)."""
+def sohl_dickstein_2015_paper_schedule(T: int) -> np.ndarray:
+    """beta_t = (T-t+1)^-1 for t=1..T -- the binomial formula from Sec.
+    2.4.1, carried over to Gaussian diffusion on footnote 2's authority."""
+    t = np.arange(1, T + 1)
+    return 1.0 / (T - t + 1)
+# end def
+
+
+def sohl_dickstein_2015_released_code_schedule(T: int) -> np.ndarray:
+    """What the paper's own released Theano code actually computes
+    (model.py): beta_baseline = 1./np.linspace(trajectory_length, 2.,
+    trajectory_length) -- (T-t+2)^-1, not (T-t+1)^-1."""
     return 1.0 / np.linspace(T, 2, T)
 # end def
 
@@ -143,19 +154,27 @@ def alpha_bar(beta_t: np.ndarray) -> np.ndarray:
 
 
 T = 1000
-beta_2015, beta_ddpm = sohl_dickstein_2015_schedule(T), ddpm_2020_schedule(T)
-print(f"2015: beta_1={beta_2015[0]:.4f} beta_T={beta_2015[-1]:.2f} alpha_bar_T={alpha_bar(beta_2015)[-1]:.2e}")
-print(f"DDPM: beta_1={beta_ddpm[0]:.4f} beta_T={beta_ddpm[-1]:.2f} alpha_bar_T={alpha_bar(beta_ddpm)[-1]:.2e}")
-# 2015: beta_1=0.0010 beta_T=0.50 alpha_bar_T=9.94e-04
-# DDPM: beta_1=0.0001 beta_T=0.02 alpha_bar_T=4.04e-05
+beta_paper = sohl_dickstein_2015_paper_schedule(T)
+beta_code = sohl_dickstein_2015_released_code_schedule(T)
+beta_ddpm = ddpm_2020_schedule(T)
+print(f"paper formula: beta_1={beta_paper[0]:.4f} beta_T={beta_paper[-1]:.2f} alpha_bar_T={alpha_bar(beta_paper)[-1]:.2e}")
+print(f"released code: beta_1={beta_code[0]:.4f} beta_T={beta_code[-1]:.2f} alpha_bar_T={alpha_bar(beta_code)[-1]:.2e}")
+print(f"DDPM:          beta_1={beta_ddpm[0]:.4f} beta_T={beta_ddpm[-1]:.2f} alpha_bar_T={alpha_bar(beta_ddpm)[-1]:.2e}")
+# paper formula: beta_1=0.0010 beta_T=1.00 alpha_bar_T=0.00e+00
+# released code: beta_1=0.0010 beta_T=0.50 alpha_bar_T=9.94e-04
+# DDPM:          beta_1=0.0001 beta_T=0.02 alpha_bar_T=4.04e-05
 ```
 
-_This is the schedule math behind this post's cover image; the full plot (matplotlib, two stacked panels rather than one dual-axis panel, since $\beta_t$ and $\sqrt{\bar\alpha_t}$ live on incompatible scales) adds only plotting calls on top of the arrays above._
+Both closed forms above are exact, and worth setting side by side, because they disagree about where the trajectory ends. The **paper's stated formula**, $\beta_t = (T-t+1)^{-1}$, has an exact closed-form cumulative product: telescoping the product term by term gives $\bar\alpha_t = 1 - t/T$, no approximation. You can check this yourself -- at $t=500$, $T=1000$, that's $\bar\alpha_t = 1 - 500/1000 = 0.500000$ exactly. Which makes $\bar\alpha_T = 0$ exactly at $t=T$: the schedule really does erase a constant fraction $1/T$ of the original signal every step, all the way to nothing, exactly as its own "constant fraction of signal per step" framing (Section 1 above) claims.
 
-![Two stacked line charts comparing the 2015 paper's beta_t noise schedule against DDPM's 2020 linear schedule, and the resulting sqrt(alpha_bar_t) signal-retention curves on a log scale](/assets/img/posts/paper-reviews/dpm-beta-schedule.png)
-_Same Gaussian forward kernel, two very different $\beta_t$ schedules (original chart, computed and rendered for this post). The 2015 schedule ($\beta_1{\approx}0.001 \to \beta_{1000}{\approx}0.5$) holds more signal for the first 800-900 steps than DDPM's linear schedule does, then collapses almost all of it in the last ~1% of steps; DDPM's schedule bleeds signal away more evenly across the whole trajectory. Both reach $\bar\alpha_T$ near $10^{-3}$-$10^{-5}$, i.e. essentially no signal left by $t=T$, but by very different routes._
+The **paper's own released reference implementation** computes something else: `beta_baseline = 1./np.linspace(trajectory_length, 2., trajectory_length)`, i.e. $\beta_t = (T-t+2)^{-1}$, not $(T-t+1)^{-1}$ -- a one-index shift easy to miss if you transcribe `1/linspace(T, 2, T)` by eye and assume it matches the paper's prose formula. Push that recursion through the same telescoping argument and it also has a clean closed form, $\bar\alpha_t = (T-t+1)/(T+1)$, so $\bar\alpha_T = 1/(T+1) \approx 9.99\times10^{-4}$ -- not zero. Actually executing `1./np.linspace(T, 2, T)` for $T=1000$ (the print statements above) lands a hair below that, $\bar\alpha_T \approx 9.94\times10^{-4}$, because NumPy's `linspace` step between $T$ and $2$ is $(T-2)/(T-1) \approx 0.999$, not exactly $1$, so the array isn't quite the integer sequence $T, T-1, \ldots, 2$ the closed form assumes -- close enough at $T=1000$ that the two only disagree in the third significant figure.
 
-Worth being precise here: the companion audit post reports a third number easy to conflate with either schedule above, $\bar\alpha_T \approx 5.5\times10^{-14}$ with 79% of trained timesteps at $\sqrt{\bar\alpha_t} < 0.1$. That belongs to **neither** schedule above -- it's what the audited repo's pre-fix code actually ran, `beta = linspace(0.01, 0.05, 1000)`, steeper at both ends than DDPM's own schedule and unrelated to this paper's analytic form. Exactly the kind of mix-up worth checking directly against the source, not the first schedule-shaped array you find in someone's fork.
+So the paper's stated formula and the paper's own released code disagree about the terminal step: $\bar\alpha_T = 0$ exactly by the text, $\bar\alpha_T \approx 9.94\times10^{-4}$ by the code the same authors shipped. That's a **fourth internal inconsistency**, different in kind from the three cataloged at the end of this section -- those are text disagreeing with text; this is text disagreeing with code. It also matters more than the other three for anyone reimplementing this paper: the companion audit post's reimplementation traces back, through a chain of refactors, to this exact released repository, and `1./np.linspace(T, 2, T)` -- the released-code variant, not the paper's own stated formula -- is the schedule a reimplementer following that lineage actually inherits.
+
+![Three stacked-panel line charts comparing the 2015 paper's stated beta_t schedule, its own released code's beta_t schedule, and DDPM's 2020 linear schedule, and the resulting sqrt(alpha_bar_t) signal-retention curves on a log scale, with the paper-formula curve's off-scale terminal zero annotated](/assets/img/posts/paper-reviews/dpm-beta-schedule.png)
+_Same Gaussian forward kernel, three $\beta_t$ schedules (original chart, computed and rendered for this post). The paper's stated formula and its own released code track each other almost exactly until the last few steps ($\beta_1{=}0.001$ for both), since they differ by only one index; both cross above DDPM's linear schedule at $t\approx96$ -- about 9.6% into the trajectory -- and hold more signal than DDPM for the rest of the run. Only in the final step do the two 2015 curves split from each other: the stated formula's $\bar\alpha_t$ crashes to exactly $0$ (off-scale on this log axis, marked with an $\times$ at the floor), while the released code's $\bar\alpha_T \approx 9.94\times10^{-4}$ -- both still above DDPM's $\bar\alpha_T \approx 4.04\times10^{-5}$._
+
+Worth being precise here: the companion audit post reports a fourth number easy to conflate with any schedule above, $\bar\alpha_T \approx 5.5\times10^{-14}$ with 79% of trained timesteps at $\sqrt{\bar\alpha_t} < 0.1$. That belongs to **none** of the three schedules above -- it's what the audited repo's pre-fix code actually ran, `beta = linspace(0.01, 0.05, 1000)`, steeper at both ends than DDPM's own schedule and unrelated to either variant of this paper's analytic form. Exactly the kind of mix-up worth checking directly against the source, not the first schedule-shaped array you find in someone's fork.
 
 ### 4. The architecture: two pathways, and time is not an input
 
@@ -183,9 +202,9 @@ $$
 z^{\mu}_i = \sum_{j=1}^{J} y^{\mu}_{ij}\, g_j(t), \qquad g_j(t) = \frac{\exp\!\big(-(t-\tau_j)^2 / 2w^2\big)}{\sum_{k=1}^{J} \exp\!\big(-(t-\tau_k)^2 / 2w^2\big)}, \tag{62,63}
 $$
 
-with bump centers $\tau_j$ spread across $(0,T)$ and shared width $w$. This is a learned-coefficient, fixed-basis interpolation across timesteps -- the opposite of DDPM's approach, which shares one network across all $t$ and injects a sinusoidal position embedding into every residual block. A reimplementation that embeds $t$ as a network input, DDPM-style, builds the wrong architecture. Neither $J$ nor $w$ is ever given a numeric value in the paper -- treat both as unspecified.
+with bump centers $\tau_j$ spread across $(0,T)$, spaced $w$ apart -- $w$ is the **spacing between adjacent bump centers**, not a shared width parameter, despite also setting the Gaussian's variance in Eq. 63's denominator. Get that wrong and a reimplementation either spaces the bumps incorrectly or gives every bump a width unrelated to how densely they're packed. This is a learned-coefficient, fixed-basis interpolation across timesteps -- the opposite of DDPM's approach, which shares one network across all $t$ and injects a sinusoidal position embedding into every residual block. A reimplementation that embeds $t$ as a network input, DDPM-style, builds the wrong architecture. Neither $J$ nor $w$ is ever given a numeric value in the paper -- treat both as unspecified.
 
-The mean and diagonal covariance outputs are parameterized as small perturbations around the forward kernel itself, $\Sigma_{ii} = \sigma\big(z^\Sigma_i + \sigma^{-1}(\beta_t)\big)$ and $\mu_i = (x_i - z^\mu_i)(1-\Sigma_{ii}) + z^\mu_i$ (Eqs. 64-65) -- a network outputting all zeros reproduces the forward kernel exactly, so the network's job is only to predict a correction.
+The mean and diagonal covariance outputs are parameterized as small perturbations around the forward kernel itself, $\Sigma_{ii} = \sigma\big(z^\Sigma_i + \sigma^{-1}(\beta_t)\big)$ and $\mu_i = (x_i - z^\mu_i)(1-\Sigma_{ii}) + z^\mu_i$ (Eqs. 64-65) -- a network outputting all zeros recovers the forward kernel's variance exactly and its mean to first order in $\beta_t$ ($x_i(1-\beta_t)$ vs. the forward kernel's $x_i\sqrt{1-\beta_t}$; the two agree as $\beta_t \to 0$ but diverge at the large $\beta_t$ this schedule reaches near $t=T$), so the network's job is only to predict a correction.
 
 ### 5. Two ideas that resurfaced later, under different names
 
@@ -220,7 +239,7 @@ Strip the notation and this says: **shift the reverse-step mean by the covarianc
 | **CIFAR-10** | **5.4 ± 0.2 bits/pixel** | **11.5 ± 0.2 bits/pixel** |
 | MNIST | see Table 2 | see Table 2 |
 
-_Table 1 (numbers from the paper, Table 1; see Eq. 12 in the paper for the definition of $K$). $L_{\mathrm{null}}$ is the log-likelihood of the base distribution $\pi(x^{(0)})$ scored on the same data -- the right column is the improvement over that null model. All datasets except Binary Heartbeat were rescaled to unit variance before computing log-likelihood, and CIFAR-10 is the only row carrying an error bar (from the released reference implementation's standard-error report). CIFAR-10 is bold as the paper's main quantitative comparison point for natural images._
+_Table 1 (numbers from the paper, Table 1; see Eq. 12 in the paper for the definition of $K$). $L_{\mathrm{null}}$ is the log-likelihood of the base distribution $\pi(x^{(0)})$ scored on the same data -- the right column is the improvement over that null model. All datasets except Binary Heartbeat were rescaled to unit variance before computing log-likelihood, and CIFAR-10 is the only row carrying an error bar (from the released reference implementation's standard-error report). CIFAR-10 is bold as the highest $K$ in the table._
 
 Two caveats. These are differential-entropy-style bounds on unit-variance-rescaled continuous data, so **they are not on the same scale as modern bits/dim figures** on 8-bit discrete pixels (DDPM's $\le 3.75$ bits/dim on CIFAR-10) -- don't compare directly.
 
@@ -267,7 +286,7 @@ The paper exercises the Eq. 61 machinery twice. On CIFAR-10 (Figure 3), holdout 
 
 ## Conclusion & Insight
 
-This paper reads, nine years later, less like "one interesting idea" and more like a blueprint built out piece by piece by other people -- the forward/reverse Gaussian process, the per-step KL objective, the entropy bounds, and the guidance mechanism are all here in 2015 form, years before each became a headline result under someone else's name.
+This paper reads, eleven years later, less like "one interesting idea" and more like a blueprint built out piece by piece by other people -- the forward/reverse Gaussian process, the per-step KL objective, the entropy bounds, and the guidance mechanism are all here in 2015 form, years before each became a headline result under someone else's name.
 
 ### Strengths
 
@@ -279,7 +298,7 @@ This paper reads, nine years later, less like "one interesting idea" and more li
 ### Limitations
 
 - **No dedicated limitations section, no algorithm box.** The Conclusion is one paragraph with no critique of the method; every limitation here was assembled from scattered caveats, not a place the authors put together themselves.
-- **Cost scales linearly with trajectory length**, and the paper's own flexibility argument (smaller $\beta$ needs a longer trajectory) works directly against sampling speed -- 1000 sequential network evaluations for the image experiments, no shortcut available (this predates DDIM-style step-skipping by five years).
+- **Cost scales linearly with trajectory length**, and the paper's own flexibility argument (smaller $\beta$ needs a longer trajectory) works directly against sampling speed -- 999 sequential network evaluations for the image experiments ($T=1000$ for MNIST, CIFAR-10, and dead leaves; $T=500$ for bark), no shortcut available (this predates DDIM-style step-skipping by five years).
 - **The MNIST evaluation metric is weak**, and the paper's own "Perfect model" row proves it: ground-truth data scores only marginally above a working model, so the metric has limited power to separate good models from great ones.
 - **Key hyperparameters are simply missing.** $J$ and $w$ of the bump basis are never given numeric values; nor are parameter counts, learning rates, batch sizes, or wall-clock time for any image experiment. A from-scratch reproduction has to guess.
 - **Internal inconsistencies**, cataloged above, mean the paper can't quite be read as an unambiguous spec -- Table App.1 and the prose disagree twice, and one number (0.2 vs. 0.5) is only resolvable by doing the arithmetic yourself.
