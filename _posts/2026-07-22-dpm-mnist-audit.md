@@ -69,7 +69,7 @@ The plateau sits on top of the two-scalar row to four significant figures. A 329
 
 A matching plateau is a symptom, not a diagnosis. To find the cause, I pulled the [original Theano reference implementation](https://github.com/Sohl-Dickstein/Diffusion-Probabilistic-Models) the paper's authors published and diffed it against the audited repo's image-model path, term by term.
 
-The paper's training objective is a KL divergence between the model's predicted reverse-step Gaussian and the **true forward posterior** $q(x^{(t-1)} \mid x^{(t)}, x^{(0)})$ -- the distribution you get by conditioning the forward noising process on both endpoints. Everything downstream depends on that posterior being computed and fed into the loss. Here is the reference, `model.py`, doing exactly that:
+The paper's training objective is a KL divergence between the model's predicted reverse-step Gaussian and the **true forward posterior** $q(x^{(t-1)} \mid x^{(t)}, x^{(0)})$ -- the distribution you get by conditioning the forward noising process on both endpoints. Everything downstream depends on that posterior being computed and fed into the loss. (For the full derivation of this bound -- why it's a lower bound on the log-likelihood, and why the training sum starts at $t=2$ -- see [the companion paper review]({% post_url 2026-07-22-review-diffusion-probabilistic-models %}).) Here is the reference, `model.py`, doing exactly that:
 
 ```text
 def cost_single_t(self, X_noiseless):
